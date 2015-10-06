@@ -1,0 +1,30 @@
+{
+	"name": "ud2",
+	"description": "UD2 library",
+	"version": "0.0.0",
+	"authors": [ "Peak", "Toad" ],
+	"keywords": [ "js", "css", "ud2" ],
+	"ignore": [
+		"/*",
+		"!bower.json",
+		"!license.txt",
+		"!readme.md",
+		"!/src/",
+		"!/test/",
+		"!/dist/"
+	],
+	"main": [
+		"dist/css/ud2ui.css",
+		"dist/js/ud2ui.js",
+		"dist/js/ud2ui.oldbrowser.js",
+		"dist/ico/inf.eot",
+		"dist/ico/inf.svg",
+		"dist/ico/inf.ttf",
+		"dist/ico/inf.woff"
+	],
+	"private": false,
+	"license": "MIT",
+	"dependencies": {
+		"jQuery": "2.1.4"
+	}
+}

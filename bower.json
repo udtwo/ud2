@@ -14,13 +14,13 @@
 		"!/dist/"
 	],
 	"main": [
-		"dist/css/ud2ui.css",
-		"dist/js/ud2ui.js",
-		"dist/js/ud2ui.oldbrowser.js",
-		"dist/ico/inf.eot",
-		"dist/ico/inf.svg",
-		"dist/ico/inf.ttf",
-		"dist/ico/inf.woff"
+		"dist/css/ud2.css",
+		"dist/js/ud2.js",
+		"dist/js/ud2.oldbrowser.js",
+		"dist/ico/ud2.eot",
+		"dist/ico/ud2.svg",
+		"dist/ico/ud2.ttf",
+		"dist/ico/ud2.woff"
 	],
 	"private": false,
 	"license": "MIT",

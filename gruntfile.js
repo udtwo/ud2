@@ -1,4 +1,4 @@
-﻿/// <binding BeforeBuild='default' ProjectOpened='default' />
+﻿/// <binding BeforeBuild='default' />
 "use strict";
 
 module.exports = function (grunt) {
@@ -21,7 +21,7 @@ module.exports = function (grunt) {
 					preserveComments: false,
 					// 头注释
 					banner: '/*! <%= pkg.name %> - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) \n',
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n',
 					// 结尾注释
 					footer: '\n/* lasted： <%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> */'
 				},
@@ -34,7 +34,7 @@ module.exports = function (grunt) {
 					mangle: true,
 					preserveComments: false,
 					banner: '/*! <%= pkg.name %>(oldbrowser) - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) \n',
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n',
 					footer: '\n/* lasted： <%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> */'
 				},
 				files: {
@@ -50,7 +50,7 @@ module.exports = function (grunt) {
 					compress: true,
 					// 头注释
 					banner: '/*! <%= pkg.name %>.css - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) \n',
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n',
 					footer: '\n/* lasted： <%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> */'
 				},
 				files: {
@@ -107,5 +107,5 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-less');
 
 	// 建立发布任务
-	grunt.registerTask('default', ['clean', 'copy', 'less', 'uglify']);
+	grunt.registerTask('default', ['clean', 'copy', 'less', 'uglify', 'watch']);
 }

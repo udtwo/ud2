@@ -1,0 +1,172 @@
+﻿/**
+ * form.less
+ * 表单的默认样式
+ */
+
+// 导入必要的文件
+@import "../import/import.less";
+
+/**
+ * 公用样式
+ */
+// 控件默认宽度
+@CtrlWidth: @BaseSize * 12.5;
+// 控件默认高度
+@CtrlHeight: 34px;
+// 控件上下方向内边距
+@CtrlPaddingTB: 5px;
+// 控件左右方向内边距
+@CtrlPaddingLR: @BaseSize / 3 * 2;
+// 控件默认行高
+@CtrlLineHeight: 22px;
+// 控件尺寸梯度 小尺寸 -1 大尺寸 +1
+@CtrlSizeGradient: 2px;
+
+// 表单控件的公用样式
+.btn, .txtbox, .addon {
+	display: inline-block; // 把此元素设置成 inline-block，目的是当 .btn 设置在非按钮类元素上时能把显示形式调整为内联块级样式
+	height: @CtrlHeight; // 默认控件高度
+	padding: @CtrlPaddingTB @CtrlPaddingLR;
+	line-height: @CtrlLineHeight;
+	border: 1px solid @ColorWhiteBorder;
+	border-radius: @BorderRadius;
+	vertical-align: middle;
+	.boxSizing('border-box'); // 所有控件默认按照 border-box 的方式计算
+	// 为按钮取消默认的系统样式
+	.appearance();
+	// 为按钮添加一个过渡动画
+	.transition('border-color .3s, background .3s');
+	// 当按钮存在禁用、只读属性时显示无法交互样式
+	&[disabled], &[readonly] {
+		cursor: not-allowed;
+		opacity: .7;
+	}
+
+	// 小尺寸
+	&.sm {
+		font-size: @BaseSize - @CtrlSizeGradient;
+		height: @CtrlHeight - @CtrlSizeGradient * 2;
+		line-height: @CtrlLineHeight - @CtrlSizeGradient * 2;
+	}
+
+	// 大尺寸
+	&.lg {
+		font-size: @BaseSize + @CtrlSizeGradient;
+		height: @CtrlHeight + @CtrlSizeGradient * 2;
+		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
+	}
+}
+
+/**
+ * 按钮样式
+ */
+// 按钮颜色函数
+.btn-color(@Now, @Hover, @Active) {
+	color: @ColorWhite;
+	border-color: @Now;
+	background: @Now;
+	// 设置按钮被 hover 的外观变化
+	&:not([disabled]):hover,
+	&:not([disabled]):focus {
+		border-color: @Hover;
+		background: @Hover;
+	}
+	// 设置按钮被 active 的外观变化
+	&:not([disabled]):active {
+		border-color: @Active;
+		background: @Active;
+	}
+}
+// 按钮默认样式
+.btn {
+	color: @ColorDark;
+	background: @ColorWhite;
+	cursor: pointer;
+	.userSelect();
+
+	// 设置按钮被 hover 的外观变化
+	&:not([disabled]):hover, 
+	&:not([disabled]):focus {
+		background: @ColorWhiteBackLight;
+	}
+	// 设置按钮被 active 的外观变化
+	&:not([disabled]):active {
+		background: @ColorWhiteBackDark;
+	}
+}
+// 蓝色按钮颜色样式
+.btn-blue, .btn.info, .ctrl-group.info > .btn {
+	.btn-color(@ColorBlue, @ColorBlueDeeper, @ColorBlueDeepest);
+}
+// 绿色按钮颜色样式
+.btn-green, .btn.success, .ctrl-group.success > .btn {
+	.btn-color(@ColorGreen, @ColorGreenDeeper, @ColorGreenDeepest);
+}
+// 橙色按钮颜色样式
+.btn-orange, .btn.warning, .ctrl-group.warning > .btn {
+	.btn-color(@ColorOrange, @ColorOrangeDeeper, @ColorOrangeDeepest);
+}
+// 红色按钮颜色样式
+.btn-red, .btn.danger, .ctrl-group.danger > .btn {
+	.btn-color(@ColorRed, @ColorRedDeeper, @ColorRedDeepest);
+}
+// 天蓝色按钮颜色样式
+.btn-skyblue {
+	.btn-color(@ColorSkyBlue, @ColorSkyBlueDeeper, @ColorSkyBlueDeepest);
+}
+// 紫色按钮颜色样式
+.btn-violet {
+	.btn-color(@ColorViolet, @ColorVioletDeeper, @ColorVioletDeepest);
+}
+// 黄色按钮颜色样式
+.btn-yellow {
+	.btn-color(@ColorYellow, @ColorYellowDeeper, @ColorYellowDeepest);
+}
+// 深色按钮颜色样式
+.btn-dark {
+	.btn-color(@ColorDark, @ColorDarkDeeper, @ColorDarkDeepest);
+}
+
+/**
+ * 选框样式
+ */
+// 单选与多选的默认样式
+.check, .radio {
+	display: inline-block;
+	width: 18px; height: 18px;
+	border: 1px solid @ColorWhiteBackDark;
+	background-repeat: no-repeat;
+	background-image: url('data:image/svg+xml;base64,77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgdmlld0JveD0iMCAwIDM2IDE4IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzNiAxODsiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4NCgkuc3Qwe2ZpbGw6I0ZGRkZGRjt9DQo8L3N0eWxlPg0KPHBhdGggY2xhc3M9InN0MCIgZD0iTTE0LjQsNi45YzAsMC4yLTAuMSwwLjMtMC4yLDAuNWwtNS44LDUuOGMtMC4xLDAuMS0wLjMsMC4yLTAuNSwwLjJzLTAuMy0wLjEtMC41LTAuMkw0LjEsOS44DQoJQzQsOS43LDMuOSw5LjYsMy45LDkuNFM0LDksNC4xLDguOUw1LjEsOGMwLjEtMC4xLDAuMy0wLjIsMC41LTAuMkM1LjcsNy44LDUuOCw3LjksNiw4bDIsMmw0LjQtNC40YzAuMS0wLjEsMC4zLTAuMiwwLjUtMC4yDQoJczAuMywwLjEsMC41LDAuMmwwLjksMC45QzE0LjMsNi42LDE0LjQsNi44LDE0LjQsNi45eiIvPg0KPGNpcmNsZSBjbGFzcz0ic3QwIiBjeD0iMjciIGN5PSI5IiByPSIzIi8+DQo8L3N2Zz4NCg==');
+	background-size: 36px 18px;
+	vertical-align: text-top;
+	cursor: pointer;
+	.boxSizing('border-box');
+	.transition('border-color .3s, border-width .3s, background .3s');
+	.appearance();
+	
+	// 滑动样式
+	&:not(:disabled):hover {
+		border-width: 2px;
+		border-color: @ColorBlue;
+	}
+	// 选中样式
+	&:checked {
+		border-width: 2px;
+		border-color: @ColorBlue;
+		background-color: @ColorBlue;
+		background-position-y: -2px;
+	}
+	// 禁用样式
+	&:disabled {
+		opacity: @OpacityNoImport;
+	}
+}
+// 单选样式
+.check {
+	background-position: -2px 18px;
+}
+// 多选样式
+.radio {
+	border-radius: 9px;
+	background-position: -20px 18px;
+}

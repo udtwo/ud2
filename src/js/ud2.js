@@ -4,7 +4,7 @@ if (typeof $ === 'undefined') throw new Error('ud2ui库需要JQuery支持');
 var ud2 = (function (window, $) {
 	"use strict";
 
-	// #region 私有变量
+	// #region 库变量
 
 	var // 页面的 document 对象
 		document = window.document,
@@ -67,7 +67,7 @@ var ud2 = (function (window, $) {
 			return support;
 		}()),
 		// 动画函数
-		animationFrame = (function () {
+		animateFrame = (function () {
 			return
 			window.requestAnimationFrame ||
 			window.webkitRequestAnimationFrame ||
@@ -76,6 +76,22 @@ var ud2 = (function (window, $) {
 			window.msRequestAnimationFrame ||
 			function (callback) { window.setTimeout(callback, 1000 / 60); };
 		}),
+		// 正则表达式
+		reg = {
+			// 日期正则
+			// 可以匹配 xxxx(-|.|/)x{1,2}(-|.|/)x{1,2}
+			date: /^(?:[12]\d{3}([\.\-\/])(?:(?:0?[13578]|1[02])\1(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\1(?:0?[1-9]|[12]\d|30)|0?2\1(?:0?[1-9]|1\d|2[0-8]))$|[12]\d(?:[02468][048]|[13579][26])([\.\-\/])(?:(?:0?[13578]|1[02])\2(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\2(?:0?[1-9]|[12]\d|30)|0?2\2(?:0?[1-9]|1\d|2[0-9])))$/
+		},
+
+		// 控件 GUID 生成
+		ctrlGUID = (function () {
+			var guid = 0;
+			return {
+				create: function () {
+					return 'nonamed-' + (guid++);
+				}
+			};
+		}()),
 		// 当前时间
 		getTime = Date.now || function getTime() { return new Date().getTime(); },
 
@@ -91,14 +107,6 @@ var ud2 = (function (window, $) {
 		MOUSE_MOVE = 'mousemove',
 		MOUSE_UP = 'mouseup',
 		MOUSE_OUT = 'mouseout',
-		// 触点 TAP/PRESS 事件有效长度
-		POINTER_EVENT_VALIDLENGTH = 5,
-		// 用于综合触点/触屏/鼠标按下时的事件名
-		EVENT_DOWN = [POINTER_DOWN, TOUCH_START, MOUSE_DOWN].join(' '),
-
-		// 日期正则
-		// 可以匹配 xxxx(-|.|/)x{1,2}(-|.|/)x{1,2}
-		regDate = /^(?:[12]\d{3}([\.\-\/])(?:(?:0?[13578]|1[02])\1(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\1(?:0?[1-9]|[12]\d|30)|0?2\1(?:0?[1-9]|1\d|2[0-8]))$|[12]\d(?:[02468][048]|[13579][26])([\.\-\/])(?:(?:0?[13578]|1[02])\2(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\2(?:0?[1-9]|[12]\d|30)|0?2\2(?:0?[1-9]|1\d|2[0-9])))$/,
 
 		// 用于克隆的空 jQuery 对象
 		$div = $('<div />'),
@@ -206,7 +214,35 @@ var ud2 = (function (window, $) {
 	// #endregion
 
 	// #region ud2 库私有方法
+	
+	// 在生成新控件前进行传入参数的检测
+	// 需要为此函数提供一个 this 指针指向地址，此 this 一般情况为指向一个控件集合
+	// 内部已包含参数 jQuery 对象检测 chekcJQElements
+	// 当传入的 jQuery 对象不是 1 时自动迭代多次控件的 create 方法
+	// $elements[string, jQuery]: 待检测的变量
+	// return[jQuery] => 返回每个检测后的 jQuery 对象
+	// - 当 jQuery 的 length 不为 1 则迭代多次创建操作，且不返回任何值
+	function checkCreateControls($elements) {
+		// 对传入的 $elements 进行 jQuery 检测
+		$elements = checkJQElements($elements);
 
+		// 如果检测结果为空则生成一个空 $div 对象
+		if ($elements.length === 0)
+			return $div.clone();
+		// 如果检测结果为一个则返回该 jQuery 对象
+		if ($elements.length === 1) {
+			return $elements.attr(prefixLibName + this.name + '-state')
+			? undefined : $elements;
+		}
+		// 当长度大于 1 时，则迭代出发多次 create 方法
+		var // 迭代长度
+			len = $elements.length,
+			// 迭代种子
+			i = 0;
+
+		// 迭代 create 方法
+		for (; i < len; i++) this.create($elements.eq(i));
+	}
 	// 检测传入的参数是否为 jQuery 对象
 	// 如果是字符串则通过字符串生成 jQuery 对象
 	// 如果检测非 jQuery 对象或无法转换为 jQuery 对象则转换为空 jQuery 对象
@@ -230,6 +266,59 @@ var ud2 = (function (window, $) {
 		$elements.each(function () {
 			callbacks($(this));
 		});
+	}
+
+	// 获取元素绑定的控件名称集合
+	// 此功能用于获取 jQuery 元素绑定的控件名称集合
+	// $element[jQuery]: jQuery 对象
+	// return[Array]: jQuery 对象的控件名称集合
+	function getName($element) {
+		var // 原控件名称集合
+			ud2Old = ($element.attr(libName) || '').split(' '),
+			// 创建一个新的集合用于控件名称过滤
+			ud2Arr = [];
+
+		// 迭代控件名称集合过滤掉不存在的属性
+		ud2Old.forEach(function (item) {
+			if (item.length !== 0) ud2Arr.push(item);
+		});
+
+		// 返回集合
+		return ud2Arr;
+	}
+	// 查询元素的控件名称集合中是否存在某个控件名称
+	// 此功能用于查询 jQuery 元素是否存在某个控件名称
+	// $element[jQuery]: jQuery 对象
+	// name[string]: 控件名称
+	// return[bool]: 是否存在某个控件名称
+	function hasName($element, name) {
+		var ud2Arr = getName($element);
+		// 返回存在情况
+		return ud2Arr.indexOf(name) > -1 ? true : false;
+	}
+	// 向元素控件名称集合中插入一个新的控件名称
+	// 此功能用于向 jQuery 元素中插入一个新的控件名称
+	// $element[jQuery]: jQuery 对象
+	// name[string]: 控件名称
+	function addName($element, name) {
+		if (ud2[getControlsNameByName(name)]) {
+			if (!hasName($element, name)) {
+				var ud2Arr = getName($element);
+				ud2Arr.push(name);
+				$element.attr(libName, ud2Arr.join(' '));
+			}
+		}
+	}
+	// 通过控件标准名称获取控件在集合对象中的名称(控件对象名称)
+	// name[string]: 控件标准名称
+	// return[string]: 控件对象名称
+	function getControlsNameByName(name) {
+		var nameArr = name.split('-'), i = 1, l = nameArr.length;
+		if (l > 1) for (; i < l; i++) 
+			if (nameArr[i].length > 0) {
+				nameArr[i] = nameArr[i].substr(0, 1).toUpperCase() + nameArr[i].substr(1);
+			}
+		return nameArr.join('');
 	}
 
 	// 设置 options 选项
@@ -268,7 +357,9 @@ var ud2 = (function (window, $) {
 				// tap 的最大时间间隔，超出时间间隔则视为 press
 				tapMaxTime: 300,
 				// swipe 的最大时间间隔
-				swipeMaxTime: 500
+				swipeMaxTime: 500,
+				// 触点 TAP/PRESS 事件有效长度
+				pointerValidLength: 5
 			},
 			// 回调函数
 			callbacks = {
@@ -278,13 +369,13 @@ var ud2 = (function (window, $) {
 				tap: $.noop,
 				// 长按
 				press: $.noop,
-				// 快速左滑动（< SWIPE_MAXTIME && >= POINTER_EVENT_VALIDLENGTH）
+				// 快速左滑动
 				swipeLeft: $.noop,
-				// 快速右滑动（< SWIPE_MAXTIME && >= POINTER_EVENT_VALIDLENGTH）
+				// 快速右滑动
 				swipeRight: $.noop,
-				// 快速上滑动（< SWIPE_MAXTIME && >= POINTER_EVENT_VALIDLENGTH）
+				// 快速上滑动
 				swipeTop: $.noop,
-				// 快速下滑动（< SWIPE_MAXTIME && >= POINTER_EVENT_VALIDLENGTH）
+				// 快速下滑动
 				swipeBottom: $.noop,
 				// 触点按下
 				down: $.noop,
@@ -778,8 +869,8 @@ var ud2 = (function (window, $) {
 
 				// 确定是否为第一次触碰点的弹起操作
 				if (interval) {
-					// 如果x或y方向移动距离不超过 POINTER_EVENT_VALIDLENGTH
-					if (absMove.x < POINTER_EVENT_VALIDLENGTH && absMove.y < POINTER_EVENT_VALIDLENGTH) {
+					// 如果x或y方向移动距离不超过 options.pointerValidLength
+					if (absMove.x < options.pointerValidLength && absMove.y < options.pointerValidLength) {
 						// 如果外层滚动条未滚动
 						if (!isParentsScrolling) {
 							// 检测是否 tap 方式
@@ -793,9 +884,9 @@ var ud2 = (function (window, $) {
 						}
 					}
 
-					// 当移动距离超过 POINTER_EVENT_VALIDLENGTH 且 x 方向移动距离大于 y 方向且时间小于 options.swipeMaxTime
+					// 当移动距离超过 options.pointerValidLength 且 x 方向移动距离大于 y 方向且时间小于 options.swipeMaxTime
 					// 则执行左右滑动回调
-					if (absMove.x >= POINTER_EVENT_VALIDLENGTH && absMove.x >= absMove.y
+					if (absMove.x >= options.pointerValidLength && absMove.x >= absMove.y
 						&& interval < options.swipeMaxTime) {
 						if (move.x < 0) {
 							event.preventDefault();
@@ -806,9 +897,9 @@ var ud2 = (function (window, $) {
 							callbacks.swipeRight.call($element);
 						}
 					}
-					// 当移动距离超过 POINTER_EVENT_VALIDLENGTH 且 y 方向移动距离大于 x 方向且时间小于 options.swipeMaxTime
+					// 当移动距离超过 options.pointerValidLength 且 y 方向移动距离大于 x 方向且时间小于 options.swipeMaxTime
 					// 则执行上下滑动回调
-					if (absMove.y >= POINTER_EVENT_VALIDLENGTH && absMove.y >= absMove.x
+					if (absMove.y >= options.pointerValidLength && absMove.y >= absMove.x
 						&& interval < options.swipeMaxTime) {
 						if (move.y < 0) {
 							event.preventDefault();
@@ -1117,19 +1208,128 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
-	var controls = (function () {
+	// #region ud2 库公用控件
+
+	var ud2 = (function () {
 		// 建立控件对象
-		var obj = {};
+		var ud2 = {};
 
 		// 返回控件对象
-		return obj;
+		return ud2;
+	}());
+	var control = function ($element) {
+		var // jQuery 对象，如果不包含任何元素则创建一个空 DIV
+			$origin,
+			// 控件自定义名称
+			name;
+
+		// 判断 $element 是否有效，并设定有效的 $element
+		$origin = checkJQElements($element);
+		// 当 $element 无效时，则创建一个空 $div 对象
+		if ($origin.length === 0) $origin = $div.clone();
+		// 当 $element 存在多个元素时，则返回第一个元素
+		if ($origin.length > 1) $origin = $origin.eq(0);
+
+		// 判断或生成控件自定义名称属性
+		// 当 ud2-name 不存在时则自动在 guid 对象中创建
+		name = $origin.attr(prefixLibName + 'name');
+		if (!name) {
+			name = ctrlGUID.create();
+			$origin.attr(prefixLibName + 'name', name);
+		}
+
+		// 返回
+		return {
+			// 原 jQuery 对象
+			$origin: $origin,
+			// 可公开的属性及方法
+			public: { name: name }
+		}
+	};
+	var controlGroup = function (name) {
+		// 组对象
+		var group = [];
+
+		// 控件标准名称，通常为 css 类相关名
+		group.name = isString(name) ? name : 'empty';
+		// 控件对象名称，通常为 js 属性相关名
+		group.controlsName = getControlsNameByName(name);
+		// 标记此集合为控件集合
+		group.isControlsGroup = true;
+
+		// 寻找 document 文档中控件标签，并转换为控件的方法
+		// 寻找未设置 ud2 但本身却应该转换为控件的标签并进行生成
+		// 此处是一个空方法，此方法应该在不同的控件集合中改写不同的寻找方法
+		group.findDocument = $.noop;
+		// 控件初始化
+		// 此处是一个空方法，此方法应该在不同的控件集合中改写不同的初始化方法
+		// ctrl[control]: 控件对象
+		// userOptions: 用户设置选项
+		group.init = function (ctrl, userOptions) {
+			return ctrl.public;
+		};
+
+		// 创建一个控件的默认执行父函数
+		// 用于将控件添加至控件对象集合，建立控件唯一识别符
+		// $elements[jQuery] => 要创建的指定jQuery对象
+		// - 当元素长度大于 0 时，则迭代多次 create 方法
+		// return[controls] => 返回要创建的控件对象信息
+		group.create = function ($elements, userOptions) {
+			// 检测传入的 $elements 对象
+			$elements = checkCreateControls.call(this, $elements);
+			if (!$elements) return;
+
+			// 创建一个 control
+			var ctrl = control($elements);
+
+			// 将控件添入数组中
+			this.push(ctrl.public);
+			this[ctrl.public.name] = ctrl.public;
+
+			// 将控件信息写入 jQuery 对象
+			addName(ctrl.$origin, this.name);
+			ctrl.$origin.attr(prefixLibName + this.name + '-state', true);
+
+			this.init(ctrl, userOptions);
+
+			// 初始化控件，并返回控件的信息
+			return ctrl.public;
+		};
+		
+		// 公开组对象
+		ud2[group.name] = group;
+
+		// 返回组对象
+		return group;
+	};
+
+	// #endregion
+
+	// #region ud2 初始化及返回参数
+
+	// 初始化
+	(function init() {
+		// 当文档加载完成时的回调方法
+		$dom.ready(function () {
+			// 如果是 Safari 浏览器则为 body 添加 touchstart 事件监听
+			// 用途是解决 :hover :active 等伪类选择器延迟的问题
+			if (support.safari) document.body.addEventListener('touchstart', $.noop);
+			// 执行 PageReady 的回调函数
+			callbacksPageReady.fire();
+		});
 	}());
 
-
-	// 公开方法
-	controls.event = event;
-	controls.eventMouseWheel = eventMouseWheel;
+	// 公开对象及方法
+	ud2.reg = reg;
+	ud2.support = support;
+	ud2.animateFrame = animateFrame;
+	ud2.event = event;
+	ud2.eventMouseWheel = eventMouseWheel;
+	ud2.ctrl = control;
+	ud2.ctrlGroup = controlGroup;
 	// 返回控件
-	return controls;
+	return ud2;
+
+	// #endregion
 
 }(window, jQuery));

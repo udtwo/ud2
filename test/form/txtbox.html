@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="/dist/css/ud2.css" rel="stylesheet" />
+	<script src="/vendor/js/jquery.js"></script>
+	<script src="/dist/js/ud2.js"></script>
+	<style>
+		input, textarea {
+			margin: 3px 0;
+		}
+
+		.a {
+			width: 200px;
+		}
+	</style>
+</head>
+<body>
+	.txtbox 文本输入框样式：<hr class="hr-x3 hr-blue" />
+
+	默认文本输入框样式：<hr class="hr-dotted hr-grey" />
+	<input class="txtbox" type="text" placeholder="默认文本输入框" />
+	<hr class="hr-dotted hr-grey" />
+
+	带有色彩样式的输入框样式(默认宽度200px)：<hr class="hr-dotted hr-grey" />
+	<input class="txtbox info a" type="text" placeholder="信息文本输入框" />
+	<input class="txtbox warning a" type="text" placeholder="默认文本输入框" />
+	<input class="txtbox success a" type="text" placeholder="默认文本输入框" />
+	<input class="txtbox danger a" type="text" placeholder="默认文本输入框" />
+	<span class="txtbox a">span标签模拟输入框外观</span>
+	<hr class="hr-dotted hr-grey" />
+
+	只读和禁用输入框(默认宽度200px)：<hr class="hr-dotted hr-grey" />
+	<input type="text" class="txtbox a" disabled="disabled" placeholder="禁用文本输入框" />
+	<input type="text" class="txtbox a" readonly="readonly" placeholder="只读文本输入框" />
+	<input type="text" class="txtbox info a" disabled="disabled" placeholder="禁用文本输入框" />
+	<input type="text" class="txtbox info a" readonly="readonly" placeholder="只读文本输入框" />
+	<hr class="hr-dotted hr-grey" />
+
+	尺寸方案：<hr class="hr-dotted hr-grey" />
+	<input type="text" class="txtbox sm" placeholder="较小的文本输入框" /><br />
+	<input type="text" class="txtbox" placeholder="正常的文本输入框" /><br />
+	<input type="text" class="txtbox lg" placeholder="较大的文本输入框" /><br />
+	<hr class="hr-dotted hr-grey" />
+
+	多行文本输入框：<hr class="hr-dotted hr-grey" />
+	<textarea class="txtbox" placeholder="默认的多行文本输入框"></textarea><br />
+	<hr class="hr-dotted hr-grey" />
+
+	带有色彩样式的多行文本输入框样式(默认宽度200px)：<hr class="hr-dotted hr-grey" />
+	<textarea class="txtbox info a" placeholder="默认的多行文本输入框"></textarea>
+	<textarea class="txtbox warning a" placeholder="默认的多行文本输入框"></textarea>
+	<textarea class="txtbox success a" placeholder="默认的多行文本输入框"></textarea>
+	<textarea class="txtbox danger a" placeholder="默认的多行文本输入框"></textarea>
+	<hr class="hr-dotted hr-grey" />
+
+	只读和禁用多行文本输入框(默认宽度200px)：<hr class="hr-dotted hr-grey" />
+	<textarea class="txtbox a" disabled="disabled" placeholder="禁用多行文本输入框"></textarea>
+	<textarea class="txtbox a" readonly="readonly" placeholder="只读多行文本输入框"></textarea>
+	<textarea class="txtbox warning a" disabled="disabled" placeholder="禁用多行文本输入框"></textarea>
+	<textarea class="txtbox warning a" readonly="readonly" placeholder="只读多行文本输入框"></textarea>
+	<hr class="hr-dotted hr-grey" />
+
+	尺寸方案：<hr class="hr-dotted hr-grey" />
+	<textarea class="txtbox sm" placeholder="较小的文本输入框"></textarea><br />
+	<textarea class="txtbox" placeholder="正常的文本输入框"></textarea><br />
+	<textarea class="txtbox lg" placeholder="较大的文本输入框"></textarea><br />
+	<hr class="hr-dotted hr-grey" />
+</body>
+</html>

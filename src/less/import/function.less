@@ -86,13 +86,21 @@
 	-webkit-box-sizing: e(@value);
 	box-sizing: e(@value);
 }
-// 生成带有浏览器前缀的user-select属性
+// 生成带有浏览器前缀的 user-select 属性
 // 默认值为 none，即元素的选择方式为空
 .userSelect(@value: 'none') {
 	-moz-user-select: e(@value);
 	-webkit-user-select: e(@value);
 	-ms-user-select: e(@value);
 	user-select: e(@value);
+}
+// 生成带有浏览器前缀的 text-size-adjust 属性
+// 默认值为 none，即不对内部元素进行尺寸缩放
+.textSizeAdjust(@value: 'none') {
+	-moz-text-size-adjust: e(@value);
+	-webkit-text-size-adjust: e(@value);
+	-ms-text-size-adjust: e(@value);
+	text-size-adjust: e(@value);
 }
 // 修复 transform、animation 导致的元素闪烁
 .repairFlicker() {

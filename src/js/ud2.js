@@ -1340,6 +1340,8 @@ var ud2 = (function (window, $) {
 				barColor: 'rgba(0,0,0,.5)',
 				// 滚动条圆角
 				barBorderRadiusState: true,
+				// 是否开启滚轮
+				mousewheel: true,
 				// 滚轮滚动长度
 				mousewheelLength: 200,
 				// 开启横滚动条
@@ -1672,6 +1674,13 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
+		// #region 公有属性
+
+		// 获取滚动条的当前状态
+		function getScrollingState() { return isScrolling; }
+
+		// #endregion
+
 		// #region 设置事件绑定与解绑
 
 		// 触点按下时触发的事件
@@ -1791,6 +1800,33 @@ var ud2 = (function (window, $) {
 				setScrollingState(false);
 			}
 		}
+		// 滚动发生滚动时触发的事件
+		// move[number]: 滚动滚动方向
+		function scrollMouseWheel(move) {
+			var y = scrollData.now.y, time = 300;
+
+			getScrollData();
+
+			if (move > 0) {
+				y -= Math.round(scrollData.h);
+			} else if (move < 0) {
+				y += Math.round(scrollData.h);
+			}
+
+			if (y > 0 || y < -scrollData.sh) {
+				setScrollingState(false);
+				if (y > 0) {
+					y = 0;
+				}
+				if (y < -scrollData.sh) {
+					y = -scrollData.sh;
+				}
+			} else {
+				setScrollingState(true);
+			}
+
+			translateMove(0, y, time);
+		}
 		// 事件绑定
 		function bindEvent() {
 			// 绑定触点及滚轮事件
@@ -1804,6 +1840,10 @@ var ud2 = (function (window, $) {
 				.setDown(pointerDown)
 				.setUp(pointerUp)
 				.setPan(pointerMove);
+
+			if (options.mousewheel) {
+				eventMouseWheel($scroll).setScroll(scrollMouseWheel);
+			}
 		}
 
 		// #endregion
@@ -1858,6 +1898,10 @@ var ud2 = (function (window, $) {
 
 		// #region 返回
 
+		// 公开方法
+		scrollObj = {
+			getScrollingState: getScrollingState
+		};
 		// 返回
 		return scrollObj;
 

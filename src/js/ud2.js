@@ -1493,6 +1493,8 @@ var ud2 = (function (window, $) {
 			},
 			// 是否正在滚动
 			isScrolling = false,
+			// 当滚动完成时执行强制停止回调定时器
+			scrollEndTimer = null,
 			// 触摸启动最小长度
 			touchStartMinLength = 5,
 			// 滚动对象数据
@@ -1684,16 +1686,26 @@ var ud2 = (function (window, $) {
 		// e[easingObject]: 缓动
 		function translateTimingFunction(e) {
 			$wrapper.css('transition-timing-function', e);
-			$barVertical.css('transition-timing-function', e + ', ease-out');
-			$barHorizontal.css('transition-timing-function', e + ', ease-out');
+			$barVertical.css('transition-timing-function', e + ', ease-out, ease-out, ease-out');
+			$barHorizontal.css('transition-timing-function', e + ', ease-out, ease-out, ease-out');
 		}
 		// 设置滚动动画的用时 
 		// time[number]: 滚动用时
 		function translateTime(time) {
 			var t = parseInt(time);
 			$wrapper.css('transition-duration', t + 'ms');
-			$barVertical.css('transition-duration', t + 'ms, 300ms');
-			$barHorizontal.css('transition-duration', t + 'ms, 300ms');
+			$barVertical.css('transition-duration', t + 'ms, 300ms, 300ms, 300ms');
+			$barHorizontal.css('transition-duration', t + 'ms, 300ms, 300ms, 300ms');
+
+			// 当滚动完成时强制停止
+			// 由于 transition-end 在部分浏览器中时间不准确，这里的定时器方式替代了 transition-end
+			if (t !== 0) {
+				if (scrollEndTimer) { window.clearTimeout(scrollEndTimer); }
+				scrollEndTimer = window.setTimeout(function () {
+					translateMove(scrollData.now.x, scrollData.now.y, 0);
+					setScrollingState(false);
+				}, t);
+			}
 		}
 		// 兼容不支持 transition 时的滚动动画
 		function animate(destX, destY, duration, easingFn) {
@@ -1806,7 +1818,7 @@ var ud2 = (function (window, $) {
 			getScrollData();
 			if (y < -scrollData.sh) y = -scrollData.sh;
 			if (x < -scrollData.sw) x = -scrollData.sw;
-			if (x !== scrollData.now.x || y !== scrollData.now.y) translateMove(x, y, 300);
+			translateMove(x, y, 100);
 
 			return scrollObj;
 		}
@@ -1995,8 +2007,6 @@ var ud2 = (function (window, $) {
 		}
 		// 事件绑定
 		function bindEvent() {
-			// 绑定触点及滚轮事件
-			$wrapper.bind('transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd', function () { setScrollingState(false); });
 			// 绑定屏幕尺寸变化的事件
 			if (options.recountByResize) $win.bind('resize orientationchange', recountScrollPosition);
 

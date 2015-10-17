@@ -308,16 +308,14 @@
 	</div>
 
 	<script>
-		ud2.event('.b div').setTap(function () {
-			console.log('tap')
-		})
+		
 
 		var a = ud2.scroll('.a', { barState: 2 });
 		var b = ud2.scroll('.b', {
 			recountByResize: true,
-			slowMoving: false,
-			isTouchMode: false,
-			isScrollMode: true
+			isScrollMode: true,
+			barBorderRadiusState: false,
+			barState: 1
 		});
 		var c = ud2.scroll('.c', {
 			hasHorizontal: true,

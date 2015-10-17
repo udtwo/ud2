@@ -30,6 +30,10 @@
 			background: #79d6fc;
 		}
 
+		.b a {
+			cursor: pointer;
+		}
+
 		.c .main {
 			width: 3000px; height: 1000px;
 			background: #d679fc;
@@ -233,19 +237,19 @@
 		<div>84. 这是一个测试栏目</div>
 		<div>85. 这是一个测试栏目</div>
 		<div>86. 这是一个测试栏目</div>
-		<div>87. 这是一个测试栏目</div>
+		<div>87. <a href="http://www.baidu.com" target="_blank">百度</a></div>
 		<div>88. 这是一个测试栏目</div>
-		<div>89. 这是一个测试栏目</div>
+		<div>89. 测试测试</div>
 		<div>90. 这是一个测试栏目</div>
-		<div>91. 这是一个测试栏目</div>
+		<div>91. 测试测试</div>
 		<div>92. 这是一个测试栏目</div>
-		<div>93. 这是一个测试栏目</div>
+		<div>93. 测试测试</div>
 		<div>94. 这是一个测试栏目</div>
-		<div>95. 这是一个测试栏目</div>
+		<div>95. 测试测试</div>
 		<div>96. 这是一个测试栏目</div>
-		<div>97. 这是一个测试栏目</div>
+		<div>97. 测试测试</div>
 		<div>98. 这是一个测试栏目</div>
-		<div>99. 这是一个测试栏目</div>
+		<div>99. 测试测试</div>
 		<div>100. 这是一个测试栏目</div>
 	</div>
 	<div class="c">
@@ -304,9 +308,21 @@
 	</div>
 
 	<script>
-		ud2.scroll('.a', { barState: 2 });
-		ud2.scroll('.b', { recountSize: true });
-		ud2.scroll('.c', { hasHorizontal: true, barColor: 'rgba(125, 0, 255, .3)' });
+		ud2.event('.b div').setTap(function () {
+			console.log('tap')
+		})
+
+		var a = ud2.scroll('.a', { barState: 2 });
+		var b = ud2.scroll('.b', {
+			recountByResize: true,
+			slowMoving: false,
+			isTouchMode: false,
+			isScrollMode: true
+		});
+		var c = ud2.scroll('.c', {
+			hasHorizontal: true,
+			isScrollMode: true
+		});
 	</script>
 </body>
 </html>

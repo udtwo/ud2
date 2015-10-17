@@ -12,13 +12,13 @@
 	position: relative;
 	display: block;
 	overflow: hidden;
+	.userSelect();
 }
 // 设置滚动条与容器初始样式
 .ud2-scroll-wrapper, .ud2-scroll-bar {
 	position: absolute;
 	.textSizeAdjust('none');
 	.boxSizing('border-box');
-	.transition('transform');
 	.transform('translate(0)');
 }
 // 设置滚动条滚动容器样式
@@ -28,10 +28,12 @@
 	min-height: 100%;
 	top: 0;
 	left: 0;
+	.transition('transform');
 }
 // 设置滚动条初始样式
 .ud2-scroll-bar {
 	display: none;
 	z-index: 2;
-	cursor: pointer;
+	cursor: default;
+	.transition('transform, background-color 300ms ease-out');
 }

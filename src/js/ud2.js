@@ -2071,8 +2071,12 @@ var ud2 = (function (window, $) {
 			// 添加滚动条并设置尺寸
 			if (options.hasVertical) $scroll.prepend($barVertical);
 			if (options.hasHorizontal) $scroll.prepend($barHorizontal);
-			$barVertical.css({ 'top': options.barOffset, 'right': options.barOffset, 'width': options.barSize, 'background': options.barColor, 'border-radius': options.barSize / 2 });
-			$barHorizontal.css({ 'left': options.barOffset, 'bottom': options.barOffset, 'height': options.barSize, 'background': options.barColor, 'border-radius': options.barSize / 2 });
+			$barVertical.css({ 'top': options.barOffset, 'right': options.barOffset, 'width': options.barSize, 'background': options.barColor });
+			$barHorizontal.css({ 'left': options.barOffset, 'bottom': options.barOffset, 'height': options.barSize, 'background': options.barColor });
+			if (options.barBorderRadiusState) {
+				$barVertical.css('border-radius', options.barSize / 2);
+				$barHorizontal.css('border-radius', options.barSize / 2);
+			}
 			if (options.barState === 1) {
 				$barVertical.show();
 				$barHorizontal.show();

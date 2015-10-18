@@ -104,6 +104,8 @@ var ud2 = (function (window, $) {
 		MOUSE_MOVE = 'mousemove',
 		MOUSE_UP = 'mouseup',
 		MOUSE_OUT = 'mouseout',
+		MOUSE_ENTER = 'mouseenter',
+		MOUSE_LEAVE = 'mouseleave',
 
 		// 用于克隆的空 jQuery 对象
 		$div = $('<div />'),
@@ -1633,8 +1635,6 @@ var ud2 = (function (window, $) {
 			if (isScrolling !== state) {
 				isScrolling = state;
 				$scroll.attr(ATTRNAME_IS_SCROLL, state ? 1 : 0);
-				if (state) barOpen();
-				else barClose();
 			}
 		}
 		// 坐标转换
@@ -1719,7 +1719,11 @@ var ud2 = (function (window, $) {
 				scrollEndTimer = window.setTimeout(function () {
 					translateMove(scrollData.now.x, scrollData.now.y, 0);
 					setScrollingState(false);
+					barClose();
 				}, t);
+			} else {
+				setScrollingState(false);
+				barClose();
 			}
 		}
 		// 兼容不支持 transition 时的滚动动画
@@ -1849,7 +1853,7 @@ var ud2 = (function (window, $) {
 		// 触点按下时触发的事件
 		function pointerDown() {
 			getScrollData();
-			setScrollingState(true);
+			barOpen();
 
 			var pos = getPosition();
 			translateMove(pos.x, pos.y);
@@ -1875,7 +1879,7 @@ var ud2 = (function (window, $) {
 				newX = 0, newY = 0;
 
 			// 设置当前滚动状态为滚动中
-			setScrollingState(true);
+			barOpen();
 			// 记录最后 move 方法移动的坐标点
 			mainPointer.lastMove = { x: x, y: y };
 
@@ -1888,19 +1892,8 @@ var ud2 = (function (window, $) {
 			if (!mainPointer.moved) mainPointer.moved = true;
 
 			// 计算移动距离
-			if (options.hasVertical) {
-				newY = deltaY + scrollData.now.y;
-				//if (newY > 0 || newY < -scrollData.sh) {
-				//	newY = newY > 0 ? 0 : -scrollData.sh;
-				//}
-			}
-			if (options.hasHorizontal) {
-				newX = deltaX + scrollData.now.x;
-				//if (newX > 0 || newX < -scrollData.sw) {
-				//	newX = newX > 0 ? 0 : -scrollData.sw;
-				//}
-			}
-
+			if (options.hasVertical) newY = deltaY + scrollData.now.y;
+			if (options.hasHorizontal) newX = deltaX + scrollData.now.x;
 			if (deltaX !== 0 || deltaY !== 0) translateMove(newX, newY);
 
 			// 重置启动点
@@ -1928,11 +1921,11 @@ var ud2 = (function (window, $) {
 			// 触点结束时刻
 			mainPointer.end = getTime();
 
+			// 如无运动关闭滚动条
+			barClose();
+
 			// 如果未移动直接跳出
-			if (!mainPointer.moved || !options.slowMoving) {
-				setScrollingState(false);
-				return;
-			}
+			if (!mainPointer.moved || !options.slowMoving) return;
 
 			// 当延迟小于300ms则进行延迟滚动特效
 			if (duration < 300) {
@@ -1955,9 +1948,9 @@ var ud2 = (function (window, $) {
 
 			// 当坐标确定发生移动则执行滚动动画
 			if (newX !== x || newY !== y) {
+				barOpen();
+				setScrollingState(true);
 				translateMove(newX, newY, time);
-			} else {
-				setScrollingState(false);
 			}
 		}
 		// 鼠标滚轮发生滚动时触发的事件
@@ -1977,15 +1970,16 @@ var ud2 = (function (window, $) {
 			if (y > 0 || y < -scrollData.sh) {
 				setScrollingState(false);
 			} else {
+				barOpen();
 				setScrollingState(true);
 			}
-
 			translateMove(x, y, time);
 		}
 		// 滚动条被按下时触发的事件
 		function scrollDown() {
 			this.move = 0;
 			mouseInScroll = true;
+			barOpen();
 			$(this).css('background', options.barHoverColor);
 		}
 		// 滚动条被释放时触发的事件
@@ -2019,12 +2013,12 @@ var ud2 = (function (window, $) {
 			if (options.recountByResize) $win.bind('resize orientationchange', recountPosition);
 
 			// 鼠标在滑入滑出滚动区域时滚动条的显示处理
-			$scroll.bind('mouseenter', function () {
+			$scroll.bind(MOUSE_ENTER, function () {
 				if (options.barState === 0) {
 					mouseInBox = true;
 					barOpen();
 				}
-			}).bind('mouseleave', function () {
+			}).bind([MOUSE_LEAVE, TOUCH_END].join(' '), function () {
 				if (options.barState === 0) {
 					mouseInBox = false;
 					barClose();

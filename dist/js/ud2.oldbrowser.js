@@ -1,4 +1,4 @@
 /*! ud2(oldbrowser) - v0.0.0
  * (c) 2015 Peak(peak@udtwo.com) */
 
-/* lasted： 2015-10-18 10:23:35 */
+/* lasted： 2015-10-19 12:15:11 */

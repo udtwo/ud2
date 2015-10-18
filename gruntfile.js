@@ -1,4 +1,4 @@
-﻿/// <binding ProjectOpened='default' />
+﻿/// <binding BeforeBuild='project-publish' ProjectOpened='project-open' />
 "use strict";
 
 module.exports = function (grunt) {
@@ -109,5 +109,6 @@ module.exports = function (grunt) {
 	grunt.loadNpmTasks('grunt-contrib-less');
 
 	// 建立发布任务
-	grunt.registerTask('default', ['clean', 'copy', 'less', 'uglify', 'watch']);
+	grunt.registerTask('project-open', ['clean', 'copy', 'less', 'uglify', 'watch']);
+	grunt.registerTask('project-publish', ['clean', 'copy', 'less', 'uglify']);
 }

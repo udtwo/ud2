@@ -1437,7 +1437,7 @@ var ud2 = (function (window, $) {
 				// 是否开启通过滚动条来控制滚动区域
 				isScrollMode: false,
 				// 滚轮滚动长度
-				mousewheelLength: 100,
+				mousewheelLength: 'normal',
 				// 开启横滚动条
 				hasHorizontal: false,
 				// 开启竖滚动条
@@ -1556,6 +1556,7 @@ var ud2 = (function (window, $) {
 				scrollData.h = $scroll.height();
 				scrollData.ih = $scroll.innerHeight();
 				scrollData.sh = wrapperHeight - scrollData.h;
+				if (scrollData.now.y < -scrollData.sh) scrollData.now.y = -scrollData.sh;
 
 				// 最大滚动高度
 				maxScrollBarHeight = scrollData.ih - 2 * options.barOffset;
@@ -1590,6 +1591,7 @@ var ud2 = (function (window, $) {
 				scrollData.w = $scroll.width();
 				scrollData.iw = $scroll.innerWidth();
 				scrollData.sw = wrapperWidth - scrollData.w;
+				if (scrollData.now.x < -scrollData.sw) scrollData.now.x = -scrollData.sw;
 
 				// 最大滚动宽度
 				maxScrollBarWidth = scrollData.iw - 2 * options.barOffset;
@@ -1641,7 +1643,11 @@ var ud2 = (function (window, $) {
 		// position[number]: 坐标
 		function getBarPositionByScrollPosition(position, direction) {
 			var dir = direction ? 'sh' : 'sw';
-			return position / scrollData[dir] * barData[dir];
+			if (scrollData[dir] === 0 || barData[dir] === 0) {
+				return 0;
+			} else {
+				return position / scrollData[dir] * barData[dir];
+			}
 		}
 		// 坐标转换
 		// 通过滚动条坐标运算滚动容器坐标
@@ -1649,11 +1655,15 @@ var ud2 = (function (window, $) {
 		// position[number]: 坐标
 		function getScrollPositionByBarPosition(position, direction) {
 			var dir = direction ? 'sh' : 'sw';
-			return position / barData[dir] * scrollData[dir];
+			if (scrollData[dir] === 0 || barData[dir] === 0) {
+				return 0;
+			} else {
+				return position / barData[dir] * scrollData[dir];
+			}
 		}
 		// 执行滚动动画
-		// x[number]: 滚动到x坐标
-		// y[number]: 滚动到y坐标
+		// x[number]: 滚动到 X 坐标
+		// y[number]: 滚动到 Y 坐标
 		// time[number]: 滚动用时
 		// e[easingObject]: 缓动
 		function translateMove(x, y, time, e) {
@@ -1662,20 +1672,25 @@ var ud2 = (function (window, $) {
 			// 设置 $wrapper 的过渡动画
 			e = e || easing.circular;
 
+			if (x > 0) x = 0;
+			if (y > 0) y = 0;
+			if (y < -scrollData.sh) y = -scrollData.sh;
+			if (x < -scrollData.sw) x = -scrollData.sw;
+			
 			// 浏览器支持 transition 则使用过渡动画
 			// 不支持则使用 jQuery 的 animate 动画
 			if (support.transition) {
 				translateTimingFunction(e.css);
 				translateTime(time);
 				$wrapper.css('transform', 'translate(' + x + 'px, ' + y + 'px)' + (support.perspective ? ' translateZ(0)' : ''));
-				$barVertical.css('transform', 'translate(0, ' + getBarPositionByScrollPosition(-y, 1) + 'px)' + (support.perspective ? ' translateZ(0)' : ''));
-				$barHorizontal.css('transform', 'translate(' + getBarPositionByScrollPosition(-x, 0) + 'px, 0)' + (support.perspective ? ' translateZ(0)' : ''));
+				if (options.hasVertical) $barVertical.css('transform', 'translate(0, ' + getBarPositionByScrollPosition(-y, 1) + 'px)' + (support.perspective ? ' translateZ(0)' : ''));
+				if (options.hasHorizontal) $barHorizontal.css('transform', 'translate(' + getBarPositionByScrollPosition(-x, 0) + 'px, 0)' + (support.perspective ? ' translateZ(0)' : ''));
 				scrollData.now = { x: x, y: y };
 			} else {
 				if (time === 0) {
 					$wrapper.css({ 'left': x, 'top': y });
-					$barVertical.css('top', getBarPositionByScrollPosition(-y, 1));
-					$barHorizontal.css('left', getBarPositionByScrollPosition(-x, 0));
+					if (options.hasVertical) $barVertical.css('top', getBarPositionByScrollPosition(-y, 1) + 'px');
+					if (options.hasHorizontal) $barHorizontal.css('left', getBarPositionByScrollPosition(-x, 0) + 'px');
 					scrollData.now = { x: x, y: y };
 				} else {
 					animate(x, y, time, e.fn);
@@ -1724,8 +1739,8 @@ var ud2 = (function (window, $) {
 					newY = (destY - startY) * easing + startY;
 					scrollData.now = { x: newX, y: newY };
 					$wrapper.css({ 'left': newX, 'top': newY });
-					$barVertical.css('top', (-newY / scrollData.sh * barData.sh));
-					$barHorizontal.css('left', (-newX / scrollData.sh * barData.sh));
+					if (options.hasVertical) $barVertical.css('top', (-newY / scrollData.sh * barData.sh));
+					if (options.hasHorizontal) $barHorizontal.css('left', (-newX / scrollData.sh * barData.sh));
 
 					if (isScrolling) {
 						animateFrame(step);
@@ -1809,17 +1824,21 @@ var ud2 = (function (window, $) {
 		// #region 公有属性
 
 		// 获取滚动条的当前状态
-		function getScrollingState() { return isScrolling; }
+		function getState() { return isScrolling; }
 		// 重计算滚动条滚动位置
-		function recountScrollPosition() {
-			var x = scrollData.now.x,
-				y = scrollData.now.y;
-
+		function recountPosition() {
 			getScrollData();
-			if (y < -scrollData.sh) y = -scrollData.sh;
-			if (x < -scrollData.sw) x = -scrollData.sw;
-			translateMove(x, y, 100);
+			translateMove(scrollData.now.x, scrollData.now.y);
 
+			return scrollObj;
+		}
+		// 移动滚动条
+		// x[number]: 滚动到 X 坐标
+		// y[number]: 滚动到 Y 坐标
+		// time[number]: 滚动用时
+		// e[easingObject]: 缓动
+		function move(x, y, time, e) {
+			translateMove(-x, -y, time, e);
 			return scrollObj;
 		}
 
@@ -1871,15 +1890,15 @@ var ud2 = (function (window, $) {
 			// 计算移动距离
 			if (options.hasVertical) {
 				newY = deltaY + scrollData.now.y;
-				if (newY > 0 || newY < -scrollData.sh) {
-					newY = newY > 0 ? 0 : -scrollData.sh;
-				}
+				//if (newY > 0 || newY < -scrollData.sh) {
+				//	newY = newY > 0 ? 0 : -scrollData.sh;
+				//}
 			}
 			if (options.hasHorizontal) {
 				newX = deltaX + scrollData.now.x;
-				if (newX > 0 || newX < -scrollData.sw) {
-					newX = newX > 0 ? 0 : -scrollData.sw;
-				}
+				//if (newX > 0 || newX < -scrollData.sw) {
+				//	newX = newX > 0 ? 0 : -scrollData.sw;
+				//}
 			}
 
 			if (deltaX !== 0 || deltaY !== 0) translateMove(newX, newY);
@@ -1946,24 +1965,17 @@ var ud2 = (function (window, $) {
 		function mouseWheel(move) {
 			var x = scrollData.now.x,
 				y = scrollData.now.y,
-				time = 300;
+				time = 300,
+				moveLen = options.mousewheelLength;
 
 			getScrollData();
 
-			if (move > 0) {
-				y -= Math.round(scrollData.h);
-			} else if (move < 0) {
-				y += Math.round(scrollData.h);
-			}
+			// 判断移动距离
+			if (moveLen === 'normal') moveLen = Math.round(scrollData.h);
+			move > 0 ? y -= moveLen : y += moveLen;
 
 			if (y > 0 || y < -scrollData.sh) {
 				setScrollingState(false);
-				if (y > 0) {
-					y = 0;
-				}
-				if (y < -scrollData.sh) {
-					y = -scrollData.sh;
-				}
 			} else {
 				setScrollingState(true);
 			}
@@ -1994,12 +2006,8 @@ var ud2 = (function (window, $) {
 						: scrollData.now.y;
 
 			if (direction) {
-				if (y > 0) y = 0;
-				if (y < -scrollData.sh) y = -scrollData.sh;
 				this.move = move.y;
 			} else {
-				if (x > 0) x = 0;
-				if (x < -scrollData.sw) x = -scrollData.sw;
 				this.move = move.x;
 			}
 
@@ -2008,7 +2016,7 @@ var ud2 = (function (window, $) {
 		// 事件绑定
 		function bindEvent() {
 			// 绑定屏幕尺寸变化的事件
-			if (options.recountByResize) $win.bind('resize orientationchange', recountScrollPosition);
+			if (options.recountByResize) $win.bind('resize orientationchange', recountPosition);
 
 			// 鼠标在滑入滑出滚动区域时滚动条的显示处理
 			$scroll.bind('mouseenter', function () {
@@ -2054,6 +2062,10 @@ var ud2 = (function (window, $) {
 		(function init() {
 			// 设置初始选项
 			setOptions(options, userOptions);
+			// 判断传入的鼠标滚轮滚动长度是否符合要求
+			if (options.mousewheelLength !== 'normal' && !isNaturalNumber(options.mousewheelLength))
+				options.mousewheelLength = 'normal';
+
 			// 对象内部集合
 			var $child = $scroll.contents();
 			// 如果内部对象集合长度为 0(说明 $scroll 内容为空)，则把 $wrapper 元素插入到 $scroll 内
@@ -2105,8 +2117,9 @@ var ud2 = (function (window, $) {
 		// 公开方法
 		scrollObj = {
 			$content: $wrapper,
-			getScrollingState: getScrollingState,
-			recountScrollPosition: recountScrollPosition
+			move: move,
+			getState: getState,
+			recountPosition: recountPosition
 		};
 		// 返回
 		return scrollObj;

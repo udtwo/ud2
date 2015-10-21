@@ -358,7 +358,7 @@ var ud2 = (function (window, $) {
 			// 旧宿主的属性长度
 			len = element.attributes.length,
 			// 正则表达式
-			reg = /^(ud2ui-?|data\-|tabindex)/,
+			reg = /^(ud2-?|data\-|tabindex)/,
 			// 循环变量
 			i = 0, j = 0;
 
@@ -1273,7 +1273,7 @@ var ud2 = (function (window, $) {
 		// * pageReady 时会自动执行此方法
 		function createAll() {
 			var // 获取全部的标记控件
-				$ud2uiControls = $('[' + libName + ']');
+				$ud2Controls = $('[' + libName + ']');
 
 			// 进行每一个控件对象创建
 			function toCreate() {
@@ -1292,7 +1292,7 @@ var ud2 = (function (window, $) {
 				});
 			}
 			// 迭代标记控件创建控件对象
-			$ud2uiControls.each(toCreate);
+			$ud2Controls.each(toCreate);
 
 			// 寻找页面全部标签控件
 			// 迭代 ud2 对象
@@ -1429,7 +1429,7 @@ var ud2 = (function (window, $) {
 				// 滚动条颜色
 				barColor: 'rgba(0,0,0,.4)',
 				// 滚动条当鼠标滑入时的颜色
-				barHoverColor: 'rgba(0,0,0,.6)',
+				barColorOn: 'rgba(0,0,0,.6)',
 				// 滚动条圆角
 				barBorderRadiusState: true,
 				// 是否开启滚轮来控制滚动区域
@@ -1825,7 +1825,7 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
-		// #region 公有属性
+		// #region 公有方法
 
 		// 获取滚动条的当前状态
 		function getState() { return isScrolling; }
@@ -1980,7 +1980,7 @@ var ud2 = (function (window, $) {
 			this.move = 0;
 			mouseInScroll = true;
 			barOpen();
-			$(this).css('background', options.barHoverColor);
+			$(this).css('background', options.barColorOn);
 		}
 		// 滚动条被释放时触发的事件
 		function scrollUp() {
@@ -2013,17 +2013,16 @@ var ud2 = (function (window, $) {
 			if (options.recountByResize) $win.bind('resize orientationchange', recountPosition);
 
 			// 鼠标在滑入滑出滚动区域时滚动条的显示处理
-			$scroll.bind(MOUSE_ENTER, function () {
-				if (options.barState === 0) {
+			if (options.barState === 0) {
+				$scroll.bind(MOUSE_ENTER, function () {
+					getScrollData();
 					mouseInBox = true;
 					barOpen();
-				}
-			}).bind([MOUSE_LEAVE, TOUCH_END].join(' '), function () {
-				if (options.barState === 0) {
+				}).bind([MOUSE_LEAVE, TOUCH_END].join(' '), function () {
 					mouseInBox = false;
 					barClose();
-				}
-			});
+				});
+			}
 
 			// 绑定事件
 			if (options.isTouchMode) {
@@ -2085,8 +2084,14 @@ var ud2 = (function (window, $) {
 			$scroll.addClass('ud2-scroll');
 
 			// 添加滚动条并设置尺寸
-			if (options.hasVertical) $scroll.prepend($barVertical);
-			if (options.hasHorizontal) $scroll.prepend($barHorizontal);
+			if (options.hasVertical) {
+				$scroll.prepend($barVertical);
+				$wrapper.css({ 'height': 'auto', 'min-height': '100%' });
+			}
+			if (options.hasHorizontal) {
+				$scroll.prepend($barHorizontal);
+				$wrapper.css({ 'width': 'auto', 'min-width': '100%' });
+			}
 			$barVertical.css({ 'top': options.barOffset, 'right': options.barOffset, 'width': options.barSize, 'background': options.barColor });
 			$barHorizontal.css({ 'left': options.barOffset, 'bottom': options.barOffset, 'height': options.barSize, 'background': options.barColor });
 			if (options.barBorderRadiusState) {
@@ -2123,6 +2128,380 @@ var ud2 = (function (window, $) {
 	};
 
 	// #endregion
+
+	// JS 选择控件集合
+	// * 此控件会 remove 掉原宿主对象
+	var select = (function (group) {
+
+		// 重写 init 方法
+		// 创建一个 JS 选择控件，此控件重写了原 HTML 的 select 控件
+		// IMPORT: 对象或生成的对象必须为 select
+		// ctrl[control]: control 对象
+		// userOptions[object]: 用户参数
+		// return[select]: 返回生成的控件对象
+		group.init = function (ctrl, userOptions) {
+
+			// #region 私有字段
+
+			var // 样式类名
+				className = prefixLibName + group.name,
+				// 选项
+				options = {
+					// 最大高度，单位 em
+					maxHeight: 20,
+					// 默认文本
+					autoText: ctrl.$origin.attr(className + '-text') || '请选择以下项目',
+					// 是否为多选框
+					isMultiple: !!ctrl.$origin.attr('multiple')
+				},
+				// 组集合
+				arrGroups = [],
+				// 无组选项集合
+				arrOptions = [],
+				// 被选作值的选项集合
+				arrValOptions = [],
+				// 生成 $select 对象
+				$select = $([
+					'<div class="' + className + '">',
+					'<div class="' + className + '-put"><a class="' + className + '-btn" /><i class="' + className + '-ico" /></div>',
+					'<div class="' + className + '-list" />',
+					'</div>'
+				].join('')),
+				// 通过 $select 获取列表对象
+				$selectList = $select.children('div:last'),
+				// 通过 $selectBox 获取列表控件容器
+				$selectBox = $select.children('div:first'),
+				// 通过 $select 获取按钮控件
+				$selectBtn = $selectBox.children('a'),
+				// 空 option 对象
+				$emptyOption = $a.clone(),
+				// 控件滚动条
+				selectScroll = null,
+				// 是否处于开启状态
+				isOpen = false,
+				// 列表滚动条
+				listScroll = null;
+
+			// #endregion
+
+			// #region 选项与组对象
+
+			// 选项
+			// name[string]: 选项名称
+			// value[string]: 选项值
+			// disabled[bool]: 是否为禁用状态
+			// selected[bool]: 是否为选中状态
+			// group[group]: 选项是否存在于某个组中
+			function Option(name, value, disabled, selected, group) {
+				var that = this;
+				this.group = group || null;
+				this.name = name || '';
+				this.value = value || '';
+				this.disabled = disabled || false;
+				this.selected = !this.disabled && (selected || false);
+
+				this.createElement();
+				if (this.selected) selectValue(this);
+			}
+			// 选项继承
+			Option.prototype = {
+				createElement: function () {
+					var $opt = $emptyOption.clone(), that = this;
+					$opt.html(this.name)
+						.attr('title', this.name)
+						.attr(className + '-value', this.value)
+						.addClass(className + '-option');
+					if (this.disabled || (this.group && this.group.disabled))
+						$opt.attr(className + '-disabled', 'true');
+					this.$element = $opt;
+					event(this.$element).setTap(function () {
+						selectValue(that);
+					});
+				},
+				setSelected: function (selected) {
+					this.selected = selected;
+					if (this.selected)
+						this.$element.addClass(className + '-option-on')
+					else
+						this.$element.removeClass(className + '-option-on')
+				},
+				toggleSelected: function (selected) {
+					if (selected)
+						this.setSelected(false);
+					else
+						this.setSelected(true);
+				}
+			};
+			// 选项组
+			// name[string]: 选项组名称
+			// disabled[bool]: 被选中状态
+			function Group(name, disabled) {
+				var that = this;
+				this.name = name || '';
+				this.disabled = disabled || false;
+				this.options = [];
+				this.$element = (function () {
+					var $element = $emptyOption.clone();
+					$element.html(that.name)
+						.attr('title', that.name)
+						.addClass(className + '-group');
+					return $element;
+				})
+			}
+			// 选项组继承
+			Group.prototype = {
+				// 向组内添加一个选项
+				// name[string]: 选项名称
+				// value[string]: 选项值
+				// disabled[bool]: 是否被禁用
+				// selected[bool]: 是否被选中
+				add: function (name, value, disabled, selected) {
+					var option = new Option(name, value, disabled, selected, this);
+					option.$element.addClass(className + '-ingroup');
+					this.options.push(option);
+				}
+			};
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 分析控件中的全部选项组
+			function analysisGroups() {
+				var $groups = ctrl.$origin.children('optgroup');
+				for (var i = 0, l = $groups.length, group; i < l; i++) {
+					var $group = $groups.eq(i),
+						name = $group.attr('label') || '',
+						disabled = !!($group.attr('disabled') && $group.attr('disabled') !== 'false');
+					group = addGroup(name, disabled);
+					analysisOptions(group, $group);
+				}
+				analysisOptions();
+			}
+			// 分析控件中的全部选项
+			// group[group]: 分析此组内的选项，如果未传入 group 则分析不包括在任何选项组内的选项
+			// $group[jQuery]: 如果选项组存在，则传入一个选项组的 jQuery 对象
+			function analysisOptions(group, $group) {
+				var inGroup = group ? true : false,
+					$options = group ? $group.children('option') : ctrl.$origin.children('option');
+
+				for (var i = 0, l = $options.length; i < l ; i++) {
+					var $select = $options.eq(i),
+						name = $options.eq(i).html(),
+						val = $options.eq(i).val(),
+						disabled = !!($options.eq(i).attr('disabled') && $options.eq(i).attr('disabled') !== 'false'),
+						selected = !!($options.eq(i).attr('selected') && $options.eq(i).attr('selected') !== 'false');
+
+					if (inGroup) {
+						group.add(name, val, disabled, selected);
+					} else {
+						addOption(name, val, disabled, selected);
+					}
+				}
+			}
+			// 生成控件选项
+			function buildOptions() {
+				for (var i = 0, l = arrOptions.length, option; i < l; i++) {
+					option = arrOptions[i];
+					listScroll.$content.append(option.$element);
+				}
+				for (var i = 0, l = arrGroups.length, group, option; i < l; i++) {
+					group = arrGroups[i];
+					listScroll.$content.append(group.$element);
+					for (var j = 0, k = group.options.length; j < k; j++) {
+						listScroll.$content.append(group.options[j].$element);
+					}
+				}
+				listScroll.recountPosition();
+			}
+			// 设置控件的值
+			// option[option]: 控件选项
+			function setValue(option) {
+				// 是否为多选
+				if (options.isMultiple) {
+					var // 是否已经持有值
+						isHave = -1,
+						// 返回值集合
+						vs = [];
+
+					// 迭代值集合对象
+					for (var i in arrValOptions) if (arrValOptions[i] === option) { isHave = i; break; }
+					// 判断此控件值是否曾被选择
+					if (isHave > -1) {
+						option.setSelected(false);
+						// 如果曾被选择则移除
+						arrValOptions.splice(isHave, 1);
+					} else {
+						option.setSelected(true);
+						// 如果未被选择则加入
+						arrValOptions.push(option);
+					}
+
+					// 迭代新值集合对象
+					for (var i in arrValOptions) vs.push(arrValOptions[i].value);
+
+					if (arrValOptions.length === 0) {
+						$selectBtn.removeClass('value');
+						$selectBtn.html(options.autoText);
+					} else {
+						$selectBtn.addClass('value');
+						$selectBtn.html(vs.length + '个项目');
+					}
+				} else {
+					if (arrValOptions[0]) arrValOptions[0].setSelected(false);
+					$selectBtn.addClass('value');
+					option.setSelected(true);
+					arrValOptions[0] = option;
+					$selectBtn.html(option.value);
+				}
+			}
+			// 重计算高度
+			function recountHeight() {
+				var optionLen = arrOptions.length,
+					labelLen = arrGroups.length,
+					overHeight = 0;
+
+				for (var i = 0; i < labelLen; i++) {
+					optionLen += arrGroups[i].options.length;
+				}
+
+				overHeight = (optionLen * 2.5 + labelLen * 2);
+				overHeight = overHeight > options.maxHeight ? options.maxHeight : overHeight;
+				$selectList.css('height', overHeight + 'em');
+			}
+
+			// #endregion
+
+			// #region 公有方法
+
+			// 选择一个控件值
+			// option[option]: 控件选项
+			function selectValue(option) {
+				if (option.disabled || (option.group && option.group.disabled)) return;
+				setValue(option);
+				if (!options.isMultiple) close();
+			}
+			// 添加一个选项组
+			// name[string]: 选项组名称
+			// disabled[bool]: 选项组是否被禁用
+			function addGroup(name, disabled) {
+				var group = new Group(name, disabled)
+				arrGroups.push(group);
+				return group;
+			}
+			// 添加一个选项
+			// name[string]: 选项名称
+			// value[string]: 选项值
+			// disabled[bool]: 选项是否被禁用
+			// selected[bool]: 选项是否被选上
+			function addOption(name, value, disabled, selected, group) {
+				var option = new Option(name, value, disabled, selected, group);
+				arrOptions.push(option);
+				return options;
+			}
+			// 设置控件的默认文本
+			// text[string]: 默认文本
+			// return[select]: 返回控件
+			function setShowText(text) {
+				var text = isString(text) ? text : options.autoText;
+				$selectBtn.html(text);
+				return ctrl.public;
+			}
+			// 打开控件
+			// return[select]: 返回控件
+			function open() {
+				isOpen = true;
+				$select.addClass(className + '-on');
+				recountHeight();
+
+				return ctrl.public;
+			}
+			// 关闭控件
+			// return[select]: 返回控件
+			function close() {
+				isOpen = false;
+				$select.removeClass(className + '-on');
+				return ctrl.public;
+			}
+			// 开关控件
+			// 当控件开启时就关闭，否则就开启
+			// return[select]: 返回控件
+			function toggle() {
+				if (isOpen) {
+					close();
+				} else {
+					open();
+				}
+				return ctrl.public;
+			}
+			// 获取控件值
+			// val[string]: 返回控件值
+			function val() {
+				// 是否为多选
+				if (options.isMultiple) {
+					var // 返回值集合
+						vs = [];
+					// 迭代值集合，把值集合存在的返回值推入集合
+					for (var i in arrValOptions) vs.push(arrValOptions[i].$element.attr(className + '-value'));
+					// 返回值集合输出
+					return vs;
+				} else {
+					// 值集合中的0号元素值输出
+					return arrValOptions[0] ? arrValOptions[0].$element.attr(className + '-value') : '';
+				}
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 设置初始选项
+				setOptions(options, userOptions);
+				// 转移宿主属性
+				transferStyles(ctrl.$origin, $select);
+				transferAttrs(ctrl.$origin, $select);
+
+				// 开启滚动条
+				listScroll = scroll($selectList, {
+					barState: 0, isScrollMode: true,
+					barColor: 'rgba(0,0,0,.2)',
+					barColorOn: 'rgba(0,0,0,.4)'
+				});
+
+				// 显示默认文本
+				setShowText();
+				// 分析控件组和控件
+				analysisGroups();
+				// 生成控件选项
+				buildOptions();
+				// 把 $select 放入原标签后
+				ctrl.$origin.after($select);
+				// 移除原标签
+				ctrl.$origin.remove();
+
+				// 绑定事件
+				var btnEvent = event($selectBox);
+				btnEvent.setTap(toggle);
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			ctrl.public.open = open;
+			ctrl.public.close = close;
+			ctrl.public.toggle = toggle;
+			ctrl.public.val = val;
+			ctrl.public.setShowText = setShowText;
+			return ctrl.public;
+
+			// #endregion
+
+		}
+
+	}(controlGroup('select')));
 
 	// #region ud2 初始化及返回参数
 

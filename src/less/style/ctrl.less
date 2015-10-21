@@ -1,0 +1,39 @@
+﻿/**
+ * ctrl.less
+ * 控件的默认样式
+ */
+
+// 导入必要的文件
+@import "../import/import.less";
+
+// JS控件基础样式
+.ud2-ctrl() {
+	display: inline-block; // 把此元素设置成inline-block，目的是当.btn设置在非按钮类元素上时能把显示形式调整为内联块级样式
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	height: @CtrlHeight; // 默认控件高度
+	border: 1px solid @ColorWhiteBorder;
+	border-radius: @BorderRadius;
+	background: @ColorWhite;
+	vertical-align: middle;
+	.userSelect();
+	.boxSizing('border-box');
+	.transition('border-color .2s, box-shadow .2s');
+	// 控件的小尺寸方案
+	&.sm {
+		font-size: @BaseSize - @CtrlSizeGradient;
+		height: @CtrlHeight - @CtrlSizeGradient * 2;
+		line-height: @CtrlLineHeight - @CtrlSizeGradient * 2;
+	}
+	// 控件的大尺寸方案
+	&.lg {
+		font-size: @BaseSize + @CtrlSizeGradient;
+		height: @CtrlHeight + @CtrlSizeGradient * 2;
+		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
+	}
+}
+
+.ud2-select {
+	.ud2-ctrl();
+}

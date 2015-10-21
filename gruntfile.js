@@ -58,7 +58,9 @@ module.exports = function (grunt) {
 						'src/less/style/reset.less',
 						'src/less/style/base.less',
 						'src/less/style/form.less',
-						'src/less/style/scroll.less'
+						'src/less/style/scroll.less',
+						'src/less/style/ctrl.less',
+						'src/less/style/ctrl-select.less'
 					]
 				}
 			}

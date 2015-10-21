@@ -472,7 +472,7 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
-		// #region 设置回调方法
+		// #region 回调方法
 
 		// 设置拖动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
@@ -524,7 +524,7 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
-		// #region 设置事件绑定与解绑
+		// #region 事件绑定与解绑
 
 		// 事件绑定
 		function on() {
@@ -1102,7 +1102,7 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
-		// #region 设置回调方法
+		// #region 回调方法
 
 		// 设置拖动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
@@ -1125,7 +1125,7 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
-		// #region 设置事件绑定与解绑
+		// #region 事件绑定与解绑
 
 		// 事件绑定
 		function on() {
@@ -1316,7 +1316,9 @@ var ud2 = (function (window, $) {
 		var // jQuery 对象，如果不包含任何元素则创建一个空 DIV
 			$origin,
 			// 控件自定义名称
-			name;
+			name,
+			// 控件对象
+			control = {};
 
 		// 判断 $element 是否有效，并设定有效的 $element
 		$origin = checkJQElements($element);
@@ -1333,13 +1335,35 @@ var ud2 = (function (window, $) {
 			$origin.attr(prefixLibName + 'name', name);
 		}
 
+		// 原 jQuery 对象
+		control.$origin = $origin;
+		// 当前 jQuery 对象
+		control.$current = null;
+		// 控件开启
+		control.open = function () { };
+		// 控件关闭
+		control.close = function () { };
+		// 控件回调关闭
+		control.selfClosing = function (target) {
+			var $target = $(target),
+				$targetParents = $target.parents();
+
+			for (var i = 0, len = $targetParents.length; i < len ; i++) {
+				if ($targetParents.eq(i).get(0) === control.$current.get(0)) return;
+			}
+
+			control.close();
+		};
+		// 可公开的属性及方法
+		control.public = {
+			name: name
+		};
+
+		// 增加关闭回调
+		callbacksCtrlClose.add(control.selfClosing);
+
 		// 返回
-		return {
-			// 原 jQuery 对象
-			$origin: $origin,
-			// 可公开的属性及方法
-			public: { name: name }
-		}
+		return control;
 	};
 	// 控件对象集合
 	// 生成的控件对象集合是由此对象继承而来
@@ -2129,6 +2153,8 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
+	// #region ud2 库控件
+
 	// JS 选择控件集合
 	// * 此控件会 remove 掉原宿主对象
 	var select = (function (group) {
@@ -2453,10 +2479,25 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
+			// #region 事件绑定
+
+			// 事件绑定
+			function bindEvent() {
+				var btnEvent = event($selectBox);
+				btnEvent.setTap(toggle);
+			}
+
+			// #endregion
+
 			// #region 初始化
 
 			// 初始化
 			(function init() {
+				// 控件初始项
+				ctrl.$current = $select;
+				ctrl.open = open;
+				ctrl.close = close;
+
 				// 设置初始选项
 				setOptions(options, userOptions);
 				// 转移宿主属性
@@ -2481,15 +2522,12 @@ var ud2 = (function (window, $) {
 				// 移除原标签
 				ctrl.$origin.remove();
 
-				// 绑定事件
-				var btnEvent = event($selectBox);
-				btnEvent.setTap(toggle);
+				bindEvent();
 			}());
 
 			// #endregion
 
 			// #region 返回
-
 			ctrl.public.open = open;
 			ctrl.public.close = close;
 			ctrl.public.toggle = toggle;
@@ -2503,6 +2541,8 @@ var ud2 = (function (window, $) {
 
 	}(controlGroup('select')));
 
+	// #endregion
+
 	// #region ud2 初始化及返回参数
 
 	// 初始化
@@ -2514,6 +2554,12 @@ var ud2 = (function (window, $) {
 			if (support.safari) document.body.addEventListener('touchstart', $.noop);
 			// 执行 PageReady 的回调函数
 			callbacksPageReady.fire();
+
+			// 当用户触碰屏幕且未触碰任何有价值(无效触碰)控件时，执行页面触碰按下的事件回调
+			// 用途是解决部分控件当触碰控件外时执行相应回调方法
+			$dom.bind([TOUCH_START, MOUSE_DOWN].join(' '), function (event) {
+				callbacksCtrlClose.fire(event.target);
+			});
 		});
 
 		// 把 ud2.createAll 方法添入页面加载完成回调函数中

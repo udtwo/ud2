@@ -7,6 +7,40 @@
 @import "../import/import.less";
 
 /**
+ * 滚动条样式
+ */
+// 滚动条基础样式  
+::-webkit-scrollbar {  
+	width: 8px;
+	height: 8px;
+} 
+// 滚动条默认样式
+::-webkit-scrollbar-thumb {
+	border-radius: 4px;
+	background-color: rgba(0, 0, 0, .3);
+}
+// 未激活的滚动条样式
+::-webkit-scrollbar-thumb:window-inactive {  
+	background-color: rgba(0, 0, 0, .1);   
+}  
+// 鼠标滑入的竖滚动条样式
+::-webkit-scrollbar-thumb:vertical:hover{  
+	background-color: rgba(0, 0, 0, .45);
+}  
+// 鼠标按下的竖滚动条样式
+::-webkit-scrollbar-thumb:vertical:active{  
+	background-color: rgba(0, 0, 0, .6);
+}
+// 鼠标滑入的竖滚动条样式
+::-webkit-scrollbar-thumb:horizontal:hover{  
+	background-color: rgba(0, 0, 0, .45);
+}  
+// 鼠标按下的竖滚动条样式
+::-webkit-scrollbar-thumb:horizontal:active{  
+	background-color: rgba(0, 0, 0, .6);
+}  
+
+/**
  * 标准样式
  */
 // 字体样式

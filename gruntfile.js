@@ -61,7 +61,8 @@ module.exports = function (grunt) {
 						'src/less/style/scroll.less',
 						'src/less/style/table.less',
 						'src/less/style/ctrl.less',
-						'src/less/style/ctrl-select.less'
+						'src/less/style/ud2-select.less',
+						'src/less/style/ud2-table.less'
 						
 					]
 				}

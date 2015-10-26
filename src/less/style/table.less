@@ -106,7 +106,7 @@
 }
 // 表格行 hover 效果
 .table.table-hover {
-	> tbody > tr:nth-child(n):hover {
+	> tbody > tr:not([ud2-no-hover]):hover {
 		> td, > th {
 			background: @ColorBlueBackLight;
 		}
@@ -119,7 +119,7 @@
 			position: relative;
 			z-index: 1;
 
-			&:hover::before {
+			&:not([ud2-no-hover-cell]):hover::before {
 				content: '';
 				position: absolute;
 				z-index: -1;

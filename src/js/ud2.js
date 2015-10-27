@@ -2690,10 +2690,10 @@ var ud2 = (function (window, $) {
 					text += arrValObjects.province.name;
 
 					if (arrValObjects.city) {
-						text += '<b>/</b>' + arrValObjects.city.name;
+						text += '<span>/</span>' + arrValObjects.city.name;
 
 						if (arrValObjects.area) {
-							text += '<b>/</b>' + arrValObjects.area;
+							text += '<span>/</span>' + arrValObjects.area;
 						}
 					}
 

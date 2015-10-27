@@ -2603,9 +2603,10 @@ var ud2 = (function (window, $) {
 				if (group.data) {
 					showStart(0);
 					for (var i in group.data) {
-						if (!arrValObjects.provinceList[i]) {
-							arrValObjects.provinceList[i] = $span.clone().html(group.data[i].name);
-							event(arrValObjects.provinceList[i]).setTap(function (i) {
+						var name = group.data[i].name;
+						if (!arrValObjects.provinceList[name]) {
+							arrValObjects.provinceList[name] = $span.clone().html(name);
+							event(arrValObjects.provinceList[name]).setTap(function (i) {
 								return function () {
 									arrValObjects.province = group.data[i];
 									arrValObjects.city = null;
@@ -2615,7 +2616,7 @@ var ud2 = (function (window, $) {
 								}
 							}(i));
 						}
-						$addressListContent.append(arrValObjects.provinceList[i]);
+						$addressListContent.append(arrValObjects.provinceList[name]);
 					}
 				} else {
 					if (delayTimer) {
@@ -2629,9 +2630,11 @@ var ud2 = (function (window, $) {
 			function showCity() {
 				showStart(1);
 				for (var i in arrValObjects.province.city) {
-					if (!arrValObjects.cityList[i]) {
-						arrValObjects.cityList[i] = $span.clone().html(arrValObjects.province.city[i].name);
-						event(arrValObjects.cityList[i]).setTap(function (i) {
+					var name = arrValObjects.province.city[i].name,
+						fixName = arrValObjects.province.name + name;
+					if (!arrValObjects.cityList[fixName]) {
+						arrValObjects.cityList[fixName] = $span.clone().html(name);
+						event(arrValObjects.cityList[fixName]).setTap(function (i) {
 							return function () {
 								arrValObjects.city = arrValObjects.province.city[i];
 								arrValObjects.area = null;
@@ -2640,16 +2643,18 @@ var ud2 = (function (window, $) {
 							}
 						}(i));
 					}
-					$addressListContent.append(arrValObjects.cityList[i]);
+					$addressListContent.append(arrValObjects.cityList[fixName]);
 				}
 			}
 			// 展示地区
 			function showArea() {
 				showStart(2);
 				for (var i in arrValObjects.city.area) {
-					if (!arrValObjects.areaList[i]) {
-						arrValObjects.areaList[i] = $span.clone().html(arrValObjects.city.area[i]);
-						event(arrValObjects.areaList[i]).setTap(function (i) {
+					var name = arrValObjects.city.area[i],
+						fixName = arrValObjects.province.name + arrValObjects.city.name + name;
+					if (!arrValObjects.areaList[fixName]) {
+						arrValObjects.areaList[fixName] = $span.clone().html(name);
+						event(arrValObjects.areaList[fixName]).setTap(function (i) {
 							return function () {
 								arrValObjects.area = arrValObjects.city.area[i];
 								setValue();
@@ -2658,7 +2663,7 @@ var ud2 = (function (window, $) {
 						}(i));
 					}
 
-					$addressListContent.append(arrValObjects.areaList[i]);
+					$addressListContent.append(arrValObjects.areaList[fixName]);
 				}
 			}
 			// 判断 tab 内的按钮跳转位置
@@ -2669,6 +2674,9 @@ var ud2 = (function (window, $) {
 				}
 				if (arrValObjects.province && arrValObjects.city) {
 					if (index === 1) showCity();
+				}
+				if (arrValObjects.province && arrValObjects.city && arrValObjects.area) {
+					if (index === 2) showArea();
 				}
 			}
 			// 设定控件值

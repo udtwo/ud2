@@ -26,7 +26,9 @@ module.exports = function (grunt) {
 					footer: '\n/* lasted： <%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> */'
 				},
 				files: {
-					'dist/js/ud2.js': 'src/js/ud2.js',
+					'dist/js/ud2.js': [
+						'src/js/ud2.js'
+					]
 				}
 			},
 			'script-ud2-oldbrowser': {
@@ -61,6 +63,7 @@ module.exports = function (grunt) {
 						'src/less/style/scroll.less',
 						'src/less/style/table.less',
 						'src/less/style/ctrl.less',
+						'src/less/style/ud2-address.less',
 						'src/less/style/ud2-select.less',
 						'src/less/style/ud2-table.less'
 						
@@ -82,6 +85,12 @@ module.exports = function (grunt) {
 				cwd: 'src/ico/',
 				src: '*',
 				dest: 'dist/ico/'
+			},
+			'json': {
+				expand: true,
+				cwd: 'json/compression/',
+				src: '*',
+				dest: 'dist/json'
 			}
 		},
 		// 文件监测

@@ -353,3 +353,33 @@ input[type='checkbox']::after {
 	-moz-osx-font-smoothing: grayscale;
 	.transition('transform .6s, color .3s');
 }
+
+
+/**
+ * 动画
+ */
+// 旋转动画
+@-moz-keyframes fx-rotate {
+	0% {
+		-moz-transform: rotate(0);
+	}
+	100% {
+		-moz-transform: rotate(1turn);
+	}
+}
+@-webkit-keyframes fx-rotate {
+	0% {
+		-webkit-transform: rotate(0);
+	}
+	100% {
+		-webkit-transform: rotate(1turn);
+	}
+}
+@keyframes fx-rotate {
+	0% {
+		transform: rotate(0);
+	}
+	100% {
+		transform: rotate(1turn);
+	}
+}

@@ -74,7 +74,7 @@ var ud2 = (function (window, $) {
 			window.msRequestAnimationFrame ||
 			function (callback) { window.setTimeout(callback, 1000 / 60); },
 		// 正则表达式
-		reg = {
+		regex = {
 			// 日期正则
 			// 可以匹配 xxxx(-|.|/)x{1,2}(-|.|/)x{1,2}
 			date: /^(?:[12]\d{3}([\.\-\/])(?:(?:0?[13578]|1[02])\1(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\1(?:0?[1-9]|[12]\d|30)|0?2\1(?:0?[1-9]|1\d|2[0-8]))$|[12]\d(?:[02468][048]|[13579][26])([\.\-\/])(?:(?:0?[13578]|1[02])\2(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\2(?:0?[1-9]|[12]\d|30)|0?2\2(?:0?[1-9]|1\d|2[0-9])))$/
@@ -2199,7 +2199,7 @@ var ud2 = (function (window, $) {
 				$emptyOption = $a.clone(),
 				// 控件滚动条
 				selectScroll = null,
-				// 是否处于开启状态
+				// 标记是否处于开启状态
 				isOpen = false,
 				// 列表滚动条
 				listScroll = null;
@@ -2242,7 +2242,7 @@ var ud2 = (function (window, $) {
 						.attr('title', this.name)
 						.attr(className + '-value', this.value)
 						.addClass(className + '-option');
-					
+
 					if (this.group) $opt.addClass(className + '-ingroup');
 					if (this.disabled || (this.group && this.group.disabled))
 						$opt.attr(className + '-disabled', 'true');
@@ -2369,21 +2369,21 @@ var ud2 = (function (window, $) {
 					for (var i in arrValOptions) vs.push(arrValOptions[i].value);
 
 					if (arrValOptions.length === 0) {
-						$selectBtn.removeClass('value');
+						$selectBtn.attr(className + '-value', null);
 						$selectBtn.html(options.autoText);
 					} else {
-						$selectBtn.addClass('value');
+						$selectBtn.attr(className + '-value', true);
 						$selectBtn.html(vs.length + '个项目');
 					}
 				} else {
 					if (arrValOptions[0]) arrValOptions[0].setSelected(false);
-					$selectBtn.addClass('value');
+					$selectBtn.attr(className + '-value', true);
 					option.setSelected(true);
 					arrValOptions[0] = option;
 					$selectBtn.html(option.name);
 				}
 			}
-			
+
 			// #endregion
 
 			// #region 公有方法
@@ -2400,6 +2400,7 @@ var ud2 = (function (window, $) {
 			// return[select]: 返回控件
 			function setShowText(text) {
 				var text = isString(text) ? text : options.autoText;
+				options.autoText = text;
 				$selectBtn.html(text);
 				return ctrl.public;
 			}
@@ -2500,12 +2501,14 @@ var ud2 = (function (window, $) {
 				// 移除原标签
 				ctrl.$origin.remove();
 
+				// 事件绑定
 				bindEvent();
 			}());
 
 			// #endregion
 
 			// #region 返回
+
 			ctrl.public.open = open;
 			ctrl.public.close = close;
 			ctrl.public.toggle = toggle;
@@ -2516,9 +2519,311 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
-		}
+		};
 
 	}(controlGroup('select')));
+	// JS 地区选择控件集合
+	// * 此控件会 remove 掉原宿主对象
+	var address = (function (group) {
+
+		// 重写 init 方法
+		// 创建一个 JS 读取选择控件
+		// ctrl[control]: control 对象
+		// userOptions[object]: 用户参数
+		// return[address]: 返回生成的控件对象
+		group.init = function (ctrl, userOptions) {
+
+			// #region 私有属性
+
+			var // 样式类名
+				className = prefixLibName + group.name,
+				// 选项
+				options = {
+					// 默认文本
+					autoText: ctrl.$origin.attr(className + '-text') || '请选择城市信息',
+					// 地址 JSON 数据位置
+					json: ctrl.$origin.attr(className + '-src') || '/dist/json/address.json'
+				},
+				// 值集合对象
+				arrValObjects = {
+					province: null, city: null, area: null,
+					provinceList: [], cityList: [], areaList: []
+				},
+				// 生成 $address 对象
+				$address = $([
+					'<div class="ud2-address">',
+					'<a class="ud2-address-btn" />',
+					'<span class="ud2-ctrl-power"><i class="ico">&#xe773;</i><i class="ico">&#xe689;</i></span>',
+					'<div class="ud2-address-list">',
+					'<div class="ud2-address-tab"><span>省份</span><span>城市</span><span>区县</span></div>',
+					'<div class="ud2-address-area ud2-address-area-load" />',
+					'</div></div>'
+				].join('')),
+				// 通过 $address 获取列表对象
+				$addressList = $address.children('div'),
+				// 通过 $address 获取按钮对象
+				$addressBtn = $address.children('a'),
+				// 通过 $address 获取开关对象
+				$addressPower = $address.children('span'),
+				// 通过 $addressList 获取选项卡对象
+				$addressListTab = $addressList.children('div:first'),
+				// 通过 $addressList 获取内容对象
+				$addressListContent = $addressList.children('div:last'),
+				// 标记是否处于开启状态
+				isOpen = false,
+				// 延迟加载等待定时器
+				delayTimer = null;
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 获取地区数据
+			function getDatas() {
+				if (!group.data) {
+					$.ajax({
+						'url': options.json,
+						'method': 'get',
+						'dataType': 'json'
+					}).done(function (data) {
+						group.data = data;
+						$addressListContent.removeClass(className + '-area-load');
+					})
+				}
+			}
+			// 对展示行为初始化
+			// no[number]: 设置当前的展示层级
+			function showStart(no) {
+				$addressListTab.children().removeClass(className + '-tab-on');
+				$addressListTab.children().eq(no).addClass(className + '-tab-on');
+				$addressListContent.children().detach();
+			}
+			// 展示省份
+			function showProvince() {
+				if (group.data) {
+					showStart(0);
+					for (var i in group.data) {
+						if (!arrValObjects.provinceList[i]) {
+							arrValObjects.provinceList[i] = $span.clone().html(group.data[i].name);
+							event(arrValObjects.provinceList[i]).setTap(function (i) {
+								return function () {
+									arrValObjects.province = group.data[i];
+									arrValObjects.city = null;
+									arrValObjects.area = null;
+									showCity();
+									setValue();
+								}
+							}(i));
+						}
+						$addressListContent.append(arrValObjects.provinceList[i]);
+					}
+				} else {
+					if (delayTimer) {
+						window.clearInterval(delayTimer);
+						delayTimer = null;
+					}
+					delayTimer = window.setInterval(showProvince, 50);
+				}
+			}
+			// 展示城市
+			function showCity() {
+				showStart(1);
+				for (var i in arrValObjects.province.city) {
+					if (!arrValObjects.cityList[i]) {
+						arrValObjects.cityList[i] = $span.clone().html(arrValObjects.province.city[i].name);
+						event(arrValObjects.cityList[i]).setTap(function (i) {
+							return function () {
+								arrValObjects.city = arrValObjects.province.city[i];
+								arrValObjects.area = null;
+								showArea();
+								setValue();
+							}
+						}(i));
+					}
+					$addressListContent.append(arrValObjects.cityList[i]);
+				}
+			}
+			// 展示地区
+			function showArea() {
+				showStart(2);
+				for (var i in arrValObjects.city.area) {
+					if (!arrValObjects.areaList[i]) {
+						arrValObjects.areaList[i] = $span.clone().html(arrValObjects.city.area[i]);
+						event(arrValObjects.areaList[i]).setTap(function (i) {
+							return function () {
+								arrValObjects.area = arrValObjects.city.area[i];
+								setValue();
+								close();
+							}
+						}(i));
+					}
+
+					$addressListContent.append(arrValObjects.areaList[i]);
+				}
+			}
+			// 判断 tab 内的按钮跳转位置
+			function tabShow() {
+				var index = this.index();
+				if (arrValObjects.province) {
+					if (index === 0) showProvince();
+				}
+				if (arrValObjects.province && arrValObjects.city) {
+					if (index === 1) showCity();
+				}
+			}
+			// 设定控件值
+			function setValue() {
+				var text = "";
+				if (arrValObjects.province) {
+					text += arrValObjects.province.name;
+
+					if (arrValObjects.city) {
+						text += '<b>/</b>' + arrValObjects.city.name;
+
+						if (arrValObjects.area) {
+							text += '<b>/</b>' + arrValObjects.area;
+						}
+					}
+
+					$addressBtn.attr(className + '-value', true);
+					$addressBtn.html(text);
+				}
+				else {
+					$addressBtn.attr(className + '-value', null);
+					$addressBtn.html(options.autoText);
+				}
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 设置控件的默认文本
+			// text[string]: 默认文本
+			// return[address]: 返回控件
+			function setShowText(text) {
+				var text = ud2.check.isString(text) ? text : options.autoText;
+				options.autoText = text;
+				$addressBtn.html(text);
+				return ctrl.public;
+			}
+			// 打开控件
+			// return[address]: 返回控件
+			function open() {
+				isOpen = true;
+				$address.addClass(className + '-on');
+				$addressPower.addClass(prefixLibName + 'ctrl-power-on');
+				if (!arrValObjects.province) {
+					showProvince();
+				} else if (!arrValObjects.city) {
+					showCity();
+				} else {
+					showArea();
+				}
+				return ctrl.public;
+			}
+			// 关闭控件
+			// return[address]: 返回控件
+			function close() {
+				// 存在延迟加载则删除延迟加载等待定时器
+				if (delayTimer) {
+					window.clearInterval(delayTimer);
+					delayTimer = null;
+				}
+
+				if (arrValObjects.area === null) {
+					arrValObjects.province = null;
+					arrValObjects.city = null;
+					setValue();
+				}
+
+				isOpen = false;
+				$address.removeClass(className + '-on');
+				$addressPower.removeClass(prefixLibName + 'ctrl-power-on');
+				return ctrl.public;
+			}
+			// 开关控件
+			// 当控件开启时就关闭，否则就开启
+			// return[address]: 返回控件
+			function toggle() {
+				if (isOpen) {
+					close();
+				} else {
+					open();
+				}
+				return ctrl.public;
+			}
+			// 获取控件值
+			// val[string]: 返回控件值
+			function val() {
+				var val = [];
+				if (arrValObjects.province && arrValObjects.city && arrValObjects.area) {
+					val.push(arrValObjects.province.name);
+					val.push(arrValObjects.city.name);
+					val.push(arrValObjects.area);
+				}
+				return val;
+			}
+
+			// #endregion
+
+			// #region 事件处理
+
+			// 事件绑定
+			function bindEvent() {
+				var btnEvent = event($addressBtn);
+				btnEvent.setTap(toggle);
+				var icoEvent = event($addressPower);
+				icoEvent.setTap(toggle);
+				var tabEvent = event($addressListTab.children());
+				tabEvent.setTap(tabShow);
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 控件初始项
+				ctrl.$current = $address;
+				ctrl.autoClose = close;
+
+				// 设置初始选项
+				setOptions(options, userOptions);
+				// 转移宿主属性
+				transferStyles(ctrl.$origin, $address);
+				transferAttrs(ctrl.$origin, $address);
+
+				// 获取地址数据
+				getDatas();
+				// 显示默认文本
+				setShowText();
+				// 把 $address 放入原标签后
+				ctrl.$origin.after($address);
+				// 移除原标签
+				ctrl.$origin.remove();
+
+				// 事件绑定
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			ctrl.public.open = open;
+			ctrl.public.close = close;
+			ctrl.public.toggle = toggle;
+			ctrl.public.val = val;
+			return ctrl.public;
+
+			// #endregion
+
+		};
+
+	}(controlGroup('address')));
+
 
 	var table = (function (group) {
 
@@ -2726,7 +3031,19 @@ var ud2 = (function (window, $) {
 	}());
 
 	// 公开对象及方法
-	ud2.reg = reg;
+	ud2.check = {
+		isType: isType,
+		isObject: isObject,
+		isFunction: isFunction,
+		isString: isString,
+		isNumber: isNumber,
+		isNaturalNumber: isNaturalNumber,
+		isJQuery: isJQuery
+	};
+	ud2.convert = {
+		naturalNumber: convertToNaturalNumber
+	};
+	ud2.regex = regex;
 	ud2.support = support;
 	ud2.animateFrame = animateFrame;
 	ud2.event = event;

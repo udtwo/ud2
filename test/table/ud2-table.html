@@ -11,6 +11,7 @@
 
 	<script>
 		$(function () {
+			// 获取滚动条尺寸
 			function getScrollSize() {
 				var p = document.createElement('p'),
 					styles = {
@@ -36,14 +37,16 @@
 	<div class="ud2-table">
 		<div class="ud2-table-head">
 			<table style="width: 2900px; padding-right: 20px">
-				<tr>
-					<td style="width: 300px;"></td>
-					<td style="width: 1000px;">2</td>
-					<td style="width: 500px;">3</td>
-					<td style="width: 400px;">4</td>
-					<td style="width: 200px;">5</td>
-					<td style="width: 500px;">6</td>
-				</tr>
+				<thead>
+					<tr>
+						<td style="width: 300px;">1</td>
+						<td style="width: 1000px;">2</td>
+						<td style="width: 500px;">3</td>
+						<td style="width: 400px;">4</td>
+						<td style="width: 200px;">5</td>
+						<td style="width: 500px;">6</td>
+					</tr>
+				</thead>
 			</table>
 		</div>
 
@@ -69,7 +72,16 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td rowspan="2">1.1</td>
+						<td rowspan="2">
+							<div>
+								<table style="width: 100%;">
+									<tr>
+										<td>1</td>
+										<td>2</td>
+									</tr>
+								</table>
+							</div>
+						</td>
 						<td>1.2</td>
 						<td>1.3</td>
 						<td>1.4</td>
@@ -190,6 +202,10 @@
 					</tr>
 				</tbody>
 			</table>
+		</div>
+
+		<div class="ud2-table-tfoot">
+
 		</div>
 	</div>
 

@@ -9,12 +9,43 @@
 // 为所有带有 .ud2-table 的标签设置内部样式
 .ud2-table {
 	width: 100%;
-	height: 300px;
-	overflow: auto;
-	resize: none;
+	border: 1px solid @ColorWhiteBorder;
+	border-radius: @BorderRadius;
+	overflow: hidden;
+	.boxSizing('border-box');
 
 	table {
 		table-layout: fixed;
-		min-width: 100%;
+		border-spacing: 0;
+		border-collapse: separate;
 	}
+
+	td, th {
+		border-bottom: 1px solid @ColorWhiteBorder;
+		padding: @BaseSize/2;
+		line-height: 1.4;
+		.boxSizing('border-box');
+
+		&:not(:last-child) {
+			border-right: 1px solid @ColorWhiteBorder;
+		}
+	}
+}
+.ud2-table-head {
+	position: relative;
+	top: 0; left: 0;
+	overflow: hidden;
+	background: @ColorWhiteDeeper;
+	border-bottom: 1px solid @ColorWhiteBorder;
+}
+
+.ud2-table-body {
+	position: relative;
+	top: 0; left: 0;
+	height: 300px;
+	width: 100%;
+	overflow: scroll;
+}
+.ud2-table-tfoot {
+	border-top: 2px solid @ColorWhiteBorder;
 }

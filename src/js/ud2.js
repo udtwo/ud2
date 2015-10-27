@@ -2537,18 +2537,20 @@ var ud2 = (function (window, $) {
 					colWidth: 200
 				},
 				// 表格外层容器
-				$tableBox = $div.clone();
+				$tableBox = $div.clone(),
+				// 表格数据
+				tableData = {
+					thead: { row: [], col: [], cell: [] },
+					tbody: { row: [], col: [], cell: [] },
+					tfoot: { row: [], col: [], cell: [] }
+				};
 
 			// 表格行对象
-			function Row() {
+			function Row(section) {
+				this.section = section;
 				this.cells = [];
 
-				Row.list.push(this);
-			}
-			Row.list = [];
-			Row.add = function () {
-				new Row();
-				return Row.list.length - 1;
+				section.row.push(this);
 			}
 			Row.prototype = {
 				addCell: function (cell) {
@@ -2557,16 +2559,12 @@ var ud2 = (function (window, $) {
 			}
 
 			// 表格列对象
-			function Col(width) {
+			function Col(section, width) {
+				this.section = section;
 				this.cells = [];
 				this.width = width || options.colWidth;
 				
-				Col.list.push(this);
-			}
-			Col.list = [];
-			Col.add = function (width) {
-				new Col(width);
-				return Col.list.length - 1;
+				section.col.push(this);
 			}
 			Col.prototype = {
 				addCell: function (cell) {
@@ -2575,36 +2573,38 @@ var ud2 = (function (window, $) {
 			}
 
 			// 表格单元格对象
-			function Cell(text, rowspan, colspan, merged, rowIndex, colIndex) {
+			function Cell(section, text, rowspan, colspan, merged, rowIndex, colIndex) {
+				this.section = section;
 				this.text = text;
 				this.rowspan = rowspan;
 				this.colspan = colspan;
 				this.merged = merged || false;
 
-				Row.list[rowIndex].addCell(this);
-				Col.list[colIndex].addCell(this);
-				Cell.list.push(this);
+				section.row[rowIndex].addCell(this);
+				section.col[colIndex].addCell(this);
+				section.cell.push(this);
 			}
-			Cell.list = [];
+
 
 			// 分析表格行列
-			function analysisRanks() {
-				var $all = ctrl.$origin.children().children('tr'),
-					$colCells = $all.eq(0).children('td'),
+			function analysisRanks(section) {
+				var $rows = section.$origin.children('tr'),
+					$colCells = $rows.eq(0).children('td'),
 					r = 0, c = 0, cs = 0, rs = 0;
 
-				rs = $all.length;
+				rs = $rows.length;
 				$colCells.each(function (i) { cs += parseInt($(this).attr('colspan') || 1); });
 
-				for (var i = 0; i < cs; i++) new Col();
-				for (var i = 0; i < rs; i++) new Row();
+				for (var i = 0; i < cs; i++) new Col(section);
+				for (var i = 0; i < rs; i++) new Row(section);
 
 				return { row: rs, col: cs };
 			}
-			// 分析表格
-			function analysisTable() {
-				var $trs = ctrl.$origin.children().children('tr'), $tr, $tds, $td,
-					ranks = analysisRanks(), rule = [],
+
+			// 分析节点
+			function analysisSection(section) {
+				var $trs = section.$origin.children('tr'), $tr, $tds, $td,
+					ranks = analysisRanks(section), rule = [],
 					cs, rs;
 				
 				for (var r = 0; r < ranks.row; r++) {
@@ -2619,16 +2619,49 @@ var ud2 = (function (window, $) {
 							}
 						}); 
 						if (isRule) {
-							new Cell('', rs, cs, true, r, c);
+							new Cell(section, '', rs, cs, true, r, c);
 						} else {
 							$td = $trs.eq(r).children('td').eq(cby);
 							cs = parseInt($td.attr('colspan') || 1);
 							rs = parseInt($td.attr('rowspan') || 1);
 							if (cs > 0 || rs > 0) rule.push({ start: [r, c], len: [rs - 1, cs - 1] });
-							new Cell($td.html(), rs, cs, false, r, c);
+							new Cell(section, $td.html(), rs, cs, false, r, c);
 						}
 					}
 				}
+
+
+			}
+			// 分析表格
+			function analysisTable() {
+				var $thead = ctrl.$origin.children('thead'),
+					$tbody = ctrl.$origin.children('tbody'),
+					$tfoot = ctrl.$origin.children('tfoot');
+
+				tableData.thead.$origin = $thead;
+				tableData.thead.$origin.parent = tableData.thead;
+				tableData.tbody.$origin = $tbody;
+				tableData.tbody.$origin.parent = tableData.tbody;
+				tableData.tfoot.$origin = $tfoot;
+				tableData.tfoot.$origin.parent = tableData.tfoot;
+
+				if (tableData.thead.$origin.length !== 0) analysisSection(tableData.thead);
+				if (tableData.tbody.$origin.length !== 0) analysisSection(tableData.tbody);
+				if (tableData.tfoot.$origin.length !== 0) analysisSection(tableData.tfoot);
+			}
+
+			function getScrollSize() {
+				var p = document.createElement('p'),
+					styles = {
+						width: '100px',
+						height: '100px',
+						overflowY: 'scroll'
+					}, i, scrollbarWidth;
+				for (i in styles) p.style[i] = styles[i];
+				document.body.appendChild(p);
+				scrollbarWidth = p.offsetWidth - p.clientWidth;
+				p.remove();
+				return scrollbarWidth;
 			}
 
 			// 初始化
@@ -2641,19 +2674,25 @@ var ud2 = (function (window, $) {
 
 				// 分析控件组和控件
 				analysisTable();
+				
+
 
 
 				// 
 				ctrl.$origin.after($tableBox);
-				$tableBox.append(ctrl.$origin).addClass(className);
-				ctrl.$origin.addClass('table table-hover');
+				ctrl.$origin.remove();
+
+
+				var $table = $('<table />');
+				var $tr = $('<tr />');
+				var $td = $('<td />');
 
 
 			}());
 
-			ctrl.public.rows = Row.list;
-			ctrl.public.cols = Col.list;
-			ctrl.public.cells = Cell.list;
+			ctrl.public.thead = tableData.thead;
+			ctrl.public.tbody = tableData.tbody;
+			ctrl.public.tfoot = tableData.tfoot;
 
 			// 返回
 			return ctrl.public;

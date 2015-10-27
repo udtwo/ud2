@@ -1338,11 +1338,15 @@ var ud2 = (function (window, $) {
 		// 自动关闭方法
 		// target[element]: 事件目标
 		function autoClose(target) {
-			var $target = $(target),
+			var $target = isJQuery(target) ? target : $(target),
 				$targetParents = $target.parents();
 
-			for (var i = 0, len = $targetParents.length; i < len ; i++) {
-				if (control.$current) if ($targetParents.eq(i).get(0) === control.$current.get(0)) return;
+			if (control.$current) {
+				if ($target.get(0) === control.$current.get(0)) return;
+				for (var i = 0, len = $targetParents.length; i < len ; i++) {
+					if ($targetParents.eq(i).get(0) === control.$current.get(0)) return;
+				}
+
 			}
 
 			control.autoClose();
@@ -2432,7 +2436,7 @@ var ud2 = (function (window, $) {
 				return ctrl.public;
 			}
 			// 获取控件值
-			// val[string]: 返回控件值
+			// val[string(1), array(2)]: 返回控件值
 			function val() {
 				// 是否为多选
 				if (options.isMultiple) {
@@ -2527,7 +2531,7 @@ var ud2 = (function (window, $) {
 	var address = (function (group) {
 
 		// 重写 init 方法
-		// 创建一个 JS 读取选择控件
+		// 创建一个 JS 地区选择控件
 		// ctrl[control]: control 对象
 		// userOptions[object]: 用户参数
 		// return[address]: 返回生成的控件对象
@@ -2831,6 +2835,380 @@ var ud2 = (function (window, $) {
 		};
 
 	}(controlGroup('address')));
+	// JS 范围控件集合
+	// * 此控件会 remove 掉原宿主对象
+	var range = (function (group) {
+
+		// 重写 init 方法
+		// 创建一个 JS 范围控件
+		// ctrl[control]: control 对象
+		// userOptions[object]: 用户参数
+		// return[range]: 返回生成的控件对象
+		group.init = function (ctrl, userOptions) {
+
+			// #region 私有字段
+
+			var // 样式类名
+				className = prefixLibName + group.name,
+				// 选项
+				options = {
+					// 是否支持双手柄
+					both: function () {
+						var both = ctrl.$origin.attr(prefixLibName + group.name + '-both');
+						return (!both || both === 'false') ? false : true;
+					}(),
+					// 步长
+					step: ctrl.$origin.attr('step') || ctrl.$origin.attr(prefixLibName + group.name + '-step'),
+					// 最小值
+					min: ctrl.$origin.attr('min') || ctrl.$origin.attr(prefixLibName + group.name + '-min'),
+					// 最大值
+					max: ctrl.$origin.attr('max') || ctrl.$origin.attr(prefixLibName + group.name + '-max'),
+					// 获取值
+					value: ctrl.$origin.attr('value') || ctrl.$origin.attr(prefixLibName + group.name + '-value')
+				},
+				// 左右值
+				valueLeft = 0, valueRight = 0,
+				// 步长, 步长位数, 最小值, 最大值
+				step = 0, stepDigit = 0, min = 0, max = 0,
+				// 生成一个 range 的 jQuery 对象
+				$range = $([
+					'<div class="' + className + '">',
+					'<input type="text" maxlength="20" class="ud2-ctrl-txtbox" />',
+					'<span class="ud2-ctrl-power"><i class="ico">&#xe81b;</i><i class="ico">&#xe689;</i></span>',
+					'<div class="' + className + '-list"><div class="' + className + '-end" /><div class="' + className + '-back" /></div>',
+					'</div>'
+				].join('')),
+				// 输入框
+				$rangeInput = $range.children('input'),
+				// 图标按钮
+				$rangePower = $range.find('.ud2-ctrl-power'),
+				// 通过 $range 获取 list 容器
+				$rangeList = $range.children('div'),
+				// 第一个按钮
+				$btnLeft = $a.clone().addClass(className + '-hand'),
+				// 第二个按钮
+				$btnRight = $a.clone().addClass(className + '-hand'),
+				// 按钮背景
+				$btnsBack = $rangeList.find('.' + className + '-back'),
+				// 处理信息数据
+				handleInfo = {
+					// 按钮的最大位移
+					max: 0,
+					// 按钮的外容器宽度
+					bw: 0,
+					// 按钮的宽度
+					w: 0,
+					// 左侧按钮当前位移
+					nl: 0,
+					// 右侧按钮当前位移
+					nr: 0
+				},
+				// 浮点运算常数
+				DEBUG_NUM = 10000000,
+				// 控件开关状态
+				isOpen = false;
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 检测控件默认值，对于不符合要求的值替换为可用值
+			function detectOptions() {
+				var oldMin, oldMax, oldVal, oldLeftVal, oldRightVal, oldStep;
+				// 获取步长
+				oldStep = (function () {
+					var step = options.step || 1;
+					step = parseFloat(step);
+					if (typeof step !== 'number' || isNaN(step) || step === 0) step = 1;
+					return step;
+				}());
+				// 获取最小值
+				oldMin = (function () {
+					var min = options.min || 0;
+					min = parseFloat(min);
+					if (typeof min !== 'number' || isNaN(min)) min = 0;
+					return min;
+				}());
+				// 获取最大值
+				oldMax = (function () {
+					var max = options.max || 100;
+					max = parseFloat(max);
+					if (typeof min !== 'number' || isNaN(max)) max = 100;
+					return max;
+				}());
+				// 获取值
+				oldVal = convertValue(options.value);
+				oldLeftVal = oldVal[0];
+				oldRightVal = oldVal[1];
+
+				// 解决最小值大于最大值问题
+				if (oldMin > oldMax) { oldMax = oldMin; }
+				// 输出新数据
+				step = oldStep;
+				min = oldMin;
+				max = oldMax;
+				// 获取步长位数
+				if (step.toString().indexOf('.') > -1) stepDigit = step.toString().split('.')[1].length;
+
+				// 获取最大位移
+				updateHandleInfoSize();
+				// 设置值
+				setValue(oldLeftVal, oldRightVal);
+				// 更新处理信息数据值项
+				updateHandleInfoValue();
+			}
+			// 更新处理信息数据值项
+			function updateHandleInfoValue() {
+				handleInfo.nl = valueToPercent(valueLeft);
+				handleInfo.nr = valueToPercent(valueRight);
+			}
+			// 更新处理信息数据尺寸项
+			function updateHandleInfoSize() {
+				// 获取按钮宽度
+				handleInfo.w = $btnLeft.outerWidth();
+				// 计算出按钮的外容器宽度
+				handleInfo.bw = $rangeList.width(),
+				// 计算出按钮的最大位移
+				handleInfo.max = handleInfo.bw - handleInfo.w;
+			}
+			// 设置控件值，并更新显示属性
+			// valLeft[number]: 控件的左侧值
+			// valRight[number]: 控件的右侧值
+			function setValue(valLeft, valRight) {
+				var percentLeft, percentRight, inMin, inMax, valMin, valMax;
+				// 判断当前值小于最小值或大于最大值
+				if (valLeft < min) valLeft = min;
+				if (valLeft > max) valLeft = max;
+				// 让值存在于符合步长值集合中 (value = min + step * x);
+				valueLeft = Math.round((valLeft - min) / step) * (DEBUG_NUM * step) / DEBUG_NUM + min;
+				//if (valueLeft < min) valueLeft = Math.ceil((valLeft - min) / step) * (DEBUG_NUM * step) / DEBUG_NUM + min;
+
+				// 左侧手柄位置
+				percentLeft = valueToPercent(valueLeft);
+				$btnLeft.css('left', percentToViewPos(percentLeft) + '%');
+
+				// 如果不是双手柄
+				if (!options.both) {
+					// 显示手柄和值
+					$btnsBack.css('width', percentLeft * 100 + '%');
+					$rangeInput.val(valueLeft);
+				}
+				else { // 是双手柄
+					// 判断当前值小于最小值或大于最大值
+					if (valRight < min) valRight = min;
+					if (valRight > max) valRight = max;
+					// 让值存在于符合步长值集合中 (value = min + step * x);
+					valueRight = Math.round((valRight - min) / step) * (DEBUG_NUM * step) / DEBUG_NUM + min;
+					// if (valueRight < min) valueRight = Math.ceil((valRight - min) / step) * (DEBUG_NUM * step) / DEBUG_NUM + min;
+					percentRight = valueToPercent(valueRight);
+					$btnRight.css({ 'left': percentToViewPos(percentRight) + '%' });
+
+					// 显示手柄和值
+					inMin = Math.min(percentLeft, percentRight);
+					inMax = Math.max(percentLeft, percentRight);
+					valMin = Math.min(valueLeft, valueRight);
+					valMax = Math.max(valueLeft, valueRight);
+					$btnsBack.css({ 'left': inMin * 100 + '%', 'width': ((inMax - inMin) * 100) + '%' });
+					$rangeInput.val(valMin + ',' + valMax);
+				}
+			}
+			// 值转换
+			// oldVal[string]: 旧值
+			// return[array]: 左右新值
+			function convertValue(oldVal) {
+				var oldLeftVal = null, oldRightVal = null;
+				if (oldVal) oldVal = oldVal.split(','); else oldVal = [0, 0];
+				oldLeftVal = oldVal[0] || 0;
+				oldLeftVal = oldLeftVal !== 0 ? (parseFloat(oldLeftVal) || 0) : oldLeftVal;
+				oldRightVal = oldVal[1] || 0;
+				oldRightVal = oldRightVal !== 0 ? (parseFloat(oldRightVal) || 0) : oldRightVal;
+				return [oldLeftVal, oldRightVal];
+			}
+			// 通过百分比来获取视觉坐标点
+			// percent[number]: 百分比
+			// return[number]: 视觉坐标点
+			function percentToViewPos(percent) {
+				return percent * handleInfo.max / handleInfo.bw * 100;
+			}
+			// 通过值量来获取该值所对应的百分比
+			// value[number]: 当前值
+			// return[number]: 该值对应的百分比
+			function valueToPercent(value) {
+				var move = (value - min) / (max - min);
+				return move;
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 打开控件
+			// return[range]: 返回选项控件
+			function open() {
+				// #region 更新处理信息数据
+				updateHandleInfoSize();
+				if (!options.both) {
+					setValue(valueLeft);
+				} else {
+					setValue(valueLeft, valueRight);
+				}
+				updateHandleInfoValue();
+				// #endregion
+
+				isOpen = true;
+				$range.addClass(className + '-on');
+				$rangePower.addClass(prefixLibName + 'ctrl-power-on'); 
+				return ctrl.public;
+			}
+			// 关闭控件
+			// return[range]: 返回选项控件
+			function close() {
+				isOpen = false;
+				$range.removeClass(className + '-on');
+				$rangePower.removeClass(prefixLibName + 'ctrl-power-on');
+				return ctrl.public;
+			}
+			// 开关控件
+			// return[range]: 返回选项控件
+			function toggle() {
+				if (isOpen) {
+					close();
+				} else {
+					open();
+				}
+				return ctrl.public;
+			}
+			// 获取控件值
+			// return[number(1), array(2)]: 返回控件值
+			function val() {
+				if (!options.both) {
+					return valueLeft;
+				} else {
+					var valMin = Math.min(valueLeft, valueRight),
+						valMax = Math.max(valueLeft, valueRight);
+					return [valMin, valMax];
+				}
+			}
+
+			// #endregion
+
+			// #region 事件绑定
+
+			// 输入框获取焦点
+			function inputFocus() {
+				callbacksCtrlClose.fire($range);
+				open();
+			}
+			// 输入框键盘按下事件
+			// event[event]: 事件对象
+			function inputKeyDown(event) {
+				if (event.keyCode === 13) $rangeInput.blur();
+			}
+			// 输入框失去焦点事件
+			function inputBlur() {
+				var val = convertValue($rangeInput.val());
+				updateHandleInfoSize();
+				setValue(val[0], val[1]);
+				updateHandleInfoValue();
+			}
+			// 移动手柄移动计算当前值
+			// now[number]: 移动前的手柄位置值
+			// move[number]: 方向移动的大小
+			// return[number]: 通过移动量计算出当前值
+			function moveHandleToValue(now, move) {
+				var // 当前移动量
+					n = now * handleInfo.max + move,
+					// 当前值
+					v = null;
+
+				if (n < 0) n = 0;
+				if (n > handleInfo.max) n = handleInfo.max;
+				v = parseFloat(((max - min) * n / handleInfo.max + min).toFixed(stepDigit));
+				v = isNaN(v) ? min : v;
+				return v;
+			}
+			// 左侧手柄移动事件
+			// move[point]: 触点移动数据对象
+			function leftMove(move) {
+				if (!options.both) {
+					setValue(moveHandleToValue(handleInfo.nl, move.x));
+				} else {
+					setValue(moveHandleToValue(handleInfo.nl, move.x), valueRight);
+				}
+			}
+			// 左侧手柄触点抬起事件
+			function leftUp() {
+				handleInfo.nl = valueToPercent(valueLeft);
+			}
+			// 右侧手柄移动事件
+			// move[point]: 触点移动数据对象
+			function rightMove(move) {
+				setValue(valueLeft, moveHandleToValue(handleInfo.nr, move.x));
+			}
+			// 右侧手柄触点抬起事件
+			function rightUp() {
+				handleInfo.nr = valueToPercent(valueRight);
+			}
+			// 事件绑定
+			function bindEvent() {
+				var // 左侧按钮事件对象
+					btnLeftEvent = event($btnLeft),
+					// 右侧按钮事件对象
+					btnRightEvent = event($btnRight);
+
+				event($rangePower).setTap(toggle);
+				btnLeftEvent.setDown(updateHandleInfoSize).setPan(leftMove).setUp(leftUp);
+				btnRightEvent.setDown(updateHandleInfoSize).setPan(rightMove).setUp(rightUp);
+				$rangeInput.bind('focus', inputFocus).bind('keydown', inputKeyDown).bind('blur', inputBlur);
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 控件初始项
+				ctrl.$current = $range;
+				ctrl.autoClose = close;
+
+				// 设置初始选项
+				setOptions(options, userOptions);
+
+				// 转移宿主属性
+				transferStyles(ctrl.$origin, $range);
+				transferAttrs(ctrl.$origin, $range);
+
+				// 把$range放在原标签后
+				ctrl.$origin.after($range);
+				// 移除原标签
+				ctrl.$origin.remove();
+				// 置入按钮
+				$btnsBack.after($btnLeft);
+				if (options.both) $btnsBack.after($btnRight);
+
+				// 检测控件默认值
+				detectOptions();
+
+				// 绑定事件
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			ctrl.public.val = val;
+			ctrl.public.open = open;
+			ctrl.public.close = close;
+			ctrl.public.toggle = toggle;
+			return ctrl.public;
+
+			// #endregion
+
+		};
+
+	}(controlGroup('range')));
 
 
 	var table = (function (group) {

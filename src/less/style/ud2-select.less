@@ -11,7 +11,6 @@
 	padding-left: @CtrlPaddingLR;
 	padding-right: 2em;
 	.boxSizing('border-box');
-	.transition('background .3s');
 }
 // 设置文字溢出处理
 .ud2-select-btn, .ud2-select-option, .ud2-select-group {
@@ -56,9 +55,10 @@
 	left: -1px;
 	width: 100%;
 	height: 16em;
-	border: 1px solid @ColorWhiteBorder;
+	border: 1px solid @ColorWhiteBackDark;
 	border-radius: @BorderRadius;
 	background: @ColorWhite;
+	box-shadow: 3px 3px 3px @ColorWhiteDeeper;
 
 	a {
 		display: block;
@@ -112,6 +112,7 @@
 .ud2-select-on {
 	z-index: @MaxZIndex;
 	background: @ColorWhiteBackLight;
+	border-color: @ColorWhiteBackDark;
 
 	// 列表开启后的外层样式
 	.ud2-select-list {

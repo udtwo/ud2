@@ -110,7 +110,6 @@ var ud2 = (function (window, $) {
 		// 用于克隆的空 jQuery 对象
 		$div = $('<div />'),
 		$a = $('<a />'),
-		$span = $('<span />'),
 
 		// 返回 false 的空方法
 		fnReturnFalse = function () { return false; },
@@ -2546,7 +2545,7 @@ var ud2 = (function (window, $) {
 					// 默认文本
 					autoText: ctrl.$origin.attr(className + '-text') || '请选择城市信息',
 					// 地址 JSON 数据位置
-					json: ctrl.$origin.attr(className + '-src') || '/dist/json/address.json'
+					json: ctrl.$origin.attr(className + '-json') || '/dist/json/address.json'
 				},
 				// 值集合对象
 				arrValObjects = {
@@ -2555,12 +2554,11 @@ var ud2 = (function (window, $) {
 				},
 				// 生成 $address 对象
 				$address = $([
-					'<div class="ud2-address">',
-					'<a class="ud2-address-btn" />',
-					'<span class="ud2-ctrl-power"><i class="ico">&#xe773;</i><i class="ico">&#xe689;</i></span>',
-					'<div class="ud2-address-list">',
-					'<div class="ud2-address-tab"><span>省份</span><span>城市</span><span>区县</span></div>',
-					'<div class="ud2-address-area ud2-address-area-load" />',
+					'<div class="' + className + '"><a class="' + className + '-btn" />',
+					'<div class="ud2-ctrl-power"><i class="ico">&#xe773;</i><i class="ico">&#xe689;</i></div>',
+					'<div class="' + className + '-list">',
+					'<div class="' + className + '-tabbox"><div class="' + className + '-tab">省份</div><div class="' + className + '-tab">城市</div><div class="' + className + '-tab">区县</div></div>',
+					'<div class="' + className + '-areabox ' + className + '-load" />',
 					'</div></div>'
 				].join('')),
 				// 通过 $address 获取列表对象
@@ -2573,6 +2571,8 @@ var ud2 = (function (window, $) {
 				$addressListTab = $addressList.children('div:first'),
 				// 通过 $addressList 获取内容对象
 				$addressListContent = $addressList.children('div:last'),
+				// 存储一个空的区域元素
+				$emptyArea = $div.clone().addClass(className + '-area'),
 				// 标记是否处于开启状态
 				isOpen = false,
 				// 延迟加载等待定时器
@@ -2591,16 +2591,21 @@ var ud2 = (function (window, $) {
 						'dataType': 'json'
 					}).done(function (data) {
 						group.data = data;
-						$addressListContent.removeClass(className + '-area-load');
+						$addressListContent.removeClass(className + '-load');
 					})
 				}
 			}
 			// 对展示行为初始化
 			// no[number]: 设置当前的展示层级
 			function showStart(no) {
-				$addressListTab.children().removeClass(className + '-tab-on');
-				$addressListTab.children().eq(no).addClass(className + '-tab-on');
-				$addressListContent.children().detach();
+				var tabChild = $addressListTab.children(),
+					contentChild = $addressListContent.children();
+				tabChild.removeClass(className + '-tab-on ' + className + '-tab-open');
+				tabChild.eq(no).addClass(className + '-tab-on');
+				tabChild.eq(0).addClass(className + '-tab-open');
+				if (arrValObjects.province) tabChild.eq(1).addClass(className + '-tab-open');
+				if (arrValObjects.city) tabChild.eq(2).addClass(className + '-tab-open');
+				contentChild.detach();
 			}
 			// 展示省份
 			function showProvince() {
@@ -2609,7 +2614,7 @@ var ud2 = (function (window, $) {
 					for (var i in group.data) {
 						var name = group.data[i].name;
 						if (!arrValObjects.provinceList[name]) {
-							arrValObjects.provinceList[name] = $span.clone().html(name);
+							arrValObjects.provinceList[name] = $emptyArea.clone().html(name);
 							event(arrValObjects.provinceList[name]).setTap(function (i) {
 								return function () {
 									arrValObjects.province = group.data[i];
@@ -2619,6 +2624,12 @@ var ud2 = (function (window, $) {
 									setValue();
 								}
 							}(i));
+						}
+
+						if (arrValObjects.province && arrValObjects.province.name === name) {
+							arrValObjects.provinceList[name].addClass(className + '-area-me');
+						} else {
+							arrValObjects.provinceList[name].removeClass(className + '-area-me');
 						}
 						$addressListContent.append(arrValObjects.provinceList[name]);
 					}
@@ -2637,7 +2648,7 @@ var ud2 = (function (window, $) {
 					var name = arrValObjects.province.city[i].name,
 						fixName = arrValObjects.province.name + name;
 					if (!arrValObjects.cityList[fixName]) {
-						arrValObjects.cityList[fixName] = $span.clone().html(name);
+						arrValObjects.cityList[fixName] = $emptyArea.clone().html(name);
 						event(arrValObjects.cityList[fixName]).setTap(function (i) {
 							return function () {
 								arrValObjects.city = arrValObjects.province.city[i];
@@ -2646,6 +2657,12 @@ var ud2 = (function (window, $) {
 								setValue();
 							}
 						}(i));
+					}
+
+					if (arrValObjects.city && arrValObjects.city.name === name) {
+						arrValObjects.cityList[fixName].addClass(className + '-area-me');
+					} else {
+						arrValObjects.cityList[fixName].removeClass(className + '-area-me');
 					}
 					$addressListContent.append(arrValObjects.cityList[fixName]);
 				}
@@ -2657,7 +2674,7 @@ var ud2 = (function (window, $) {
 					var name = arrValObjects.city.area[i],
 						fixName = arrValObjects.province.name + arrValObjects.city.name + name;
 					if (!arrValObjects.areaList[fixName]) {
-						arrValObjects.areaList[fixName] = $span.clone().html(name);
+						arrValObjects.areaList[fixName] = $emptyArea.clone().html(name);
 						event(arrValObjects.areaList[fixName]).setTap(function (i) {
 							return function () {
 								arrValObjects.area = arrValObjects.city.area[i];
@@ -2667,19 +2684,22 @@ var ud2 = (function (window, $) {
 						}(i));
 					}
 
+					if (arrValObjects.area && arrValObjects.area === name) {
+						arrValObjects.areaList[fixName].addClass(className + '-area-me');
+					} else {
+						arrValObjects.areaList[fixName].removeClass(className + '-area-me');
+					}
 					$addressListContent.append(arrValObjects.areaList[fixName]);
 				}
 			}
 			// 判断 tab 内的按钮跳转位置
 			function tabShow() {
 				var index = this.index();
+				if (index === 0) showProvince();
 				if (arrValObjects.province) {
-					if (index === 0) showProvince();
-				}
-				if (arrValObjects.province && arrValObjects.city) {
 					if (index === 1) showCity();
 				}
-				if (arrValObjects.province && arrValObjects.city && arrValObjects.area) {
+				if (arrValObjects.province && arrValObjects.city) {
 					if (index === 2) showArea();
 				}
 			}
@@ -2874,16 +2894,16 @@ var ud2 = (function (window, $) {
 				$range = $([
 					'<div class="' + className + '">',
 					'<input type="text" maxlength="20" class="ud2-ctrl-txtbox" />',
-					'<span class="ud2-ctrl-power"><i class="ico">&#xe81b;</i><i class="ico">&#xe689;</i></span>',
+					'<div class="ud2-ctrl-power"><i class="ico">&#xe81b;</i><i class="ico">&#xe689;</i></div>',
 					'<div class="' + className + '-list"><div class="' + className + '-end" /><div class="' + className + '-back" /></div>',
 					'</div>'
 				].join('')),
 				// 输入框
 				$rangeInput = $range.children('input'),
 				// 图标按钮
-				$rangePower = $range.find('.ud2-ctrl-power'),
+				$rangePower = $rangeInput.next(),
 				// 通过 $range 获取 list 容器
-				$rangeList = $range.children('div'),
+				$rangeList = $rangePower.next(),
 				// 第一个按钮
 				$btnLeft = $a.clone().addClass(className + '-hand'),
 				// 第二个按钮
@@ -3209,6 +3229,8 @@ var ud2 = (function (window, $) {
 		};
 
 	}(controlGroup('range')));
+
+
 
 
 	var table = (function (group) {

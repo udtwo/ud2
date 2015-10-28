@@ -56,56 +56,70 @@
 		display: block;
 	}
 }
-// 设置列表的选项卡
-.ud2-address-tab {
+// 设置列表的选项卡容器样式
+.ud2-address-tabbox {
 	display: table;
 	width: 100%;
+}
+// 设置列表的选项卡样式
+.ud2-address-tab {
+	width: 33.33%;
+	display: table-cell;
+	text-align: center;
+	line-height: 2;
+	background: @ColorWhiteBackLight;
+	border-bottom: 1px solid @ColorWhiteBorder;
+	color: @ColorNotes + 40;
 
-	> span {
-		width: 33.33%;
-		display: table-cell;
-		text-align: center;
-		line-height: 2;
-		background: @ColorWhiteBackLight;
-		border-bottom: 1px solid @ColorWhiteBorder;
-		cursor: pointer;
-
-		&:not(:last-child) {
-			border-right: 1px solid @ColorWhiteBorder;
-		}
-
-		&.ud2-address-tab-on {
-			background: @ColorWhite;
-			border-bottom-color: transparent;
-		}
+	&:not(:last-child) {
+		border-right: 1px solid @ColorWhiteBorder;
 	}
 }
-// 设置列表的区域
-.ud2-address-area {
+// 设置列表的选项卡开启与滑入样式
+.ud2-address-tab-open, .ud2-address-tab-on {
+	color: @ColorText;
+	cursor: pointer;
+}
+// 设置列表的选项卡滑入样式
+.ud2-address-tab-on {
+	background: @ColorWhite;
+	border-bottom-color: transparent;
+	opacity: 1;
+}
+// 设置列表的区域容器样式
+.ud2-address-areabox {
 	position: relative;
 	padding: 0 .5em .5em 0;
 	.layout();
+}
+// 设置列表的区域样式
+.ud2-address-area {
+	float: left;
+	margin: .5em 0 0 .5em;
+	padding: 0 .3em;
+	cursor: pointer;
 
-	> span {
-		float: left;
-		margin: .5em 0 0 .5em;
-		padding: 0 .5em;
-		cursor: pointer;
-		
-		&:hover {
-			background: @ColorWhiteDeeper;
-		}
+	&:hover {
+		background: @ColorWhiteDeeper;
+		outline: 1px solid @ColorWhiteBorder;
 	}
+}
+// 设置列表作为值时的样式
+.ud2-address-area-me {
+	background: @ColorBlueBackLight;
+	outline: 1px solid @ColorBlueBorder;
+}
+// 设置加载中的样式
+.ud2-address-load {
+	height: 80px;
 
-	&.ud2-address-area-load {
-		height: 80px;
-	}
-	&.ud2-address-area-load::before {
+	&::before {
 		font-family: ud2;
 		content: '\e656';
 		display: block;
 		position: absolute;
-		left: 50%; top: 50%;
+		left: 50%;
+		top: 50%;
 		margin: -.5em 0 0 -.5em;
 		text-align: center;
 		font-size: 1em;

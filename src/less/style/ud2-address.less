@@ -74,6 +74,14 @@
 	&:not(:last-child) {
 		border-right: 1px solid @ColorWhiteBorder;
 	}
+
+	&:first-child {
+		border-top-left-radius: @BorderRadius;
+	}
+
+	&:last-child {
+		border-top-right-radius: @BorderRadius;
+	}
 }
 // 设置列表的选项卡开启与滑入样式
 .ud2-address-tab-open, .ud2-address-tab-on {

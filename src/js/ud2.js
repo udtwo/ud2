@@ -2566,7 +2566,7 @@ var ud2 = (function (window, $) {
 				// 通过 $address 获取按钮对象
 				$addressBtn = $address.children('a'),
 				// 通过 $address 获取开关对象
-				$addressPower = $address.children('span'),
+				$addressPower = $addressBtn.next(),
 				// 通过 $addressList 获取选项卡对象
 				$addressListTab = $addressList.children('div:first'),
 				// 通过 $addressList 获取内容对象
@@ -3229,8 +3229,213 @@ var ud2 = (function (window, $) {
 		};
 
 	}(controlGroup('range')));
+	// JS 数字控件集合
+	// * 此控件会 remove 掉原宿主对象
+	var number = (function (group) {
 
+		// 重写 init 方法
+		// 创建一个 JS 数字控件
+		// ctrl[control]: control 对象
+		// userOptions[object]: 用户参数
+		// return[number]: 返回生成的控件对象
+		group.init = function (ctrl, userOptions) {
 
+			// #region 私有字段
+
+			var // 样式类名
+				className = prefixLibName + group.name,
+				// 默认值
+				options = {
+					// 步长
+					step: function () {
+						var step = ctrl.$origin.attr('step') || ctrl.$origin.attr(className + '-step') || 1;
+						step = parseFloat(step);
+						if (isNumber(step) || isNaN(step) || step === 0) step = 1;
+						return step;
+					}(),
+					// 最小值
+					min: function () {
+						var min = ctrl.$origin.attr('min') || ctrl.$origin.attr(className + '-min') || 0;
+						min = parseFloat(min);
+						if (isNumber(step) || isNaN(min)) min = 0;
+						return min;
+					}(),
+					// 最大值
+					max: function () {
+						var max = ctrl.$origin.attr('max') || ctrl.$origin.attr(className + '-max') || 100;
+						max = parseFloat(max);
+						if (isNumber(step) || isNaN(max)) max = 100;
+						return max;
+					}(),
+					// 值
+					value: ctrl.$origin.attr('value') || ctrl.$origin.attr(className + '-value') || 0
+				},
+				// 值, 步长, 最小值, 最大值
+				value = 0, step = 0, min = 0, max = 0,
+				// 控件容器
+				$number = $([
+					'<div class="' + className + '">',
+					'<a class="' + className + '-ico">&#xe6b6;</a>',
+					'<div class="' + className + '-move"><input type="text" value="0" class="ud2-ctrl-txtbox" /></div>',
+					'<a class="' + className + '-ico">&#xe6b7;</a>',
+					'</div>'
+				].join('')),
+				// 控件上一个按钮
+				$prev = $number.children('a:first'),
+				// 控件下一个按钮
+				$next = $number.children('a:last'),
+				// 控件移动容器
+				$move = $prev.next(),
+				// 控件的输入框
+				$input = $number.find('input'),
+				// 浮点运算常数
+				DEBUG_NUM = 10000000,
+				// 动画锁
+				lock = false;
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 获取旧控件全部属性
+			function detectOptions() {
+				// 输出新数据
+				step = options.step;
+				min = options.min;
+				max = options.max;
+				// 解决最小值大于最大值问题
+				if (min > max) { max = min; }
+				value = convertValue(options.value);
+				$input.val(value);
+			}
+			// 强制转换 value 值
+			// val[number]: 待转换的值
+			// return[number]: 返回转换后的值
+			function convertValue(val) {
+				val = val || 0;
+				val = parseFloat(val);
+				if (typeof val !== 'number' || isNaN(val)) val = 0;
+				if (val < min) val = min;
+				if (val > max) val = max;
+				val = Math.round((val - min) / step) * (DEBUG_NUM * step) / DEBUG_NUM + min;
+				return val;
+			}
+			// 执行控件动画，对值递增或递减
+			// isNext[bool]: 是否为递增动画
+			// - true: 递增 false: 递减
+			function animate(isNext) {
+				// 判断是否上锁，没上锁则上锁并执行动画
+				if (lock) return; lock = true;
+				// 判断上下限
+				if ((isNext && (value + step > max))
+					|| (!isNext && (value - step < min))) { lock = false; return; }
+
+				var // 建立临时容器
+					$tempL = $div.clone().addClass(className + '-view').html('<input class="ud2-ctrl-txtbox" />'),
+					$tempR = $div.clone().addClass(className + '-view').html('<input class="ud2-ctrl-txtbox" />'),
+					// 获取父容器
+					$parent = $input.parent(),
+					// 用于存储动画容器
+					$run = null;
+
+				// 对值运算
+				if (isNext) {
+					value = Math.round((value + step) * DEBUG_NUM) / DEBUG_NUM;
+				} else {
+					value = Math.round((value - step) * DEBUG_NUM) / DEBUG_NUM;
+				}
+
+				// 加入临时容器
+				$tempL.children().val(value);
+				$tempR.children().val(value);
+				$input.before($tempL);
+				$input.after($tempR);
+
+				$move.animate({
+					'top': isNext ? '-100%' : '100%'
+				}, 300, function () {
+					lock = false;
+					$input.val(value);
+					$move.css('top', 0);
+					$tempL.remove();
+					$tempR.remove();
+				});
+			}
+			// 上一个数字
+			function prev() {
+				animate(0);
+			}
+			// 下一个数字
+			function next() {
+				animate(1);
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 获取空间值
+			// return[number]: 控件当前值
+			function val() {
+				return value;
+			}
+
+			// #endregion
+
+			// #region 事件绑定
+
+			// 事件绑定
+			function bindEvent() {
+				event($prev).setTap(prev);
+				event($next).setTap(next);
+				$input.keydown(function (event) {
+					if (event.keyCode === 13) $input.blur();
+				}).focus(function () {
+					$number.addClass(className + '-on');
+				}).blur(function () {
+					var v = convertValue($input.val());
+					$input.val(v);
+					value = v;
+					$number.removeClass(className + '-on');
+				});
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 设置初始选项
+				setOptions(options, userOptions);
+				// 获取旧控件属性
+				detectOptions();
+
+				// 转移宿主属性
+				transferStyles(ctrl.$origin, $number);
+				transferAttrs(ctrl.$origin, $number);
+
+				// 把$number放在原标签后
+				ctrl.$origin.after($number);
+				// 移除原标签
+				ctrl.$origin.remove();
+
+				// 绑定事件
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			ctrl.public.val = val;
+			return ctrl.public;
+
+			// #endregion
+
+		};
+
+	}(controlGroup('number')));
 
 
 	var table = (function (group) {

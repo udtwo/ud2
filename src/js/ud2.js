@@ -75,9 +75,16 @@ var ud2 = (function (window, $) {
 			function (callback) { window.setTimeout(callback, 1000 / 60); },
 		// 正则表达式
 		regex = {
-			// 日期正则
+			// 日期正则表达式
 			// 可以匹配 xxxx(-|.|/)x{1,2}(-|.|/)x{1,2}
-			date: /^(?:[12]\d{3}([\.\-\/])(?:(?:0?[13578]|1[02])\1(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\1(?:0?[1-9]|[12]\d|30)|0?2\1(?:0?[1-9]|1\d|2[0-8]))$|[12]\d(?:[02468][048]|[13579][26])([\.\-\/])(?:(?:0?[13578]|1[02])\2(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\2(?:0?[1-9]|[12]\d|30)|0?2\2(?:0?[1-9]|1\d|2[0-9])))$/
+			date: /^(?:[12]\d{3}([\.\-\/])(?:(?:0?[13578]|1[02])\1(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\1(?:0?[1-9]|[12]\d|30)|0?2\1(?:0?[1-9]|1\d|2[0-8]))$|[12]\d(?:[02468][048]|[13579][26])([\.\-\/])(?:(?:0?[13578]|1[02])\2(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\2(?:0?[1-9]|[12]\d|30)|0?2\2(?:0?[1-9]|1\d|2[0-9])))$/,
+			// 邮箱正则表达式
+			mail: /^([\w-\.]+)@(([\w-]+\.)+)([a-zA-Z]{2,4})$/,
+			// 手机号码正则表达式
+			phone: /^[1][3458][0-9]{9}$/,
+			// 身份证正则表达式
+			// 此表达式未添加地区判断与补位运算
+			identityCard: /^(11|12|13|14|15|21|22|23|31|32|33|34|35|36|37|41|42|43|44|45|46|50|51|52|53|54|61|62|63|64|65|71|81|82|97|98|99)[0-9]{4}((?:19|20)?(?:[0-9]{2}(?:(?:0[13578]|1[12])(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)(?:0[1-9]|[12][0-9]|30)|02(?:0[1-9]|1[0-9]|2[0-8]))|(?:[02468][048]|[13579][26])0229)[0-9]{3}[\dxX])$/
 		},
 
 		// 控件 GUID 生成
@@ -121,7 +128,7 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
-	// #region 私有方法
+	// #region ud2 函数库
 
 	// 生成一个随机数
 	// 随机数最大有效位数为 18 位
@@ -156,58 +163,189 @@ var ud2 = (function (window, $) {
 		return r;
 	}
 
-	// 判断参数类型 isType(TypeName)(Value)
-	// type[object]: 判断的参数类型 例如 Function、Array...
-	// return[function]: 返回一个方法，此方法来判断传入的 Value 参数是否为 TypeName 类型
-	function isType(type) {
-		return function (obj) {
-			return {}.toString.call(obj) === "[object " + type + "]";
-		};
-	}
-	// 判断传入参数是否为一个对象 Object
-	// typeValue[object]: 判断变量
-	// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为对象
-	function isObject(typeValue) {
-		return isType("Object")(typeValue);
-	}
-	// 判断传入参数是否为一个方法 Function
-	// typeValue[object]: 判断变量
-	// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为方法
-	function isFunction(typeValue) {
-		return isType("Function")(typeValue);
-	}
-	// 判断传入参数是否为一个字符串 String 
-	// typeValue[object]: 判断变量
-	// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为字符串
-	function isString(typeValue) {
-		return isType("String")(typeValue);
-	}
-	// 判断传入参数是否为一个数字 Number
-	// typeValue[object]: 判断变量
-	// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为数字
-	function isNumber(typeValue) {
-		return isType("Number")(typeValue);
-	}
-	// 判断传入参数是否为一个自然数[非负整数](Natural Number)
-	// typeValue[object]: 判断变量
-	// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为自然数
-	function isNaturalNumber(typeValue) {
-		return /^([1-9]\d+|[0-9])$/.test(typeValue);
-	}
-	// 判断传入参数是否为一个 jQuery 对象
-	// typeValue[object]: 判断变量
-	// return[bool]: 返回一个布尔值，此布尔值标识传入的 typeValue 参数是否为 jQuery 对象
-	function isJQuery(typeValue) {
-		return typeValue instanceof $;
-	}
+	// 库类型检测对象
+	var type = (function () {
+		// 判断参数类型 isType(TypeName)(Value)
+		// type[object]: 判断的参数类型 例如 Function、Array...
+		// return[function]: 返回一个方法，此方法来判断传入的 Value 参数是否为 TypeName 类型
+		function isType(type) {
+			return function (obj) {
+				return {}.toString.call(obj) === "[object " + type + "]";
+			};
+		}
+		// 判断传入参数是否为一个对象 Object
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为对象
+		function isObject(typeValue) {
+			return isType("Object")(typeValue);
+		}
+		// 判断传入参数是否为一个方法 Function
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为方法
+		function isFunction(typeValue) {
+			return isType("Function")(typeValue);
+		}
+		// 判断传入参数是否为一个字符串 String 
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为字符串
+		function isString(typeValue) {
+			return isType("String")(typeValue);
+		}
+		// 判断传入参数是否为一个数字 Number
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为数字
+		function isNumber(typeValue) {
+			return isType("Number")(typeValue);
+		}
+		// 判断传入参数是否为一个自然数[非负整数](Natural Number)
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为自然数
+		function isNaturalNumber(typeValue) {
+			return /^([1-9]\d+|[0-9])$/.test(typeValue);
+		}
+		// 判断传入参数是否为一个 jQuery 对象
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值标识传入的 typeValue 参数是否为 jQuery 对象
+		function isJQuery(typeValue) {
+			return typeValue instanceof $;
+		}
 
-	// 强制转换传入参数成为一个自然数[非负整数](Natural Number)
-	// 当不满足转换条件时，返回一个0
-	// value[object]: 转换变量
-	// return[int(0-∞)]: 返回一个自然数
-	function convertToNaturalNumber(value) {
-		return isNaturalNumber(value) ? +value : 0;
-	}
+		// 返回对象
+		return {
+			isType: isType,
+			isObject: isObject,
+			isFunction: isFunction,
+			isString: isString,
+			isNumber: isNumber,
+			isNaturalNumber: isNaturalNumber,
+			isJQuery: isJQuery
+		}
+	}());
+	// 库强制转换对象
+	var convert = (function () {
+		// 强制转换传入参数成为一个自然数[非负整数](Natural Number)
+		// 当不满足转换条件时，返回一个0
+		// value[object]: 转换变量
+		// return[number(0-∞)]: 返回一个自然数
+		function toNaturalNumber(value) {
+			return isNaturalNumber(value) ? +value : 0;
+		}
+
+		// 返回对象
+		return {
+			toNaturalNumber: toNaturalNumber
+		};
+	}());
+	// 库表单检测对象
+	var form = (function () {
+		// 强制设定 text 类型为 string
+		function textTypeHandler(text) {
+			return type.isString(text) ? text : '';
+		}
+
+		// 检测字符串是否符合长度规定
+		// text[string]: 待检测的字符串
+		// (text, length) 监测字符串是否符合 length 长度规范
+		// - length[number]: 长度
+		// (text, length, maxLength) 监测字符串是否符合 length - maxLength 区间
+		// - length[number]: 最小长度
+		// - maxLength[number]: 最大长度
+		// return[bool]: 是否符合长度规定
+		function isLength(text, length, maxLength) {
+			text = textTypeHandler(text);
+			length = length || Number.MAX_VALUE;
+			if (typeof maxLength !== 'undefined') { // 判断是否符合最小值和最大值的长度
+				if (maxLength < length) maxLength = length;
+				return text.length <= maxLength && text.length >= length;
+			}
+			else { // 判断是否符合规定长度
+				return text.length === length;
+			}
+		}
+		// 检测字符串是否符合最小长度规定
+		// text[string]: 待检测的字符串
+		// length[number]: 最小长度
+		// return[bool]: 是否符合长度规定
+		function isMinLength(text, length) {
+			text = textTypeHandler(text);
+			length = length || 0;
+			return text.length >= length;
+		}
+		// 检测字符串是否符合最大长度规定
+		// text[string]: 待检测的字符串
+		// length[number]: 最大长度
+		// return[bool]: 是否符合长度规定
+		function isMaxLength(text, length) {
+			text = textTypeHandler(text);
+			length = length || Number.MAX_VALUE;
+			return text.length <= length;
+		}
+		// 检测字符串是否符合手机号规范
+		// text[string]: 待检测的字符串
+		// return[bool]: 是否符合手机号规范
+		function isPhone(text) {
+			text = textTypeHandler(text);
+			return regex.phone.test(text);
+		}
+		// 检测字符串是否符合邮箱规范
+		// text[string]: 待检测的字符串
+		// return[bool]: 是否符合邮箱规范
+		function isMail(text) {
+			text = textTypeHandler(text);
+			return regex.mail.test(text);
+		}
+		// 检测字符串是否符合日期规范
+		// text[string]: 待检测的字符串
+		// return[bool]: 是否符合日期规范
+		function isDate(text) {
+			text = textTypeHandler(text);
+			return regex.date.test(text);
+		}
+
+		// 检测字符串是否符合用户名规范
+		// text[string]: 待检测的字符串
+		// return[bool]: 是否符合用户名规范
+		function isLoginName(text) {
+			text = textTypeHandler(text);
+			return /^[a-zA-Z][a-zA-Z0-9]+$/.test(text);
+		}
+		// 检测字符串是否符合身份证规范
+		// text[string]: 待检测的字符串
+		// return[bool]: 是否符合身份证号规范
+		function isIdentityCard(text) {
+			text = textTypeHandler(text);
+			text = text.toUpperCase();
+			if (regex.identityCard.test(text)) {
+				if (text.length === 18) {
+					var factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2],
+						parity = [1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2],
+					    code = text.split(''),
+					    sum = 0;
+					for (var i = 0; i < 17; i++) {
+						sum += code[i] * factor[i];
+					}
+					
+					var last = parity[sum % 11];
+					if (last != code[17]) return false;
+				}
+
+				return true;
+			}
+			return false;
+		}
+
+		// 返回
+		return {
+			isLength: isLength,
+			isMinLength: isMinLength,
+			isMaxLength: isMaxLength,
+			isPhone: isPhone,
+			isMail: isMail,
+			isDate: isDate,
+			isLoginName: isLoginName,
+			isIdentityCard: isIdentityCard
+		};
+	}());
 
 	// #endregion
 
@@ -248,9 +386,9 @@ var ud2 = (function (window, $) {
 	// return[jQuery]: 返回一个检测后的 jQuery 对象
 	function checkJQElements($elements) {
 		if (!$elements) $elements = $();
-		if (isString($elements)) $elements = $($elements);
+		if (type.isString($elements)) $elements = $($elements);
 		if ($elements === window) $elements = $(window);
-		if (!isJQuery($elements)) $elements = $();
+		if (!type.isJQuery($elements)) $elements = $();
 		return $elements;
 	}
 	// 遍历 $elements 的全部元素，并执行回调方法
@@ -323,7 +461,7 @@ var ud2 = (function (window, $) {
 	// options[optionObject]: 控件默认选项
 	// userOptions[optionObject]: 用户设置默认选项
 	function setOptions(options, userOptions) {
-		if (isObject(userOptions)) {
+		if (type.isObject(userOptions)) {
 			for (var i in userOptions) {
 				if (options[i] !== undefined) {
 					options[i] = userOptions[i];
@@ -1264,9 +1402,6 @@ var ud2 = (function (window, $) {
 	// ud2 库公开对象
 	// 此对象默认会成为 window 的 ud2 属性
 	var ud2 = (function () {
-		// 建立控件对象
-		var ud2 = {};
-
 		// 初始化全部 ud2ui 控件
 		// 用于初始化全部页面中未初始化的 ud2ui 控件
 		// * pageReady 时会自动执行此方法
@@ -1301,11 +1436,10 @@ var ud2 = (function (window, $) {
 			}
 		}
 
-		// 公开方法
-		ud2.createAll = createAll;
-
 		// 返回控件对象
-		return ud2;
+		return {
+			createAll: createAll
+		};
 	}());
 	// 控件父对象
 	// 生成的控件是由此对象继承而来
@@ -1337,7 +1471,7 @@ var ud2 = (function (window, $) {
 		// 自动关闭方法
 		// target[element]: 事件目标
 		function autoClose(target) {
-			var $target = isJQuery(target) ? target : $(target),
+			var $target = type.isJQuery(target) ? target : $(target),
 				$targetParents = $target.parents();
 
 			if (control.$current) {
@@ -1377,7 +1511,7 @@ var ud2 = (function (window, $) {
 		var group = [];
 
 		// 控件标准名称，通常为 css 类相关名
-		group.name = isString(name) ? name : 'empty';
+		group.name = type.isString(name) ? name : 'empty';
 		// 控件对象名称，通常为 js 属性相关名
 		group.controlName = getControlNameByName(name);
 		// 标记此集合为控件集合
@@ -2402,7 +2536,7 @@ var ud2 = (function (window, $) {
 			// text[string]: 默认文本
 			// return[select]: 返回控件
 			function setShowText(text) {
-				var text = isString(text) ? text : options.autoText;
+				var text = type.isString(text) ? text : options.autoText;
 				options.autoText = text;
 				$selectBtn.html(text);
 				return ctrl.public;
@@ -2734,7 +2868,7 @@ var ud2 = (function (window, $) {
 			// text[string]: 默认文本
 			// return[address]: 返回控件
 			function setShowText(text) {
-				var text = ud2.check.isString(text) ? text : options.autoText;
+				var text = type.isString(text) ? text : options.autoText;
 				options.autoText = text;
 				$addressBtn.html(text);
 				return ctrl.public;
@@ -3250,21 +3384,21 @@ var ud2 = (function (window, $) {
 					step: function () {
 						var step = ctrl.$origin.attr('step') || ctrl.$origin.attr(className + '-step') || 1;
 						step = parseFloat(step);
-						if (isNumber(step) || isNaN(step) || step === 0) step = 1;
+						if (type.isNumber(step) || isNaN(step) || step === 0) step = 1;
 						return step;
 					}(),
 					// 最小值
 					min: function () {
 						var min = ctrl.$origin.attr('min') || ctrl.$origin.attr(className + '-min') || 0;
 						min = parseFloat(min);
-						if (isNumber(step) || isNaN(min)) min = 0;
+						if (type.isNumber(step) || isNaN(min)) min = 0;
 						return min;
 					}(),
 					// 最大值
 					max: function () {
 						var max = ctrl.$origin.attr('max') || ctrl.$origin.attr(className + '-max') || 100;
 						max = parseFloat(max);
-						if (isNumber(step) || isNaN(max)) max = 100;
+						if (type.isNumber(step) || isNaN(max)) max = 100;
 						return max;
 					}(),
 					// 值
@@ -3643,21 +3777,13 @@ var ud2 = (function (window, $) {
 		callbacksPageReady.add(ud2.createAll);
 	}());
 
-	// 公开对象及方法
-	ud2.check = {
-		isType: isType,
-		isObject: isObject,
-		isFunction: isFunction,
-		isString: isString,
-		isNumber: isNumber,
-		isNaturalNumber: isNaturalNumber,
-		isJQuery: isJQuery
-	};
-	ud2.convert = {
-		naturalNumber: convertToNaturalNumber
-	};
+	// 公开对象函数库
 	ud2.regex = regex;
 	ud2.support = support;
+	ud2.type = type;
+	ud2.convert = convert;
+	ud2.form = form;
+	// 公开对象及方法
 	ud2.animateFrame = animateFrame;
 	ud2.event = event;
 	ud2.eventMouseWheel = eventMouseWheel;

@@ -21,6 +21,12 @@
 	.boxSizing('border-box');
 	.transition('background .3s, border-color .3s');
 
+	> [type="checkbox"] {
+		position: absolute;
+		top: -20000px; left: -20000px;
+		z-index: -1;
+	}
+
 	// 控件的小尺寸方案
 	&.sm {
 		font-size: @BaseSize - @CtrlSizeGradient;

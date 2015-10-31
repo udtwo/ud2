@@ -19,7 +19,8 @@
 // 设置控件的 a 标签样式
 // 此处的 a 标签为控件的默认按钮，激活菜单开关按钮
 .ud2-select-btn {
-	position: relative;
+	position: absolute;
+	z-index: 2;
 	display: inline-block;
 	width: 100%;
 	line-height: (@CtrlHeight - 2);
@@ -113,7 +114,7 @@
 	z-index: @MaxZIndex;
 	background: @ColorWhiteBackLight;
 	border-color: @ColorWhiteBackDark;
-
+	
 	// 列表开启后的外层样式
 	.ud2-select-list {
 		display: block;

@@ -1487,14 +1487,14 @@ var ud2 = (function (window, $) {
 		// style[ud2.style]: 控件样式
 		function style(style) {
 			var styleStr = ['info', 'success', 'warning', 'danger'];
-			if (contro.style.info)
-				control.$current.removeClass(styleStr[contro.style.info]);
-			if (contro.style.success)
-				control.$current.removeClass(styleStr[contro.style.success]);
-			if (contro.style.warning)
-				control.$current.removeClass(styleStr[contro.style.warning]);
-			if (contro.style.danger)
-				control.$current.removeClass(styleStr[contro.style.danger]);
+			if (control.style.info)
+				control.$current.removeClass(styleStr[control.style.info]);
+			if (control.style.success)
+				control.$current.removeClass(styleStr[control.style.success]);
+			if (control.style.warning)
+				control.$current.removeClass(styleStr[control.style.warning]);
+			if (control.style.danger)
+				control.$current.removeClass(styleStr[control.style.danger]);
 			control.style = style;
 			control.$current.addClass(styleStr[style]);
 		}

@@ -27,5 +27,23 @@
 	<input type="number" class="x" ud2="number" min="200" max="500" value="300" step="15" />
 	<input type="number" class="x lg" ud2="number" min="200" max="500" value="300" step="15" />
 
+	<script>
+		$(function () {
+			ud2.number[0].setChangeVal(function (val) {
+				if (val / 10 % 30 < 2) {
+					this.style(ud2.style.info);
+				}
+				else if (val / 10 % 30 < 4) {
+					this.style(ud2.style.warning);
+				}
+				else if (val / 10 % 30 < 6) {
+					this.style(ud2.style.success);
+				}
+				else if (val / 10 % 30 < 8) {
+					this.style(ud2.style.danger);
+				}
+			});
+		});
+	</script>
 </body>
 </html>

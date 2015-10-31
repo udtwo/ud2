@@ -84,7 +84,9 @@ var ud2 = (function (window, $) {
 			phone: /^[1][3458][0-9]{9}$/,
 			// 身份证正则表达式
 			// 此表达式未添加地区判断与补位运算
-			identityCard: /^(11|12|13|14|15|21|22|23|31|32|33|34|35|36|37|41|42|43|44|45|46|50|51|52|53|54|61|62|63|64|65|71|81|82|97|98|99)[0-9]{4}((?:19|20)?(?:[0-9]{2}(?:(?:0[13578]|1[12])(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)(?:0[1-9]|[12][0-9]|30)|02(?:0[1-9]|1[0-9]|2[0-8]))|(?:[02468][048]|[13579][26])0229)[0-9]{3}[\dxX])$/
+			identityCard: /^(11|12|13|14|15|21|22|23|31|32|33|34|35|36|37|41|42|43|44|45|46|50|51|52|53|54|61|62|63|64|65|71|81|82|97|98|99)[0-9]{4}((?:19|20)?(?:[0-9]{2}(?:(?:0[13578]|1[12])(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)(?:0[1-9]|[12][0-9]|30)|02(?:0[1-9]|1[0-9]|2[0-8]))|(?:[02468][048]|[13579][26])0229)[0-9]{3}[\dxX])$/,
+			// 登录名正则表达式
+			loginName: /^[a-zA-Z][a-zA-Z0-9]+$/
 		},
 
 		// 控件 GUID 生成
@@ -307,7 +309,7 @@ var ud2 = (function (window, $) {
 		// return[bool]: 是否符合用户名规范
 		function isLoginName(text) {
 			text = textTypeHandler(text);
-			return /^[a-zA-Z][a-zA-Z0-9]+$/.test(text);
+			return regex.loginName.test(text);
 		}
 		// 检测字符串是否符合身份证规范
 		// text[string]: 待检测的字符串
@@ -1486,15 +1488,15 @@ var ud2 = (function (window, $) {
 		// 设定控件样式
 		// style[ud2.style]: 控件样式
 		function style(style) {
-			var styleStr = ['info', 'success', 'warning', 'danger'];
-			if (control.style.info)
-				control.$current.removeClass(styleStr[control.style.info]);
-			if (control.style.success)
-				control.$current.removeClass(styleStr[control.style.success]);
-			if (control.style.warning)
-				control.$current.removeClass(styleStr[control.style.warning]);
-			if (control.style.danger)
-				control.$current.removeClass(styleStr[control.style.danger]);
+			var styleStr = ['', 'info', 'success', 'warning', 'danger'];
+			if (control.style === ud2.style.info)
+				control.$current.removeClass(styleStr[control.style]);
+			if (control.style === ud2.style.success)
+				control.$current.removeClass(styleStr[control.style]);
+			if (control.style === ud2.style.warning)
+				control.$current.removeClass(styleStr[control.style]);
+			if (control.style === ud2.style.danger)
+				control.$current.removeClass(styleStr[control.style]);
 			control.style = style;
 			control.$current.addClass(styleStr[style]);
 		}
@@ -2357,7 +2359,16 @@ var ud2 = (function (window, $) {
 				// 标记是否处于开启状态
 				isOpen = false,
 				// 列表滚动条
-				listScroll = null;
+				listScroll = null,
+				// 回调函数
+				callbacks = {
+					// 开启回调
+					open: $.noop,
+					// 关闭回调
+					close: $.noop,
+					// 值改变
+					changeVal: $.noop
+				};
 
 			// #endregion
 
@@ -2500,6 +2511,7 @@ var ud2 = (function (window, $) {
 			// 设置控件的值
 			// option[Option]: 控件选项
 			function setValue(option) {
+				var val = null;
 				// 是否为多选
 				if (options.isMultiple) {
 					var // 是否已经持有值
@@ -2530,14 +2542,40 @@ var ud2 = (function (window, $) {
 						$selectBtn.attr(className + '-value', true);
 						$selectBtn.html(vs.length + '个项目');
 					}
+
+					val = vs;
 				} else {
 					if (arrValOptions[0]) arrValOptions[0].setSelected(false);
 					$selectBtn.attr(className + '-value', true);
 					option.setSelected(true);
 					arrValOptions[0] = option;
 					$selectBtn.html(option.name);
+
+					val = option.value;
 				}
+
+				callbacks.changeVal.call(ctrl.public, val);
 			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置开启回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setOpen(fn) { callbacks.open = fn; return ctrl.public; }
+			// 设置关闭回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setClose(fn) { callbacks.close = fn; return ctrl.public; }
+			// 设置开启回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -2562,17 +2600,24 @@ var ud2 = (function (window, $) {
 			// 打开控件
 			// return[select]: 返回控件
 			function open() {
-				isOpen = true;
-				$select.addClass(className + '-on');
-				recountHeight();
+				if (!isOpen) {
+					isOpen = true;
+					$select.addClass(className + '-on');
+					recountHeight();
 
+					callbacks.open.call(ctrl.public);
+				}
 				return ctrl.public;
 			}
 			// 关闭控件
 			// return[select]: 返回控件
 			function close() {
-				isOpen = false;
-				$select.removeClass(className + '-on');
+				if (isOpen) {
+					isOpen = false;
+					$select.removeClass(className + '-on');
+
+					callbacks.close.call(ctrl.public);
+				}
 				return ctrl.public;
 			}
 			// 开关控件
@@ -2670,6 +2715,9 @@ var ud2 = (function (window, $) {
 			ctrl.public.val = val;
 			ctrl.public.setShowText = setShowText;
 			ctrl.public.recountHeight = recountHeight;
+			ctrl.public.setOpen = setOpen;
+			ctrl.public.setClose = setClose;
+			ctrl.public.setChangeVal = setChangeVal;
 			return ctrl.public;
 
 			// #endregion
@@ -2728,7 +2776,16 @@ var ud2 = (function (window, $) {
 				// 标记是否处于开启状态
 				isOpen = false,
 				// 延迟加载等待定时器
-				delayTimer = null;
+				delayTimer = null,
+				// 回调函数
+				callbacks = {
+					// 开启回调
+					open: $.noop,
+					// 关闭回调
+					close: $.noop,
+					// 值改变
+					changeVal: $.noop
+				};
 
 			// #endregion
 
@@ -2857,7 +2914,9 @@ var ud2 = (function (window, $) {
 			}
 			// 设定控件值
 			function setValue() {
-				var text = "";
+				var text = "", 
+					val = [];
+
 				if (arrValObjects.province) {
 					text += arrValObjects.province.name;
 
@@ -2866,6 +2925,7 @@ var ud2 = (function (window, $) {
 
 						if (arrValObjects.area) {
 							text += '<span>/</span>' + arrValObjects.area;
+							val = [arrValObjects.province.name, arrValObjects.city.name, arrValObjects.area];
 						}
 					}
 
@@ -2876,7 +2936,29 @@ var ud2 = (function (window, $) {
 					$addressBtn.attr(className + '-value', null);
 					$addressBtn.html(options.autoText);
 				}
+
+				callbacks.changeVal.call(ctrl.public, val);
 			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置开启回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setOpen(fn) { callbacks.open = fn; return ctrl.public; }
+			// 设置关闭回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setClose(fn) { callbacks.close = fn; return ctrl.public; }
+			// 设置值改变回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[address]: 当前事件对象，方便链式调用
+			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -2894,36 +2976,46 @@ var ud2 = (function (window, $) {
 			// 打开控件
 			// return[address]: 返回控件
 			function open() {
-				isOpen = true;
-				$address.addClass(className + '-on');
-				$addressPower.addClass(prefixLibName + 'ctrl-power-on');
-				if (!arrValObjects.province) {
-					showProvince();
-				} else if (!arrValObjects.city) {
-					showCity();
-				} else {
-					showArea();
+				if (!isOpen) {
+					isOpen = true;
+					$address.addClass(className + '-on');
+					$addressPower.addClass(prefixLibName + 'ctrl-power-on');
+					if (!arrValObjects.province) {
+						showProvince();
+					} else if (!arrValObjects.city) {
+						showCity();
+					} else {
+						showArea();
+					}
+
+					callbacks.open.call(ctrl.public);
 				}
+
 				return ctrl.public;
 			}
 			// 关闭控件
 			// return[address]: 返回控件
 			function close() {
-				// 存在延迟加载则删除延迟加载等待定时器
-				if (delayTimer) {
-					window.clearInterval(delayTimer);
-					delayTimer = null;
+				if (isOpen) {
+					// 存在延迟加载则删除延迟加载等待定时器
+					if (delayTimer) {
+						window.clearInterval(delayTimer);
+						delayTimer = null;
+					}
+
+					if (arrValObjects.area === null) {
+						arrValObjects.province = null;
+						arrValObjects.city = null;
+						setValue();
+					}
+
+					isOpen = false;
+					$address.removeClass(className + '-on');
+					$addressPower.removeClass(prefixLibName + 'ctrl-power-on');
+
+					callbacks.close.call(ctrl.public);
 				}
 
-				if (arrValObjects.area === null) {
-					arrValObjects.province = null;
-					arrValObjects.city = null;
-					setValue();
-				}
-
-				isOpen = false;
-				$address.removeClass(className + '-on');
-				$addressPower.removeClass(prefixLibName + 'ctrl-power-on');
 				return ctrl.public;
 			}
 			// 开关控件
@@ -3000,6 +3092,9 @@ var ud2 = (function (window, $) {
 			ctrl.public.close = close;
 			ctrl.public.toggle = toggle;
 			ctrl.public.val = val;
+			ctrl.public.setOpen = setOpen;
+			ctrl.public.setClose = setClose;
+			ctrl.public.setChangeVal = setChangeVal;
 			return ctrl.public;
 
 			// #endregion
@@ -3078,7 +3173,16 @@ var ud2 = (function (window, $) {
 				// 浮点运算常数
 				DEBUG_NUM = 10000000,
 				// 控件开关状态
-				isOpen = false;
+				isOpen = false,
+				// 回调函数
+				callbacks = {
+					// 开启回调
+					open: $.noop,
+					// 关闭回调
+					close: $.noop,
+					// 值改变
+					changeVal: $.noop
+				};
 
 			// #endregion
 
@@ -3147,7 +3251,7 @@ var ud2 = (function (window, $) {
 			// valLeft[number]: 控件的左侧值
 			// valRight[number]: 控件的右侧值
 			function setValue(valLeft, valRight) {
-				var percentLeft, percentRight, inMin, inMax, valMin, valMax;
+				var percentLeft, percentRight, inMin, inMax, valMin, valMax, val;
 				// 判断当前值小于最小值或大于最大值
 				if (valLeft < min) valLeft = min;
 				if (valLeft > max) valLeft = max;
@@ -3164,8 +3268,9 @@ var ud2 = (function (window, $) {
 					// 显示手柄和值
 					$btnsBack.css('width', percentLeft * 100 + '%');
 					$rangeInput.val(valueLeft);
+					val = valueLeft;
 				}
-				else { // 是双手柄
+				else {
 					// 判断当前值小于最小值或大于最大值
 					if (valRight < min) valRight = min;
 					if (valRight > max) valRight = max;
@@ -3182,7 +3287,10 @@ var ud2 = (function (window, $) {
 					valMax = Math.max(valueLeft, valueRight);
 					$btnsBack.css({ 'left': inMin * 100 + '%', 'width': ((inMax - inMin) * 100) + '%' });
 					$rangeInput.val(valMin + ',' + valMax);
+					val = [valMin, valMax];
 				}
+
+				callbacks.changeVal.call(ctrl.public, val);
 			}
 			// 值转换
 			// oldVal[string]: 旧值
@@ -3212,32 +3320,61 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
+			// #region 回调方法
+
+			// 设置开启回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setOpen(fn) { callbacks.open = fn; return ctrl.public; }
+			// 设置关闭回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setClose(fn) { callbacks.close = fn; return ctrl.public; }
+			// 设置值改变回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[range]: 当前事件对象，方便链式调用
+			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
+
+			// #endregion
+
 			// #region 公共方法
 
 			// 打开控件
 			// return[range]: 返回选项控件
 			function open() {
-				// #region 更新处理信息数据
-				updateHandleInfoSize();
-				if (!options.both) {
-					setValue(valueLeft);
-				} else {
-					setValue(valueLeft, valueRight);
-				}
-				updateHandleInfoValue();
-				// #endregion
+				if (!isOpen) {
+					// 更新处理信息数据
+					updateHandleInfoSize();
+					if (!options.both) {
+						setValue(valueLeft);
+					} else {
+						setValue(valueLeft, valueRight);
+					}
+					updateHandleInfoValue();
 
-				isOpen = true;
-				$range.addClass(className + '-on');
-				$rangePower.addClass(prefixLibName + 'ctrl-power-on'); 
+					isOpen = true;
+					$range.addClass(className + '-on');
+					$rangePower.addClass(prefixLibName + 'ctrl-power-on');
+
+					callbacks.open.call(ctrl.public);
+				}
+
 				return ctrl.public;
 			}
 			// 关闭控件
 			// return[range]: 返回选项控件
 			function close() {
-				isOpen = false;
-				$range.removeClass(className + '-on');
-				$rangePower.removeClass(prefixLibName + 'ctrl-power-on');
+				if (isOpen) {
+					isOpen = false;
+					$range.removeClass(className + '-on');
+					$rangePower.removeClass(prefixLibName + 'ctrl-power-on');
+
+					callbacks.close.call(ctrl.public);
+				}
+
 				return ctrl.public;
 			}
 			// 开关控件
@@ -3374,6 +3511,9 @@ var ud2 = (function (window, $) {
 			ctrl.public.open = open;
 			ctrl.public.close = close;
 			ctrl.public.toggle = toggle;
+			ctrl.public.setOpen = setOpen;
+			ctrl.public.setClose = setClose;
+			ctrl.public.setChangeVal = setChangeVal;
 			return ctrl.public;
 
 			// #endregion
@@ -3443,7 +3583,12 @@ var ud2 = (function (window, $) {
 				// 浮点运算常数
 				DEBUG_NUM = 10000000,
 				// 动画锁
-				lock = false;
+				lock = false,
+				// 回调函数
+				callbacks = {
+					// 值改变
+					changeVal: $.noop
+				};
 
 			// #endregion
 
@@ -3507,7 +3652,7 @@ var ud2 = (function (window, $) {
 					'top': isNext ? '-100%' : '100%'
 				}, 300, function () {
 					lock = false;
-					$input.val(value);
+					setValue(value);
 					$move.css('top', 0);
 					$tempL.remove();
 					$tempR.remove();
@@ -3521,6 +3666,22 @@ var ud2 = (function (window, $) {
 			function next() {
 				animate(1);
 			}
+			// 设置控件值
+			function setValue(val) {
+				value = val;
+				$input.val(value);
+				callbacks.changeVal.call(ctrl.public, value);
+			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置值改变回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[number]: 当前事件对象，方便链式调用
+			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -3546,8 +3707,7 @@ var ud2 = (function (window, $) {
 					$number.addClass(className + '-on');
 				}).blur(function () {
 					var v = convertValue($input.val());
-					$input.val(v);
-					value = v;
+					setValue(v);
 					$number.removeClass(className + '-on');
 				});
 			}
@@ -3558,6 +3718,8 @@ var ud2 = (function (window, $) {
 
 			// 初始化
 			(function init() {
+				ctrl.$current = $number;
+
 				// 设置初始选项
 				setOptions(options, userOptions);
 				// 获取旧控件属性
@@ -3581,6 +3743,7 @@ var ud2 = (function (window, $) {
 			// #region 返回
 
 			ctrl.public.val = val;
+			ctrl.public.setChangeVal = setChangeVal;
 			return ctrl.public;
 
 			// #endregion

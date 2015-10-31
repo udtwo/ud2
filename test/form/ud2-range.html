@@ -24,5 +24,24 @@
 	<input type="range" ud2="range" style="width: 200px;" />
 	<input type="range" ud2="range" class="lg" style="width: 200px;" />
 
+	<script>
+		$(function () {
+			ud2.range[0].setChangeVal(function (val) {
+				if (val / 10 % 30 < 2) {
+					this.style(ud2.style.info);
+				}
+				else if (val / 10 % 30 < 4) {
+					this.style(ud2.style.warning);
+				}
+				else if (val / 10 % 30 < 6) {
+					this.style(ud2.style.success);
+				}
+				else if (val / 10 % 30 < 8) {
+					this.style(ud2.style.danger);
+				}
+			});
+		});
+	</script>
+
 </body>
 </html>

@@ -29,5 +29,16 @@
 	<div ud2="address" class="x lg"></div>
 	<hr class="hr-dotted hr-grey" />
 
+	<script>
+		$(function () {
+			ud2.address[0].setChangeVal(function (val) {
+				if (val.length === 0) {
+					this.style(ud2.style.warning);
+				} else {
+					this.style(ud2.style.success);
+				}
+			})
+		});
+	</script>
 </body>
 </html>

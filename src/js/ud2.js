@@ -1438,7 +1438,8 @@ var ud2 = (function (window, $) {
 
 		// 返回控件对象
 		return {
-			createAll: createAll
+			createAll: createAll,
+			style: { normal: 0, info: 1, success: 2, warning: 3, danger: 4 }
 		};
 	}());
 	// 控件父对象
@@ -1473,7 +1474,6 @@ var ud2 = (function (window, $) {
 		function autoClose(target) {
 			var $target = type.isJQuery(target) ? target : $(target),
 				$targetParents = $target.parents();
-
 			if (control.$current) {
 				if ($target.get(0) === control.$current.get(0)) return;
 				for (var i = 0, len = $targetParents.length; i < len ; i++) {
@@ -1481,10 +1481,26 @@ var ud2 = (function (window, $) {
 				}
 
 			}
-
 			control.autoClose();
 		}
-
+		// 设定控件样式
+		// style[ud2.style]: 控件样式
+		function style(style) {
+			var styleStr = ['info', 'success', 'warning', 'danger'];
+			if (contro.style.info)
+				control.$current.removeClass(styleStr[contro.style.info]);
+			if (contro.style.success)
+				control.$current.removeClass(styleStr[contro.style.success]);
+			if (contro.style.warning)
+				control.$current.removeClass(styleStr[contro.style.warning]);
+			if (contro.style.danger)
+				control.$current.removeClass(styleStr[contro.style.danger]);
+			control.style = style;
+			control.$current.addClass(styleStr[style]);
+		}
+		
+		// 控件样式
+		control.style = ud2.style.normal;
 		// 原 jQuery 对象
 		control.$origin = $origin;
 		// 当前 jQuery 对象
@@ -1493,7 +1509,9 @@ var ud2 = (function (window, $) {
 		control.autoClose = function () { };
 		// 可公开的属性及方法
 		control.public = {
-			name: name
+			name: name,
+			isUD2: true,
+			style: style
 		};
 
 		// 增加关闭回调

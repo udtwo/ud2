@@ -2368,9 +2368,9 @@ var ud2 = (function (window, $) {
 				// 通过 $select 获取按钮控件
 				$selectBtn = $selectBox.children('a'),
 				// 通过 $select 获取隐藏 checkbox 控件
-				$selectCheckbox = $select.children('[type="checkbox"]'),
+				$selectTabindex = $select.children('[type="checkbox"]'),
 				// 通过 $select 获取隐藏值控件
-				$selectInput = $select.children('[type="hidden"]'),
+				$selectValue = $select.children('[type="hidden"]'),
 				// 空 option 对象
 				$emptyOption = $a.clone(),
 				// 控件滚动条
@@ -2563,7 +2563,7 @@ var ud2 = (function (window, $) {
 					}
 
 					val = vs;
-					$selectInput.val(vs.join(','));
+					$selectValue.val(vs.join(','));
 				} else {
 					if (arrValOptions[0]) arrValOptions[0].setSelected(false);
 					$selectBtn.attr(className + '-value', true);
@@ -2572,7 +2572,7 @@ var ud2 = (function (window, $) {
 					$selectBtn.html(option.name);
 
 					val = option.value;
-					$selectInput.val(val);
+					$selectValue.val(val);
 				}
 
 				callbacks.changeVal.call(ctrl.public, val);
@@ -2689,7 +2689,7 @@ var ud2 = (function (window, $) {
 				var btnEvent = event($selectBox);
 				btnEvent.setTap(toggle);
 				
-				$selectCheckbox.bind('focus', function () {
+				$selectTabindex.bind('focus', function () {
 					callbacksCtrlClose.fire($select);
 					open();
 				});
@@ -2710,7 +2710,7 @@ var ud2 = (function (window, $) {
 				// 转移宿主属性
 				transferStyles(ctrl.$origin, $select);
 				transferAttrs(ctrl.$origin, $select);
-				transferName(ctrl.$origin, $selectInput);
+				transferName(ctrl.$origin, $selectValue);
 
 				// 开启滚动条
 				listScroll = scroll($selectList, {
@@ -2781,12 +2781,13 @@ var ud2 = (function (window, $) {
 				},
 				// 生成 $address 对象
 				$address = $([
-					'<div class="' + className + '"><input type="checkbox" /><a class="' + className + '-btn" />',
+					'<div class="' + className + '"><a class="' + className + '-btn" />',
 					'<div class="ud2-ctrl-power"><i class="ico">&#xe773;</i><i class="ico">&#xe689;</i></div>',
 					'<div class="' + className + '-list">',
 					'<div class="' + className + '-tabbox"><div class="' + className + '-tab">省份</div><div class="' + className + '-tab">城市</div><div class="' + className + '-tab">区县</div></div>',
-					'<div class="' + className + '-areabox ' + className + '-load" />',
-					'</div></div>'
+					'<div class="' + className + '-areabox ' + className + '-load" /></div>',
+					'<input type="checkbox" /><input type="hidden" />',
+					'</div>'
 				].join('')),
 				// 通过 $address 获取列表对象
 				$addressList = $address.children('div'),
@@ -2799,7 +2800,9 @@ var ud2 = (function (window, $) {
 				// 通过 $addressList 获取内容对象
 				$addressListContent = $addressList.children('div:last'),
 				// 通过 $address 获取隐藏 checkbox 控件
-				$addressCheckbox = $address.children('[type="checkbox"]'),
+				$addressTabindex = $address.children('[type="checkbox"]'),
+				// 通过 $address 获取隐藏值控件
+				$addressValue = $address.children('[type="hidden"]'),
 				// 存储一个空的区域元素
 				$emptyArea = $div.clone().addClass(className + '-area'),
 				// 标记是否处于开启状态
@@ -2966,6 +2969,7 @@ var ud2 = (function (window, $) {
 					$addressBtn.html(options.autoText);
 				}
 
+				$addressValue.val(val.join(','));
 				callbacks.changeVal.call(ctrl.public, val);
 			}
 
@@ -3083,7 +3087,7 @@ var ud2 = (function (window, $) {
 				var tabEvent = event($addressListTab.children());
 				tabEvent.setTap(tabShow);
 
-				$addressCheckbox.bind('focus', function () {
+				$addressTabindex.bind('focus', function () {
 					callbacksCtrlClose.fire($address);
 					open();
 				});
@@ -3104,6 +3108,7 @@ var ud2 = (function (window, $) {
 				// 转移宿主属性
 				transferStyles(ctrl.$origin, $address);
 				transferAttrs(ctrl.$origin, $address);
+				transferName(ctrl.$origin, $addressValue);
 
 				// 获取地址数据
 				getDatas();

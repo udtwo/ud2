@@ -3526,6 +3526,7 @@ var ud2 = (function (window, $) {
 				// 转移宿主属性
 				transferStyles(ctrl.$origin, $range);
 				transferAttrs(ctrl.$origin, $range);
+				transferName(ctrl.$origin, $rangeInput);
 
 				// 把$range放在原标签后
 				ctrl.$origin.after($range);

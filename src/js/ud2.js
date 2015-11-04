@@ -485,7 +485,7 @@ var ud2 = (function (window, $) {
 			.removeAttr("style")
 			.removeClass();
 	}
-	// 转移宿主的转移属性
+	// 转移宿主的可转移属性
 	// 此功能用于把旧宿主的转移属性转移给新宿主
 	// $transfor[jQuery]: 旧宿主 jQuery 对象
 	// $accept[jQuery]: 新宿主 jQuery 对象
@@ -503,11 +503,25 @@ var ud2 = (function (window, $) {
 
 		for (; i < len; i++) {
 			if (reg.test(element.attributes[j].name)) {
-				newElement.setAttribute(element.attributes[j].name, element.attributes[j].value);
-				element.removeAttribute(element.attributes[j].name);
+				var attr = element.attributes[j];
+				newElement.setAttribute(attr.name, attr.value);
+				element.removeAttribute(attr.name);
 			} else {
 				j++;
 			}
+		}
+	}
+	// 转移宿主的 name 属性
+	// $transfor[jQuery]: 旧宿主 jQuery 对象
+	// $accept[jQuery]: 新宿主 jQuery 对象
+	function transferName($transfer, $accept) {
+		var element = $transfer.get(0),
+			newElement = $accept.get(0),
+			attr = element.attributes['name'];
+
+		if (attr !== undefined) {
+			newElement.setAttribute(attr.name, attr.value);
+			element.removeAttribute(attr.name);
 		}
 	}
 	// 库功能 HTML 代码格式化
@@ -2341,9 +2355,10 @@ var ud2 = (function (window, $) {
 				arrValOptions = [],
 				// 生成 $select 对象
 				$select = $([
-					'<div class="' + className + '"><input type="checkbox" />',
+					'<div class="' + className + '">',
 					'<div class="' + className + '-put"><a class="' + className + '-btn" /><i class="' +className + '-ico" /></div>',
 					'<div class="' + className + '-list" />',
+					'<input type="checkbox" /><input type="hidden" />',
 					'</div>'
 				].join('')),
 				// 通过 $select 获取列表对象
@@ -2354,6 +2369,8 @@ var ud2 = (function (window, $) {
 				$selectBtn = $selectBox.children('a'),
 				// 通过 $select 获取隐藏 checkbox 控件
 				$selectCheckbox = $select.children('[type="checkbox"]'),
+				// 通过 $select 获取隐藏值控件
+				$selectInput = $select.children('[type="hidden"]'),
 				// 空 option 对象
 				$emptyOption = $a.clone(),
 				// 控件滚动条
@@ -2546,6 +2563,7 @@ var ud2 = (function (window, $) {
 					}
 
 					val = vs;
+					$selectInput.val(vs.join(','));
 				} else {
 					if (arrValOptions[0]) arrValOptions[0].setSelected(false);
 					$selectBtn.attr(className + '-value', true);
@@ -2554,6 +2572,7 @@ var ud2 = (function (window, $) {
 					$selectBtn.html(option.name);
 
 					val = option.value;
+					$selectInput.val(val);
 				}
 
 				callbacks.changeVal.call(ctrl.public, val);
@@ -2691,6 +2710,7 @@ var ud2 = (function (window, $) {
 				// 转移宿主属性
 				transferStyles(ctrl.$origin, $select);
 				transferAttrs(ctrl.$origin, $select);
+				transferName(ctrl.$origin, $selectInput);
 
 				// 开启滚动条
 				listScroll = scroll($selectList, {

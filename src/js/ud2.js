@@ -3612,14 +3612,14 @@ var ud2 = (function (window, $) {
 					'<a class="' + className + '-ico">&#xe6b7;</a>',
 					'</div>'
 				].join('')),
-				// 控件上一个按钮
-				$prev = $number.children('a:first'),
-				// 控件下一个按钮
-				$next = $number.children('a:last'),
-				// 控件移动容器
-				$move = $prev.next(),
 				// 控件的输入框
-				$input = $number.find('input'),
+				$numberInput = $number.find('input'),
+				// 控件上一个按钮
+				$numberPrev = $number.children('a:first'),
+				// 控件下一个按钮
+				$numberNext = $number.children('a:last'),
+				// 控件移动容器
+				$move = $numberPrev.next(),
 				// 浮点运算常数
 				DEBUG_NUM = 10000000,
 				// 动画锁
@@ -3643,7 +3643,7 @@ var ud2 = (function (window, $) {
 				// 解决最小值大于最大值问题
 				if (min > max) { max = min; }
 				value = convertValue(options.value);
-				$input.val(value);
+				$numberInput.val(value);
 			}
 			// 强制转换 value 值
 			// val[number]: 待转换的值
@@ -3671,7 +3671,7 @@ var ud2 = (function (window, $) {
 					$tempL = $div.clone().addClass(className + '-view').html('<input class="ud2-ctrl-txtbox" />'),
 					$tempR = $div.clone().addClass(className + '-view').html('<input class="ud2-ctrl-txtbox" />'),
 					// 获取父容器
-					$parent = $input.parent(),
+					$parent = $numberInput.parent(),
 					// 用于存储动画容器
 					$run = null;
 
@@ -3685,8 +3685,8 @@ var ud2 = (function (window, $) {
 				// 加入临时容器
 				$tempL.children().val(value);
 				$tempR.children().val(value);
-				$input.before($tempL);
-				$input.after($tempR);
+				$numberInput.before($tempL);
+				$numberInput.after($tempR);
 
 				$move.animate({
 					'top': isNext ? '-100%' : '100%'
@@ -3709,7 +3709,7 @@ var ud2 = (function (window, $) {
 			// 设置控件值
 			function setValue(val) {
 				value = val;
-				$input.val(value);
+				$numberInput.val(value);
 				callbacks.changeVal.call(ctrl.public, value);
 			}
 
@@ -3739,15 +3739,15 @@ var ud2 = (function (window, $) {
 
 			// 事件绑定
 			function bindEvent() {
-				event($prev).setTap(prev);
-				event($next).setTap(next);
-				$input.keydown(function (event) {
-					if (event.keyCode === 13) $input.blur();
+				event($numberPrev).setTap(prev);
+				event($numberNext).setTap(next);
+				$numberInput.keydown(function (event) {
+					if (event.keyCode === 13) $numberInput.blur();
 				}).focus(function () {
 					callbacksCtrlClose.fire($number);
 					$number.addClass(className + '-on');
 				}).blur(function () {
-					var v = convertValue($input.val());
+					var v = convertValue($numberInput.val());
 					setValue(v);
 					$number.removeClass(className + '-on');
 				});
@@ -3769,6 +3769,7 @@ var ud2 = (function (window, $) {
 				// 转移宿主属性
 				transferStyles(ctrl.$origin, $number);
 				transferAttrs(ctrl.$origin, $number);
+				transferName(ctrl.$origin, $numberInput);
 
 				// 把$number放在原标签后
 				ctrl.$origin.after($number);

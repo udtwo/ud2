@@ -1,0 +1,177 @@
+﻿/**
+ * ud2-calendar.less
+ * 选项列表控件的默认样式
+ */
+
+// 导入必要的文件
+@import "../import/import.less";
+
+// 为所有带有 .ud2-calendar 的标签设置内部样式
+.ud2-calendar {
+	padding-left: @CtrlPaddingLR;
+	padding-right: 2em;
+	.boxSizing('border-box');
+}
+// 设置控件的列表外层样式
+.ud2-calendar-list {
+	display: none;
+	position: absolute;
+	top: @CtrlHeight + 4;
+	left: -1px;
+	width: 100%;
+	min-width: 248px;
+	border: 1px solid @ColorWhiteBackDark;
+	border-radius: @BorderRadius;
+	background: @ColorWhite;
+	box-shadow: 2px 2px 2px @ColorWhiteDeeper;
+
+	table {
+		width: 100%;
+		table-layout: fixed;
+
+		th {
+			background: @ColorWhiteBackLight;
+		}
+
+		td, th {
+			text-align: center;
+			line-height: 2.4em;
+		}
+
+		td div {
+			float: left;
+			width: 49%;
+		}
+
+		td[ud2-calendar-date], div[ud2-calendar-month], div[ud2-calendar-year] {
+			cursor: pointer;
+			outline: 1px solid transparent;
+			outline-offset: -5px;
+			.transition();
+
+			&:hover {
+				font-weight: 800;
+				outline-color: @ColorWhiteBorder;
+				background: @ColorWhiteBackLight;
+				outline-offset: -1px;
+			}
+		}
+
+		td[ud2-calendar-now], div[ud2-calendar-now] {
+			color: @ColorBlue;
+			outline-color: @ColorBlueBorder;
+			outline-offset: -1px;
+			background: @ColorBlueBackLight;
+		}
+
+		td[ud2-calendar-today] {
+			position: relative;
+			&::before {
+				position: absolute;
+				right: .2em;
+				bottom: .2em;
+				content: '';
+				display: block;
+				width: 0;
+				height: 0;
+				border: .3em solid @ColorGreen;
+				border-left: .3em dashed transparent;
+				border-top: .3em dashed transparent;
+			}
+		}
+	}
+}
+// 设置控件的日期容器样式
+.ud2-calendar-datelist {
+	position: relative;
+}
+// 设置控件的工具容器样式
+.ud2-calendar-tools {
+	padding: .25em 0;
+	background: @ColorWhiteBackLight;
+}
+// 设置控件的按钮组容器样式
+.ud2-calendar-btns {
+	padding-bottom: .5em;
+	text-align: center;
+
+	.btn {
+		padding: 0 1em;
+	}
+}
+// 设置控件的两侧工具样式
+.ud2-calendar-tools-left, .ud2-calendar-tools-right {
+	position: absolute;
+	top: .25em;
+
+	.ico {
+		display: inline-block;
+		cursor: pointer;
+		color: @ColorTextNoImport;
+		.transition('color .3s');
+
+		&:hover {
+			color: @ColorBlue;
+		}
+	}
+}
+// 设置控件的左侧容器边距
+.ud2-calendar-tools-left {
+	left: .25em;
+}
+// 设置控件的右侧容器边距
+.ud2-calendar-tools-right {
+	right: .25em;
+}
+// 设置控件的工具文本样式
+.ud2-calendar-tools-text {
+	font-weight: 800;
+	text-align: center;
+	cursor: pointer;
+}
+// 设置控件的年月容器样式
+.ud2-calendar-ymlist {
+	display: none;
+	position: relative;
+
+	table {
+		margin: .25em 0;
+		td:first-child {
+			border-right: 1px solid @ColorWhiteBorder;
+		}
+		td:last-child {
+			border-left: 1px solid @ColorWhiteBorder;
+		}
+	}
+}
+// 设置控件开启样式
+.ud2-calendar-on {
+	z-index: @MaxZIndex;
+	background: @ColorWhiteBackLight;
+	border-color: @ColorWhiteBackDark;
+
+	// 列表开启后的外层样式
+	.ud2-calendar-list {
+		display: block;
+	}
+}
+// 设置非本月日期样式
+.ud2-calendar-nomonth {
+	opacity: @OpacityNoImport;
+}
+// 设置周末样式
+.ud2-calendar-weekend {
+	color: @ColorRed;
+}
+// 设置控件的小尺寸方案
+.ud2-calendar.sm, .ctrl-group.sm {
+	.ud2-calendar-list {
+		top: @CtrlHeight;
+	}
+}
+// 设置控件的大尺寸方案
+.ud2-calendar.lg, .ctrl-group.lg {
+	.ud2-calendar-list {
+		top: @CtrlHeight + 8;
+	}
+}

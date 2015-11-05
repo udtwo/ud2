@@ -47,37 +47,42 @@
 		background: @Background;
 	}
 }
+
 // 信息状态样式
 .ud2-select.info, .ctrl-group.info .ud2-select,
 .ud2-address.info, .ctrl-group.info .ud2-address,
 .ud2-range.info, .ctrl-group.info .ud2-range,
-.ud2-number.info, .ctrl-group.info .ud2-number {
+.ud2-number.info, .ctrl-group.info .ud2-number,
+.ud2-calendar.info, .ctrl-group.info .ud2-calendar {
 	.ud2-ctrl-color(@ColorBlue, @ColorBlueBackLight);
 }
-// 信息状态样式
+// 成功状态样式
 .ud2-select.success, .ctrl-group.success .ud2-select,
 .ud2-address.success, .ctrl-group.success .ud2-address,
 .ud2-range.success, .ctrl-group.success .ud2-range,
-.ud2-number.success, .ctrl-group.success .ud2-number {
+.ud2-number.success, .ctrl-group.success .ud2-number,
+.ud2-calendar.success, .ctrl-group.success .ud2-calendar {
 	.ud2-ctrl-color(@ColorGreen, @ColorGreenBackLight);
 }
-// 信息状态样式
+// 警告状态样式
 .ud2-select.warning, .ctrl-group.warning .ud2-select,
 .ud2-address.warning, .ctrl-group.warning .ud2-address,
 .ud2-range.warning, .ctrl-group.warning .ud2-range,
-.ud2-number.warning, .ctrl-group.warning .ud2-number {
+.ud2-number.warning, .ctrl-group.warning .ud2-number,
+.ud2-calendar.warning, .ctrl-group.warning .ud2-calendar {
 	.ud2-ctrl-color(@ColorOrange, @ColorOrangeBackLight);
 }
-// 信息状态样式
+// 危险状态样式
 .ud2-select.danger, .ctrl-group.danger .ud2-select,
 .ud2-address.danger, .ctrl-group.danger .ud2-address,
 .ud2-range.danger, .ctrl-group.danger .ud2-range,
-.ud2-number.danger, .ctrl-group.danger .ud2-number {
+.ud2-number.danger, .ctrl-group.danger .ud2-number,
+.ud2-calendar.danger, .ctrl-group.danger .ud2-calendar {
 	.ud2-ctrl-color(@ColorRed, @ColorRedBackLight);
 }
 
 // 选项控件基础样式
-.ud2-select, .ud2-address, .ud2-range, .ud2-number {
+.ud2-select, .ud2-address, .ud2-range, .ud2-number, .ud2-calendar {
 	.ud2-ctrl();
 }
 
@@ -89,7 +94,6 @@
 	border: 0;
 	background: transparent;
 	font-size: 1em;
-	line-height: 1em;
 }
 // JS控件开关按钮容器
 .ud2-ctrl-power {

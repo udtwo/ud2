@@ -115,6 +115,8 @@ var ud2 = (function (window, $) {
 		MOUSE_OUT = 'mouseout',
 		MOUSE_ENTER = 'mouseenter',
 		MOUSE_LEAVE = 'mouseleave',
+		// 触碰事件
+		EVENT_DOWN = [POINTER_DOWN, TOUCH_START, MOUSE_DOWN].join(' '),
 
 		// 用于克隆的空 jQuery 对象
 		$div = $('<div />'),
@@ -326,7 +328,7 @@ var ud2 = (function (window, $) {
 					for (var i = 0; i < 17; i++) {
 						sum += code[i] * factor[i];
 					}
-					
+
 					var last = parity[sum % 11];
 					if (last != code[17]) return false;
 				}
@@ -352,7 +354,7 @@ var ud2 = (function (window, $) {
 	// #endregion
 
 	// #region ud2 库私有方法
-	
+
 	// 在生成新控件前进行传入参数的检测
 	// 需要为此函数提供一个 this 指针指向地址，此 this 一般情况为指向一个控件集合
 	// 内部已包含参数 jQuery 对象检测 chekcJQElements
@@ -452,7 +454,7 @@ var ud2 = (function (window, $) {
 	// return[string]: 控件对象名称
 	function getControlNameByName(name) {
 		var nameArr = name.split('-'), i = 1, l = nameArr.length;
-		if (l > 1) for (; i < l; i++) 
+		if (l > 1) for (; i < l; i++)
 			if (nameArr[i].length > 0) {
 				nameArr[i] = nameArr[i].substr(0, 1).toUpperCase() + nameArr[i].substr(1);
 			}
@@ -1514,7 +1516,7 @@ var ud2 = (function (window, $) {
 			control.style = style;
 			control.$current.addClass(styleStr[style]);
 		}
-		
+
 		// 控件样式
 		control.style = ud2.style.normal;
 		// 原 jQuery 对象
@@ -1589,7 +1591,7 @@ var ud2 = (function (window, $) {
 			// 初始化控件，并返回控件的信息
 			return ctrl.public;
 		};
-		
+
 		// 公开组对象
 		ud2[group.name] = group;
 
@@ -1800,7 +1802,7 @@ var ud2 = (function (window, $) {
 					barWidth = maxScrollBarWidth * size;
 					barWidth = barWidth < options.barMinLength ? options.barMinLength : barWidth;
 					barWidth = barWidth > maxScrollBarWidth ? maxScrollBarWidth : barWidth;
-					
+
 					barData.w = barWidth;
 					barData.mw = maxScrollBarWidth;
 					barData.sw = maxScrollBarWidth - barWidth;
@@ -1871,7 +1873,7 @@ var ud2 = (function (window, $) {
 			if (y > 0) y = 0;
 			if (y < -scrollData.sh) y = -scrollData.sh;
 			if (x < -scrollData.sw) x = -scrollData.sw;
-			
+
 			// 浏览器支持 transition 则使用过渡动画
 			// 不支持则使用 jQuery 的 animate 动画
 			if (support.transition) {
@@ -1927,10 +1929,10 @@ var ud2 = (function (window, $) {
 				startY = scrollData.now.y,
 				startTime = getTime(),
 				destTime = startTime + duration;
-			
+
 			function step() {
 				var now = getTime(), newX, newY, easing;
-				
+
 				if (now < destTime) {
 					now = (now - startTime) / duration;
 					easing = easingFn(now);
@@ -2353,23 +2355,23 @@ var ud2 = (function (window, $) {
 				},
 				// 被选作值的选项集合
 				arrValOptions = [],
-				// 生成 $select 对象
+				// 控件对象
 				$select = $([
 					'<div class="' + className + '">',
-					'<div class="' + className + '-put"><a class="' + className + '-btn" /><i class="' +className + '-ico" /></div>',
+					'<div class="' + className + '-put"><a class="' + className + '-btn" /><i class="' + className + '-ico" /></div>',
 					'<div class="' + className + '-list" />',
 					'<input type="checkbox" /><input type="hidden" />',
 					'</div>'
 				].join('')),
-				// 通过 $select 获取列表对象
+				// 控件 list 容器 
 				$selectList = $select.children('div:last'),
-				// 通过 $selectBox 获取列表控件容器
+				// 控件 box 容器
 				$selectBox = $select.children('div:first'),
-				// 通过 $select 获取按钮控件
+				// 控件按钮
 				$selectBtn = $selectBox.children('a'),
-				// 通过 $select 获取隐藏 checkbox 控件
+				// 控件 tabindex 功能插件
 				$selectTabindex = $select.children('[type="checkbox"]'),
-				// 通过 $select 获取隐藏值控件
+				// 控件隐藏值功能插件
 				$selectValue = $select.children('[type="hidden"]'),
 				// 空 option 对象
 				$emptyOption = $a.clone(),
@@ -2688,7 +2690,7 @@ var ud2 = (function (window, $) {
 			function bindEvent() {
 				var btnEvent = event($selectBox);
 				btnEvent.setTap(toggle);
-				
+
 				$selectTabindex.bind('focus', function () {
 					callbacksCtrlClose.fire($select);
 					open();
@@ -2779,7 +2781,7 @@ var ud2 = (function (window, $) {
 					province: null, city: null, area: null,
 					provinceList: [], cityList: [], areaList: []
 				},
-				// 生成 $address 对象
+				// 控件对象
 				$address = $([
 					'<div class="' + className + '"><a class="' + className + '-btn" />',
 					'<div class="ud2-ctrl-power"><i class="ico">&#xe773;</i><i class="ico">&#xe689;</i></div>',
@@ -2789,19 +2791,19 @@ var ud2 = (function (window, $) {
 					'<input type="checkbox" /><input type="hidden" />',
 					'</div>'
 				].join('')),
-				// 通过 $address 获取列表对象
+				// 控件 list 容器 
 				$addressList = $address.children('div'),
-				// 通过 $address 获取按钮对象
+				// 控件按钮
 				$addressBtn = $address.children('a'),
-				// 通过 $address 获取开关对象
+				// 控件开关容器
 				$addressPower = $addressBtn.next(),
-				// 通过 $addressList 获取选项卡对象
+				// 控件列表选项卡容器
 				$addressListTab = $addressList.children('div:first'),
-				// 通过 $addressList 获取内容对象
+				// 控件列表内容容器
 				$addressListContent = $addressList.children('div:last'),
-				// 通过 $address 获取隐藏 checkbox 控件
+				// 控件 tabindex 功能插件
 				$addressTabindex = $address.children('[type="checkbox"]'),
-				// 通过 $address 获取隐藏值控件
+				// 控件隐藏值插件
 				$addressValue = $address.children('[type="hidden"]'),
 				// 存储一个空的区域元素
 				$emptyArea = $div.clone().addClass(className + '-area'),
@@ -2946,7 +2948,7 @@ var ud2 = (function (window, $) {
 			}
 			// 设定控件值
 			function setValue() {
-				var text = "", 
+				var text = "",
 					val = [];
 
 				if (arrValObjects.province) {
@@ -3176,7 +3178,7 @@ var ud2 = (function (window, $) {
 				valueLeft = 0, valueRight = 0,
 				// 步长, 步长位数, 最小值, 最大值
 				step = 0, stepDigit = 0, min = 0, max = 0,
-				// 生成一个 range 的 jQuery 对象
+				// 控件对象
 				$range = $([
 					'<div class="' + className + '">',
 					'<input type="text" maxlength="20" class="ud2-ctrl-txtbox" />',
@@ -3184,11 +3186,11 @@ var ud2 = (function (window, $) {
 					'<div class="' + className + '-list"><div class="' + className + '-end" /><div class="' + className + '-back" /></div>',
 					'</div>'
 				].join('')),
-				// 输入框
+				// 控件输入框
 				$rangeInput = $range.children('input'),
-				// 图标按钮
+				// 控件开关容器
 				$rangePower = $rangeInput.next(),
-				// 通过 $range 获取 list 容器
+				// 控件 list 容器
 				$rangeList = $rangePower.next(),
 				// 第一个按钮
 				$btnLeft = $a.clone().addClass(className + '-hand'),
@@ -3604,7 +3606,7 @@ var ud2 = (function (window, $) {
 				},
 				// 值, 步长, 最小值, 最大值
 				value = 0, step = 0, min = 0, max = 0,
-				// 控件容器
+				// 控件对象
 				$number = $([
 					'<div class="' + className + '">',
 					'<a class="' + className + '-ico">&#xe6b6;</a>',
@@ -3612,7 +3614,7 @@ var ud2 = (function (window, $) {
 					'<a class="' + className + '-ico">&#xe6b7;</a>',
 					'</div>'
 				].join('')),
-				// 控件的输入框
+				// 控件输入框
 				$numberInput = $number.find('input'),
 				// 控件上一个按钮
 				$numberPrev = $number.children('a:first'),
@@ -3793,6 +3795,480 @@ var ud2 = (function (window, $) {
 		};
 
 	}(controlGroup('number')));
+	// JS 日历控件集合
+	// * 此控件会 remove 掉原宿主对象
+	var calendar = (function (group) {
+
+		// 重写 init 方法
+		// 创建一个 JS 数字控件
+		// ctrl[control]: control 对象
+		// userOptions[object]: 用户参数
+		// return[calendar]: 返回生成的控件对象
+		group.init = function (ctrl, userOptions) {
+
+			// #region 私有字段
+
+			var // 样式类名
+				className = prefixLibName + group.name,
+				// 默认值
+				options = {
+					// 默认文本
+					autoText: ctrl.$origin.attr('placeholder') || ctrl.$origin.attr(className + '-text') || '请选择日期',
+					// 默认日期格式化
+					format: ctrl.$origin.attr(prefixLibName + group.name + '-format') || 'yyyy/MM/dd',
+					// 获取原控件日期数据
+					date: ctrl.$origin.attr('value') || ctrl.$origin.attr(prefixLibName + group.name + '-value') || ''
+				},
+				// 本地日期
+				localDate = new Date(),
+				// 控件日期数据对象
+				dateValue = {
+					// 补位运算
+					// text[string]: 补位前日期
+					// return[string]: 返回补位后的结果
+					seats: function(text){
+						return (text.toString().length === 1 ? '0' : '') + text;
+					},
+					// 设置控件日期数据的 toString 方法
+					// return[string]: 输出符合格式要求的日期字符串
+					toString: function () {
+						var format = options.format;
+						format = format
+							.replace(/y{4}/, this.time.getFullYear())
+							.replace(/y{2}/, this.time.getFullYear() - 2000)
+							.replace(/MM/, this.seats(this.time.getMonth() + 1))
+							.replace(/M/, this.time.getMonth() + 1)
+							.replace(/dd/, this.seats(this.time.getDate()))
+							.replace(/d/, this.time.getDate());
+						return format;
+					},
+					// 设置控件日期数据对象的值
+					// y[string]: 年份
+					// M[string]: 月份
+					// d[string]: 日期
+					setDateValue: function (y, M, d) {
+						if (arguments.length === 3
+							&& arguments[0] && arguments[1] && arguments[2]) {
+							if (y.length === 2) y = '20' + y;
+							y = parseInt(y);
+							M = parseInt(M) - 1;
+							d = parseInt(d);
+							this.time = new Date(y, M, d);
+							this.view();
+
+							console.log(this.toString());
+						}
+					},
+					// 显示控件时间
+					view: function(){
+						$calendarInput.val(this.toString());
+					},
+					// 控件时间值
+					// 默认为系统时间
+					time: localDate,
+					// 系统当前时间
+					now: localDate,
+					// 选择时间
+					select: localDate,
+					// 重置选择时间
+					selectReset: function () {
+						this.select = new Date(this.time.getFullYear(), this.time.getMonth(), this.time.getDate());
+						dateHtmlCreate();
+					}
+				},
+				// 提示字符串
+				tipsString = ['上一年', '下一年', '上个月', '下个月', '前12年', '后12年', '年份选择', '返回日期选择'],
+				// 星期字符串
+				weekString = ['日', '一', '二', '三', '四', '五', '六'],
+				// 月份字符串
+				monthString = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+				// 月份天数
+				dateNum = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+				// 生成一个 calendar 的 jQuery 对象
+				$calendar = $([
+					'<div class="' + className + '">',
+					'<input type="text" placeholder="' + options.autoText + '" maxlength="20" class="ud2-ctrl-txtbox" />',
+					'<span class="ud2-ctrl-power"><i class="ico">&#xe634;</i><i class="ico">&#xe689;</i></span>',
+					'<div class="' + className + '-list">',
+
+					// 日期列表
+					'<div class="' + className + '-datelist"><div class="ud2-calendar-tools">',
+					'<div class="ud2-calendar-tools-left"><a class="ico ico-rotate-half" title="', tipsString[0], '">&#xe6f7;</a><a class="ico ico-rotate-half" title="', tipsString[2], '">&#xe6f1;</a></div>',
+					'<div class="ud2-calendar-tools-right"><a class="ico" title="', tipsString[3], '">&#xe6f1;</a><a class="ico" title="', tipsString[1], '">&#xe6f7;</a></div>',
+					'<div class="ud2-calendar-tools-text" title="', tipsString[6], '">-年 -月</div>',
+					'</div><table /><div class="ud2-calendar-btns"><button class="btn sm" tabindex="-1">今日</button></div></div>',
+					// 时间列表
+					'<div class="' + className + '-ymlist"><div class="ud2-calendar-tools">',
+					'<div class="ud2-calendar-tools-left"><a class="ico ico-rotate-half" title="', tipsString[4], '">&#xe6f7;</a></div>',
+					'<div class="ud2-calendar-tools-right"><a class="ico" title="', tipsString[5], '">&#xe6f7;</a></div>',
+					'<div class="ud2-calendar-tools-text" title="', tipsString[7], '">年份 / 月份</div>',
+					'</div><table /><div class="ud2-calendar-btns"><button class="btn sm" tabindex="-1">确定</button></div></div>',
+
+					'</div></div>'
+				].join('')),
+				// 控件隐藏值插件
+				$calendarInput = $calendar.children('[type="text"]'),
+				// 控件开关容器
+				$calendarPower = $calendarInput.next(),
+				// 控件日期容器
+				$calendarDate = $calendar.find(['.', className, '-datelist'].join('')),
+				// 控件年月容器
+				$calendarYM = $calendar.find(['.', className, '-ymlist'].join('')),
+
+				// 控件是否开启
+				isOpen = false;
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 通过 format 转换日期
+			// text[string]: 将字符串转换为日期
+			function convertDate(text) {
+				var format = options.format,
+					formatDMY = /^dd?(-|\.|\/)MM?\1yy(?:yy)?$/,
+					textCN = /^((?:\d{2}|\d{4})年|(?:\d{1,2})月|(?:\d{1,2})日){1,3}$/;
+
+				if (textCN.test(text)) {
+					// 年月日组合
+
+					var d = /(\d{1,2})日/.exec(text),
+						m = /(\d{1,2})月/.exec(text),
+						y = /(\d{2}|\d{4})年/.exec(text);
+
+					d = (d && d[1]) || '1';
+					m = (m && m[1]) || '1';
+					y = (y && y[1]) || dateValue.time.getFullYear().toString();
+					dateValue.setDateValue(y, m, d);
+				}
+				else if (formatDMY.test(format)) {
+					// dd.MM.yyyy dd-MM-yyyy dd/MM/yyyy
+					// d.M.yy d-M-y d/M/y
+
+					var spt = formatDMY.exec(format)[1],
+						dArr = text.split(spt);
+					dateValue.setDateValue(dArr[2], dArr[1], dArr[0]);
+				}
+				else if (format === 'yyyy-MM-dd') {
+					// ISO 日期
+
+					var dArr = text.split('-');
+					dateValue.setDateValue(dArr[0], dArr[1], dArr[2]);
+				}
+				else {
+					// 可转换日期
+
+					var date = new Date(text);
+					if (!isNaN(date)) {
+						dateValue.setDateValue(date.getFullYear(), date.getMonth() + 1, date.getDate());
+					} else {
+						options.format = 'yyyy/MM/dd';
+						dateValue.setDateValue(dateValue.time.getDate().toString(),
+							(dateValue.time.getMonth() + 1).toString(),
+							dateValue.time.getFullYear().toString());
+					}
+				}
+			}
+			// 日期初始化
+			function dateInit() {
+				var // 工具按钮
+					$toolsBtn = $calendarDate.find(['.', className, '-tools a'].join('')),
+					// 底部按钮
+					$bottomBtn = $calendarDate.find(['.', className, '-btns button'].join('')),
+					// 文本容器 
+					$text = $calendarDate.find(['.', className, '-tools-text'].join(''));
+
+				dateHtmlCreate();
+				$toolsBtn.eq(0).bind(EVENT_DOWN, function () {
+					dateValue.select.setFullYear(dateValue.select.getFullYear() - 1);
+					dateHtmlCreate();
+				});
+				$toolsBtn.eq(3).bind(EVENT_DOWN, function () {
+					dateValue.select.setFullYear(dateValue.select.getFullYear() + 1);
+					dateHtmlCreate();
+				});
+				$toolsBtn.eq(1).bind(EVENT_DOWN, function () {
+					dateValue.select.setMonth(dateValue.select.getMonth() - 1);
+					dateHtmlCreate();
+				});
+				$toolsBtn.eq(2).bind(EVENT_DOWN, function () {
+					dateValue.select.setMonth(dateValue.select.getMonth() + 1);
+					dateHtmlCreate();
+				});
+				$text.bind(EVENT_DOWN, function () {
+					$calendarDate.slideUp(300);
+					$calendarYM.slideDown(300);
+					ymHtmlCreate();
+				});
+
+				$bottomBtn.eq(0).bind(EVENT_DOWN, function () {
+					dateValue.setDateValue(dateValue.now.getFullYear(), dateValue.now.getMonth() + 1, dateValue.now.getDate());
+					close();
+				});
+			}
+			// 日期 HTML 生成
+			function dateHtmlCreate() {
+				var // HTML 容器
+					$html = $calendarDate.children('table'),
+					// 文本容器 
+					$text = $calendarDate.find(['.', className, '-tools-text'].join('')),
+					// 存储 HTML
+					html = [],
+					// 闰年
+					isLeapYear = dateValue.select.getFullYear() % 4 === 0,
+					// 上个月
+					lastMonth = dateValue.select.getMonth() - 1 < 0 ? 11 : dateValue.select.getMonth() - 1,
+					// 本月天数
+					monthDateNum = dateNum[dateValue.select.getMonth()],
+					// 上个月天数
+					lastMonthDateNum = dateNum[lastMonth],
+					// 星期
+					week = new Date(dateValue.select.getFullYear(), dateValue.select.getMonth(), 1).getDay();
+
+				// 在文本容器内显示时间
+				$text.html(dateValue.select.getFullYear() + '年 ' + (dateValue.select.getMonth() + 1) + '月');
+
+				// 闰年
+				if (isLeapYear && dateValue.select.getMonth() === 1) monthDateNum = 29;
+				if (isLeapYear && dateValue.select.getMonth() === 2) lastMonthDateNum = 29;
+
+				// 生成 HTML
+				html.push('<tr>');
+				for (var i in weekString) html.push(['<th>', weekString[i], '</th>'].join(''));
+				html.push('</tr><tr>');
+
+				for (var i = 0, j = -1, k = 0; i < 42; i++) {
+					if (i < week) {
+						j++;
+						html.push('<td class="', className, '-nomonth">', (lastMonthDateNum - week + i + 1), '</td>');
+					} else {
+						if (i - j <= monthDateNum) {
+							html.push('<td class="',
+								((i + 1) % 7 === 0 || (i + 1) % 7 === 1 ? className + '-weekend' : ''), '" ',
+								className, '-date="', (i - j), '" ',
+								// 显示当前日期
+								(dateValue.select.getFullYear() === dateValue.now.getFullYear()
+									&& dateValue.select.getMonth() === dateValue.now.getMonth()
+									&& dateValue.now.getDate() === (i - j)
+									? className + '-today ' : ''),
+								// 显示选择日期
+								(dateValue.select.getFullYear() === dateValue.time.getFullYear()
+									&& dateValue.select.getMonth() === dateValue.time.getMonth()
+									&& dateValue.time.getDate() === (i - j)
+									? className + '-now ' : ''),
+								'>', (i - j), '</td>');
+						}
+						else {
+							k++;
+							html.push('<td class="', className, '-nomonth">', k, '</td>');
+						}
+					}
+					if ((i + 1) % 7 === 0) { html.push('</tr><tr>'); }
+				}
+
+				$html.children().remove();
+				$html.append(html.join(''))
+
+				event($html.find(['[', className, '-date]'].join(''))).setTap(function () {
+					console.log('x');
+					dateValue.setDateValue(dateValue.select.getFullYear(),
+						dateValue.select.getMonth() + 1, this.attr(className + '-date'));
+					dateValue.view();
+					close();
+				});
+			}
+			// 年份月份初始化
+			function ymInit() {
+				var // 工具按钮
+					$toolsBtn = $calendarYM.find(['.', className, '-tools a'].join('')),
+					// 底部按钮
+					$bottomBtn = $calendarYM.find(['.', className, '-btns button'].join('')),
+					// 文本容器 
+					$text = $calendarYM.find(['.', className, '-tools-text'].join(''));
+
+				ymHtmlCreate();
+
+				$toolsBtn.eq(0).bind(EVENT_DOWN, function () {
+					dateValue.select.setFullYear(dateValue.select.getFullYear() - 12);
+					ymHtmlCreate();
+				});
+
+				$toolsBtn.eq(1).bind(EVENT_DOWN, function () {
+					dateValue.select.setFullYear(dateValue.select.getFullYear() + 12);
+					ymHtmlCreate();
+				});
+
+				$bottomBtn.eq(0).bind(EVENT_DOWN, function () {
+					$calendarDate.slideDown(300);
+					$calendarYM.slideUp(300);
+					dateHtmlCreate();
+				});
+
+				$text.bind(EVENT_DOWN, function () {
+					$calendarDate.slideDown(300);
+					$calendarYM.slideUp(300);
+					dateHtmlCreate();
+				});
+			}
+			// 年份月份 HTML 生成
+			function ymHtmlCreate() {
+				var $html = $calendarYM.children('table'),
+					html = [], yearFirst = 0,
+					yearAttr = className + '-year', yearSelector = ['[', yearAttr, ']'].join(''),
+					monthAttr = className + '-month', monthSelector = ['[', monthAttr, ']'].join(''),
+					nowAttr = className + '-now';
+
+				yearFirst = dateValue.select.getFullYear() % 12 === 0
+					? dateValue.select.getFullYear() - 11
+					: parseInt(dateValue.select.getFullYear() / 12) * 12 + 1;
+
+				html.push('<tr><td>');
+				for (var i = 0; i < 12; i++) {
+					html.push('<div ',
+						className, '-year="', (yearFirst + i), '" ',
+						// 显示选择日期
+						(dateValue.select.getFullYear() === yearFirst + i ? nowAttr : ''),
+						'>', (yearFirst + i), '</div>');
+				}
+				html.push('</td><td>');
+				for (var i = 0; i < 12; i++) {
+					html.push('<div ',
+						className, '-month="', i, '" ',
+						// 显示选择日期
+						(dateValue.select.getMonth() === i ? nowAttr : ''),
+						'>', monthString[i], '</div>');
+				}
+				html.push('</td></tr>')
+				$html.children().remove();
+				$html.append(html.join(''));
+
+				event($html.find(yearSelector)).setTap(function () {
+					dateValue.select.setFullYear(this.attr(yearAttr));
+					$html.find(yearSelector).removeAttr(nowAttr);
+					this.attr(nowAttr, '');
+				});
+
+				event($html.find(monthSelector)).setTap(function () {
+					dateValue.select.setMonth(this.attr(monthAttr));
+					$html.find(monthSelector).removeAttr(nowAttr);
+					this.attr(nowAttr, '');
+				});
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 开启控件
+			function open() {
+				if (!isOpen) {
+					isOpen = true;
+					$calendar.addClass(className + '-on');
+					$calendarPower.addClass(prefixLibName + 'ctrl-power-on');
+					$calendarDate.show();
+					$calendarYM.hide();
+					dateValue.selectReset();
+				}
+				return ctrl.public;
+			}
+			// 关闭控件
+			function close() {
+				if (isOpen) {
+					isOpen = false;
+					$calendar.removeClass(className + '-on');
+					$calendarPower.removeClass(prefixLibName + 'ctrl-power-on');
+				}
+				return ctrl.public;
+			}
+			// 开关控件
+			function toggle() {
+				if (!isOpen) {
+					open();
+				} else {
+					close();
+				}
+				return ctrl.public;
+			}
+
+			// #endregion
+
+			// #region 事件绑定
+
+			function inputFocus() {
+				callbacksCtrlClose.fire($calendar);
+				open();
+			}
+
+			function inputKeyDown(event) {
+				if (event.keyCode === 13) {
+					$calendarInput.blur();
+					close();
+				}
+			}
+
+			function inputBlur() {
+				convertDate($calendarInput.val());
+				dateValue.selectReset();
+				dateValue.view();
+				dateHtmlCreate();
+			}
+
+			// 事件绑定
+			function bindEvent() {
+				var icoEvent = event($calendarPower);
+				icoEvent.setTap(toggle);
+
+				$calendarInput.bind('focus', inputFocus).bind('keydown', inputKeyDown).bind('blur', inputBlur);
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 控件初始项
+				ctrl.$current = $calendar;
+				ctrl.autoClose = close;
+
+				// 设置初始选项
+				setOptions(options, userOptions);
+
+
+				if (ctrl.$origin.val() !== '') convertDate(ctrl.$origin.val());
+				
+
+				// 转移宿主属性
+				transferStyles(ctrl.$origin, $calendar);
+				transferAttrs(ctrl.$origin, $calendar);
+				transferName(ctrl.$origin, $calendarInput)
+
+				// 把 $calendar 放在原标签后
+				ctrl.$origin.after($calendar);
+				// 移除原标签
+				ctrl.$origin.remove();
+
+				// 对日期容器与年月份容器初始化
+				dateInit();
+				ymInit();
+
+				// 事件绑定
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			ctrl.public.open = open;
+			ctrl.public.close = close;
+			ctrl.public.toggle = toggle;
+			return ctrl.public;
+
+			// #endregion
+		};
+
+	}(controlGroup('calendar')));
 
 
 	var table = (function (group) {
@@ -3838,7 +4314,7 @@ var ud2 = (function (window, $) {
 				this.section = section;
 				this.cells = [];
 				this.width = width || options.colWidth;
-				
+
 				section.col.push(this);
 			}
 			Col.prototype = {
@@ -3881,7 +4357,7 @@ var ud2 = (function (window, $) {
 				var $trs = section.$origin.children('tr'), $tr, $tds, $td,
 					ranks = analysisRanks(section), rule = [],
 					cs, rs;
-				
+
 				for (var r = 0; r < ranks.row; r++) {
 					for (var c = 0, cby = 0; c < ranks.col; c++, cby++) {
 						var isRule = false;
@@ -3892,7 +4368,7 @@ var ud2 = (function (window, $) {
 								isRule = true;
 								return;
 							}
-						}); 
+						});
 						if (isRule) {
 							new Cell(section, '', rs, cs, true, r, c);
 						} else {
@@ -3949,7 +4425,7 @@ var ud2 = (function (window, $) {
 
 				// 分析控件组和控件
 				analysisTable();
-				
+
 
 
 
@@ -3991,7 +4467,7 @@ var ud2 = (function (window, $) {
 
 			// 当用户触碰屏幕且未触碰任何有价值(无效触碰)控件时，执行页面触碰按下的事件回调
 			// 用途是解决部分控件当触碰控件外时执行相应回调方法
-			$dom.bind([TOUCH_START, MOUSE_DOWN].join(' '), function (event) {
+			$dom.bind(EVENT_DOWN, function (event) {
 				callbacksCtrlClose.fire(event.target);
 			});
 		});

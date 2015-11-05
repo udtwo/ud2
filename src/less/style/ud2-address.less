@@ -106,16 +106,21 @@
 	margin: .5em 0 0 .5em;
 	padding: 0 .3em;
 	cursor: pointer;
+	outline: 1px solid transparent;
+	outline-offset: -5px;
+	.transition();
 
 	&:hover {
 		background: @ColorWhiteDeeper;
-		outline: 1px solid @ColorWhiteBorder;
+		outline-color: @ColorWhiteBorder;
+		outline-offset: 0;
 	}
 }
 // 设置列表作为值时的样式
 .ud2-address-area-me {
 	background: @ColorBlueBackLight;
-	outline: 1px solid @ColorBlueBorder;
+	outline-color: @ColorBlueBorder;
+	outline-offset: 0;
 }
 // 设置加载中的样式
 .ud2-address-load {

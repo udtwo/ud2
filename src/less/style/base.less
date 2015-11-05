@@ -182,13 +182,13 @@ blockquote {
 	}
 }
 
-// 为dl标签以及内部的dt，dd标签设置内部样式
+// 为 dl 标签以及内部的 dt，dd 标签设置内部样式
 dl {
-	// 设置dl标签内部的dt标签默认样式
+	// 设置 dl 标签内部的dt标签默认样式
 	> dt {
 		font-weight: 800;
 	}
-	// 如果dt标签不是dl标签中第一个同类子元素，则为其设置上外边距提高距离
+	// 如果 dt 标签不是 dl 标签中第一个同类子元素，则为其设置上外边距提高距离
 	> dt:not(:first-of-type) {
 		margin-top: .5em;
 	}
@@ -252,7 +252,7 @@ hr, .hr {
 	border-bottom-width: 3px;
 }
 
-// placeholder默认颜色
+// placeholder 默认颜色
 input::-webkit-input-placeholder {
 	color: @ColorNotes;
 }
@@ -326,20 +326,9 @@ input:-ms-input-placeholder {
 	font-style: normal;
 	font-weight: normal;
 }
-// 图标半旋转
-.ico-rotate-half {
-	.transform('rotate(.5turn)');
-}
-// 图标HOVER旋转
-.ico-hover-rotate {
-	&:hover {
-		.transform('rotate(.5turn) scale(1.2)');
-	}
-}
 // 设置i标签为嵌入图标标签
 // 设置部分控件默认嵌入图标
-.ico,
-input[type='checkbox']::after {
+.ico {
 	display: inline-block;
 	font-family: 'ud2';
 	speak: none;
@@ -352,6 +341,20 @@ input[type='checkbox']::after {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	.transition('transform .6s, color .3s');
+}
+// 图标二分之一旋转
+.ico-rotate-half {
+	.transform('rotate(.5turn)');
+}
+// 图标四分之一旋转
+.ico-rotate-qtr {
+	.transform('rotate(.25turn)');
+}
+// 图标HOVER旋转
+.ico-hover-rotate {
+	&:hover {
+		.transform('rotate(.5turn) scale(1.2)');
+	}
 }
 
 

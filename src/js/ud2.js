@@ -3853,10 +3853,13 @@ var ud2 = (function (window, $) {
 							y = parseInt(y);
 							M = parseInt(M) - 1;
 							d = parseInt(d);
-							this.time = new Date(y, M, d);
-							this.view();
-
-							console.log(this.toString());
+							if (this.time.getFullYear() !== y
+								|| this.time.getMonth() !== M
+								|| this.time.getDate() !== d) {
+								this.time = new Date(y, M, d);
+								this.view();
+								callbacks.changeVal.call(ctrl.public, this.toString());
+							}
 						}
 					},
 					// 显示控件时间
@@ -3916,7 +3919,16 @@ var ud2 = (function (window, $) {
 				$calendarYM = $calendar.find(['.', className, '-ymlist'].join('')),
 
 				// 控件是否开启
-				isOpen = false;
+				isOpen = false,
+				// 回调函数
+				callbacks = {
+					// 开启回调
+					open: $.noop,
+					// 关闭回调
+					close: $.noop,
+					// 值改变
+					changeVal: $.noop
+				};
 
 			// #endregion
 
@@ -3963,9 +3975,9 @@ var ud2 = (function (window, $) {
 						dateValue.setDateValue(date.getFullYear(), date.getMonth() + 1, date.getDate());
 					} else {
 						options.format = 'yyyy/MM/dd';
-						dateValue.setDateValue(dateValue.time.getDate().toString(),
+						dateValue.setDateValue(dateValue.time.getFullYear().toString(),
 							(dateValue.time.getMonth() + 1).toString(),
-							dateValue.time.getFullYear().toString());
+							dateValue.time.getDate().toString());
 					}
 				}
 			}
@@ -3979,31 +3991,31 @@ var ud2 = (function (window, $) {
 					$text = $calendarDate.find(['.', className, '-tools-text'].join(''));
 
 				dateHtmlCreate();
-				$toolsBtn.eq(0).bind(EVENT_DOWN, function () {
+				event($toolsBtn.eq(0)).setTap(function () {
 					dateValue.select.setFullYear(dateValue.select.getFullYear() - 1);
 					dateHtmlCreate();
 				});
-				$toolsBtn.eq(3).bind(EVENT_DOWN, function () {
+				event($toolsBtn.eq(3)).setTap(function () {
 					dateValue.select.setFullYear(dateValue.select.getFullYear() + 1);
 					dateHtmlCreate();
 				});
-				$toolsBtn.eq(1).bind(EVENT_DOWN, function () {
+				event($toolsBtn.eq(1)).setTap(function () {
 					dateValue.select.setMonth(dateValue.select.getMonth() - 1);
 					dateHtmlCreate();
 				});
-				$toolsBtn.eq(2).bind(EVENT_DOWN, function () {
+				event($toolsBtn.eq(2)).setTap(function () {
 					dateValue.select.setMonth(dateValue.select.getMonth() + 1);
 					dateHtmlCreate();
 				});
-				$text.bind(EVENT_DOWN, function () {
+				event($text).setTap(function () {
 					$calendarDate.slideUp(300);
 					$calendarYM.slideDown(300);
 					ymHtmlCreate();
 				});
 
-				$bottomBtn.eq(0).bind(EVENT_DOWN, function () {
+				event($bottomBtn.eq(0)).setTap(function () {
 					dateValue.setDateValue(dateValue.now.getFullYear(), dateValue.now.getMonth() + 1, dateValue.now.getDate());
-					close();
+					close(true);
 				});
 			}
 			// 日期 HTML 生成
@@ -4070,11 +4082,10 @@ var ud2 = (function (window, $) {
 				$html.append(html.join(''))
 
 				event($html.find(['[', className, '-date]'].join(''))).setTap(function () {
-					console.log('x');
 					dateValue.setDateValue(dateValue.select.getFullYear(),
 						dateValue.select.getMonth() + 1, this.attr(className + '-date'));
 					dateValue.view();
-					close();
+					close(true);
 				});
 			}
 			// 年份月份初始化
@@ -4088,23 +4099,23 @@ var ud2 = (function (window, $) {
 
 				ymHtmlCreate();
 
-				$toolsBtn.eq(0).bind(EVENT_DOWN, function () {
+				event($toolsBtn.eq(0)).setTap(function () {
 					dateValue.select.setFullYear(dateValue.select.getFullYear() - 12);
 					ymHtmlCreate();
 				});
 
-				$toolsBtn.eq(1).bind(EVENT_DOWN, function () {
+				event($toolsBtn.eq(1)).setTap(function () {
 					dateValue.select.setFullYear(dateValue.select.getFullYear() + 12);
 					ymHtmlCreate();
 				});
 
-				$bottomBtn.eq(0).bind(EVENT_DOWN, function () {
+				event($bottomBtn.eq(0)).setTap(function () {
 					$calendarDate.slideDown(300);
 					$calendarYM.slideUp(300);
 					dateHtmlCreate();
 				});
 
-				$text.bind(EVENT_DOWN, function () {
+				event($text).setTap(function () {
 					$calendarDate.slideDown(300);
 					$calendarYM.slideUp(300);
 					dateHtmlCreate();
@@ -4157,6 +4168,26 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
+			// #region 回调方法
+
+			// 设置开启回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setOpen(fn) { callbacks.open = fn; return ctrl.public; }
+			// 设置关闭回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setClose(fn) { callbacks.close = fn; return ctrl.public; }
+			// 设置开启回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
+
+			// #endregion
+
 			// #region 公共方法
 
 			// 开启控件
@@ -4167,16 +4198,27 @@ var ud2 = (function (window, $) {
 					$calendarPower.addClass(prefixLibName + 'ctrl-power-on');
 					$calendarDate.show();
 					$calendarYM.hide();
-					dateValue.selectReset();
+
+					callbacks.open.call(ctrl.public);
 				}
 				return ctrl.public;
 			}
 			// 关闭控件
-			function close() {
+			// (?) noUpdate[bool]: 不进行值更新
+			function close(noUpdate) {
 				if (isOpen) {
 					isOpen = false;
 					$calendar.removeClass(className + '-on');
 					$calendarPower.removeClass(prefixLibName + 'ctrl-power-on');
+
+					if (!noUpdate) {
+						convertDate($calendarInput.val());
+						dateValue.selectReset();
+						dateValue.view();
+					}
+
+					dateHtmlCreate();
+					callbacks.open.call(ctrl.public);
 				}
 				return ctrl.public;
 			}
@@ -4194,31 +4236,26 @@ var ud2 = (function (window, $) {
 
 			// #region 事件绑定
 
+			// 输入框获取焦点事件回调
 			function inputFocus() {
 				callbacksCtrlClose.fire($calendar);
 				open();
 			}
-
+			// 输出框键盘按下事件回调
 			function inputKeyDown(event) {
 				if (event.keyCode === 13) {
-					$calendarInput.blur();
 					close();
+					$calendarInput.blur();
 				}
 			}
-
-			function inputBlur() {
-				convertDate($calendarInput.val());
-				dateValue.selectReset();
-				dateValue.view();
-				dateHtmlCreate();
-			}
-
 			// 事件绑定
 			function bindEvent() {
 				var icoEvent = event($calendarPower);
 				icoEvent.setTap(toggle);
 
-				$calendarInput.bind('focus', inputFocus).bind('keydown', inputKeyDown).bind('blur', inputBlur);
+				$calendarInput
+					.bind('focus', inputFocus)
+					.bind('keydown', inputKeyDown);
 			}
 
 			// #endregion
@@ -4235,8 +4272,10 @@ var ud2 = (function (window, $) {
 				setOptions(options, userOptions);
 
 
-				if (ctrl.$origin.val() !== '') convertDate(ctrl.$origin.val());
-				
+				if (ctrl.$origin.val() !== '') {
+					convertDate(ctrl.$origin.val());
+					dateValue.selectReset();
+				}
 
 				// 转移宿主属性
 				transferStyles(ctrl.$origin, $calendar);
@@ -4263,6 +4302,9 @@ var ud2 = (function (window, $) {
 			ctrl.public.open = open;
 			ctrl.public.close = close;
 			ctrl.public.toggle = toggle;
+			ctrl.public.setOpen = setOpen;
+			ctrl.public.setClose = setClose;
+			ctrl.public.setChangeVal = setChangeVal;
 			return ctrl.public;
 
 			// #endregion
@@ -4468,7 +4510,12 @@ var ud2 = (function (window, $) {
 			// 当用户触碰屏幕且未触碰任何有价值(无效触碰)控件时，执行页面触碰按下的事件回调
 			// 用途是解决部分控件当触碰控件外时执行相应回调方法
 			$dom.bind(EVENT_DOWN, function (event) {
-				callbacksCtrlClose.fire(event.target);
+				var typeName = 'ctrlCloseEvent', type = event.type, domType = $dom.data(typeName);
+				if (!domType || type === domType) {
+					$dom.data(typeName, type);
+					callbacksCtrlClose.fire(event.target);
+				}
+				if (type === 'mousedown') $dom.data(typeName, null);
 			});
 		});
 

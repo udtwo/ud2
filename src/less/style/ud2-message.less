@@ -1,0 +1,71 @@
+﻿/**
+ * ud2-message.less
+ * 表单的默认样式
+ */
+
+// 导入必要的文件
+@import "../import/import.less";
+
+/* JS滚动控件 */
+// 滚动控件内部央视
+.ud2-message {
+	position: fixed;
+	z-index: @MaxZIndex + 1;
+	top: 0;
+	right: 10px;
+	width: 300px;
+	padding: @BaseSize / 2;
+	border: 1px solid @ColorWhiteBorder;
+	border-radius: @BorderRadius;
+	background: @ColorWhiteBackLight;
+	line-height: 1.5;
+	.transform('scale(0)');
+	.transition('transform .3s ease-out, top .3s, right 1s ease-in');
+
+	> .ico {
+		display: table-cell;
+		width: 24px;
+		font-size: 24px;
+		vertical-align: middle;
+	}
+
+	> .ico + .ud2-message-text {
+		width: 300px - 32px;
+		padding-left: 8px;
+	}
+
+	&.ud2-message-on {
+		.transform('scale(1)');
+	}
+
+	&.ud2-message-close {
+		right: -100%;
+	}
+}
+
+.ud2-message.info, .ud2-message.success, .ud2-message.warning, .ud2-message.danger {
+	color: @ColorWhite;
+}
+
+.ud2-message.info {
+	border-color: @ColorBlueDeeper;
+	background: @ColorBlueDeeper;
+}
+.ud2-message.success {
+	border-color: @ColorGreenDeeper;
+	background: @ColorGreenDeeper;
+}
+.ud2-message.warning {
+	border-color: @ColorOrangeDeeper;
+	background: @ColorOrangeDeeper;
+}
+.ud2-message.danger {
+	border-color: @ColorRedDeeper;
+	background: @ColorRedDeeper;
+}
+
+.ud2-message-text {
+	display: table-cell;
+	font-size: 12px;
+	vertical-align: middle;
+}

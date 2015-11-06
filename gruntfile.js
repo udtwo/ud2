@@ -63,12 +63,16 @@ module.exports = function (grunt) {
 						'src/less/style/scroll.less',
 						'src/less/style/table.less',
 						'src/less/style/ctrl.less',
+
 						'src/less/style/ud2-address.less',
 						'src/less/style/ud2-calendar.less',
+						'src/less/style/ud2-file.less',
 						'src/less/style/ud2-number.less',
 						'src/less/style/ud2-range.less',
 						'src/less/style/ud2-select.less',
-						'src/less/style/ud2-table.less'
+						'src/less/style/ud2-table.less',
+
+						'src/less/style/ud2-message.less',
 					]
 				}
 			}

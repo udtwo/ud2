@@ -117,6 +117,8 @@ var ud2 = (function (window, $) {
 		MOUSE_LEAVE = 'mouseleave',
 		// 触碰事件
 		EVENT_DOWN = [POINTER_DOWN, TOUCH_START, MOUSE_DOWN].join(' '),
+		// 状态名称
+		STATE_NAME = ['normal', 'info', 'success', 'warning', 'danger'],
 
 		// 用于克隆的空 jQuery 对象
 		$div = $('<div />'),
@@ -1420,6 +1422,11 @@ var ud2 = (function (window, $) {
 	// ud2 库公开对象
 	// 此对象默认会成为 window 的 ud2 属性
 	var ud2 = (function () {
+		var // 样式
+			style = {};
+		// 迭代样式
+		for (var i = 0; i < STATE_NAME.length; i++) style[STATE_NAME[i]] = i;
+
 		// 初始化全部 ud2ui 控件
 		// 用于初始化全部页面中未初始化的 ud2ui 控件
 		// * pageReady 时会自动执行此方法
@@ -1457,7 +1464,7 @@ var ud2 = (function (window, $) {
 		// 返回控件对象
 		return {
 			createAll: createAll,
-			style: { normal: 0, info: 1, success: 2, warning: 3, danger: 4 }
+			style: style
 		};
 	}());
 	// 控件父对象
@@ -2327,6 +2334,96 @@ var ud2 = (function (window, $) {
 	// #endregion
 
 	// #region ud2 库控件
+
+	// 信息控件
+	// 用于生成信息提示
+	// userOptions[object]: 用户参数
+	// return[scroll] => 返回一个滚动条控件
+	var message = function (text, ico, style) {
+		var // 类名
+			className = prefixLibName + 'message',
+			// 信息对象
+			$message = $([
+				'<div class="ud2-message">',
+				'<div class="ud2-message-text"></div>',
+				'</div>'
+			].join(''));
+
+		ico = ico || '';
+		style = style || ud2.style.normal;
+
+		function create() {
+			var $body = $('body');
+
+			// 添入图标
+			if (ico) {
+				if (ico === 1) {
+					$message.children().first().before('<i class="ico">&#xe687;</i>');
+					$message.addClass(STATE_NAME[1]);
+				}
+				else if (ico === 2) {
+					$message.children().first().before('<i class="ico">&#xe693;</i>');
+					$message.addClass(STATE_NAME[2]);
+				}
+				else if (ico === 3) {
+					$message.children().first().before('<i class="ico">&#xe698;</i>');
+					$message.addClass(STATE_NAME[3]);
+				}
+				else if (ico === 4) {
+					$message.children().first().before('<i class="ico">&#xe689;</i>');
+					$message.addClass(STATE_NAME[4]);
+				}
+				else {
+					$message.children().first().before('<i class="ico">' + ico + '</i>');
+				}
+
+				if (style && style !== 0) $message.addClass(STATE_NAME[style]);
+			} 
+
+			// 添入文本
+			$message.children().last().html(text);
+
+			// 添入元素
+			$body.append($message);
+			window.setTimeout(function () {
+				$message.addClass(className + '-on');
+			}, 100);
+		}
+
+		function close() {
+			$message.addClass(className + '-close');
+		}
+
+		// 计算数组之和
+		function countHeight(arr) {
+			var sum = 0, i = 0, j = arr.length;
+			for (; i < j; i++) {
+				sum += arr[i];
+			}
+			return sum;
+		}
+
+		function siblingsMove() {
+			var $msg = $('.' + className), height = [], padding = 10,
+				i = $msg.length;
+
+			// 循环所有信息控件，计算适合的 top 值
+			for (; i > 0; i--) {
+				var $this = $msg.eq(i - 1);
+				$this.css('top', (height.length + 1) * padding + countHeight(height));
+				height.push($this.outerHeight());
+			}
+		}
+
+		// 初始化
+		(function init() {
+			create();
+			siblingsMove();
+			window.setTimeout(close, 5000);
+		}());
+	};
+
+
 
 	// JS 选择控件集合
 	// * 此控件会 remove 掉原宿主对象
@@ -4271,7 +4368,7 @@ var ud2 = (function (window, $) {
 				// 设置初始选项
 				setOptions(options, userOptions);
 
-
+				// 获取原控件值并设置给新控件
 				if (ctrl.$origin.val() !== '') {
 					convertDate(ctrl.$origin.val());
 					dateValue.selectReset();
@@ -4311,6 +4408,185 @@ var ud2 = (function (window, $) {
 		};
 
 	}(controlGroup('calendar')));
+	// JS 文件上传控件集合
+	// * 此控件会 remove 掉原宿主对象
+	var file = (function (group) {
+
+		// 重写 init 方法
+		// 创建一个 JS 文件上传控件
+		// ctrl[control]: control 对象
+		// userOptions[object]: 用户参数
+		// return[calendar]: 返回生成的控件对象
+		group.init = function (ctrl, userOptions) {
+			var // 样式类名
+				className = prefixLibName + group.name,
+				// 默认值
+				options = {
+					// 默认控件样式
+					// full 富文件样式 | base 常规文件样式 | single 单文件样式 | custom 自定义样式
+					type: (function () {
+						var t = ctrl.$origin.attr(className + '-type');
+						if (t !== 'full' && t !== 'base' && t !== 'single' && t !== 'custom') {
+							t = 'full';
+						}
+						return t;
+					}()),
+					// 最大文件量
+					// 默认为 20
+					maxLength: parseInt(ctrl.$origin.attr(className + '-maxlength')) || 20,
+					// 单个文件最大尺寸(KB)
+					// 默认值为 2048KB
+					// 值可以为 png, jpg, gif, txt, doc, docx, xls, xlsx, ppt, pptx, zip, rar, ett, wpt, dpt
+					maxSize: parseInt(ctrl.$origin.attr(className + '-maxlength')) || 2048,
+					// 是否启用文件重命名控制
+					fileRename: (function () {
+						var rename = ctrl.$origin.attr(className + '-rename');
+						if (rename === 'true' || rename === '') rename = true;
+						else rename = false;
+						return rename;
+					}()),
+					// 文件过滤方案
+					// 默认值为 all
+					fileFilter: (function () {
+						var filter = ctrl.$origin.attr(className + '-filter') || '',
+							files = 'png|jpg|gif|txt|doc|docx|xls|xlsx|ppt|pptx|rar|zip|ett|wpt|dpt';
+						filter = (new RegExp("^((" + files + "),)*(" + files + ")$").test(filter)) ? filter : 'all';
+						filter = filter === 'all' ? files.replace(/\|/g, ',') : filter;
+						return filter;
+					}())
+
+				},
+				// 生成一个 file full 的 jQuery 对象
+				$file = $([
+					'<div class="' + className + ' ' + className + '-full">',
+					// 无文件
+					'<div class="ud2-file-full-nofile">',
+					'<button class="btn btn-blue btn-solid"><i class="ico">&#xe617;</i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键多选上传</em>',
+					'</div>',
+					// 拖拽文件
+					'<div class="ud2-file-full-drag">请松开鼠标按钮，以便文件上传</div>',
+
+					'</div>'
+				].join('')),
+				// 控件为空提示对象
+				$fileEmpty = $file.children(['.', className, '-full-nofile'].join('')),
+				// 控件拖拽提示对象
+				$fileDrag = $file.children(['.', className, '-full-drag'].join('')),
+				// 回调函数
+				callbacks = {
+					// 发生错误
+					error: $.noop
+				};
+
+
+			// 检测文件类型
+			function fileTypeCheck() {
+				var mime = {
+					'png': 'image/png',
+					'jpg': 'image/jpeg',
+					'gif': 'image/gif',
+					'txt': 'text/plain',
+					'doc': 'application/msword',
+					'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+					'xls': 'application/vnd.ms-excel',
+					'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+					'ppt': 'application/vnd.ms-powerpoint',
+					'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+				}, i = 0, j = files.length, k, type, ext, fileType = fileFilter.split(','), errs = [];
+
+				for (; i < j; i++) {
+					errs[i] = false;
+
+					// 当前文件类型
+					type = files[i].type;
+					// 当前文件扩展名
+					ext = files[i].name.split('.');
+					ext = ext[ext.length - 1];
+
+					for (var k in fileType) {
+						if (type === mime[fileType[k]] || (fileType[k] === ext && (
+							ext === 'rar' || ext === 'zip' ||
+							ext === 'ett' || ext === 'wpt' || ext === 'dpt'
+							))) {
+							errs[i] = true;
+							break;
+						}
+					}
+				}
+
+				for (i = 0, j = errs.length; i < j; i++) {
+					if (errs[i] === false) {
+						return false;
+					}
+				}
+				return true;
+			}
+
+			function fileHandler(files) {
+				var i = 0, len = files.length;
+				if (len > options.maxLength) {
+					alert('x')
+					callbacks.error.call(ctrl.public, 'length-error');
+				}
+				for (; i < len; i++) {
+					console.log(files[i])
+				}
+			}
+
+
+
+			function dragEnter() {
+				$file.addClass('ud2-file-full-dragenter');
+			}
+
+			function dragLeave() {
+				$file.removeClass('ud2-file-full-dragenter');
+			}
+
+			function dragOver(event) {
+				event.preventDefault();
+				$file.addClass('ud2-file-full-dragenter');
+			}
+
+			function drop(event) {
+				event.preventDefault();
+				event = event.originalEvent;
+				var files = (event.dataTransfer && event.dataTransfer.files)
+					|| (event.target && event.target.files);
+				fileHandler(files);
+				$file.removeClass('ud2-file-full-dragenter');
+			}
+
+			// 事件绑定
+			function bindEvent() {
+				$file.bind('dragenter', dragEnter);
+				$fileDrag.bind('dragleave', dragLeave);
+				$fileDrag.bind('dragover', dragOver).bind('drop', drop);
+			}
+
+			// 初始化
+			(function init() {
+				// 设置初始选项
+				setOptions(options, userOptions);
+
+				// 转移宿主属性
+				transferStyles(ctrl.$origin, $file);
+				transferAttrs(ctrl.$origin, $file);
+
+				// 把 $calendar 放在原标签后
+				ctrl.$origin.after($file);
+				// 移除原标签
+				ctrl.$origin.remove();
+
+				bindEvent();
+
+			}());
+
+			// 返回
+			return ctrl.public;
+		};
+
+	}(controlGroup('file')));
 
 
 	var table = (function (group) {
@@ -4536,6 +4812,7 @@ var ud2 = (function (window, $) {
 	ud2.ctrl = control;
 	ud2.ctrlGroup = controlGroup;
 	ud2.scroll = scroll;
+	ud2.message = message;
 	// 返回控件
 	return ud2;
 

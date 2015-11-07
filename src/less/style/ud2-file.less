@@ -78,6 +78,7 @@
 // 设置控件的富文件列表样式
 .ud2-file-full-list {
 	.layout();
+	min-height: 304px;
 	display: none;
 }
 // 设置控件的富文件图片容器与添加按钮样式
@@ -98,19 +99,6 @@
 
 	&.ud2-file-full-figure-on {
 		.transform('scale(1)');
-	}
-
-	div:last-child {
-		position: absolute;
-		left: 5px;
-		right: 5px;
-		bottom: 0;
-		height: 20px;
-		font-size: 12px;
-		line-height: 20px;
-		white-space: nowrap;
-		overflow-y: hidden;
-		.textOverflow();
 	}
 }
 // 设置控件的富文件添加按钮样式
@@ -162,5 +150,53 @@
 		max-width: 138px;
 		max-height: 118px;
 		margin: auto;
+	}
+
+	& + div {
+		position: absolute;
+		left: 5px;
+		right: 5px;
+		bottom: 0;
+		height: 20px;
+		font-size: 12px;
+		line-height: 20px;
+		white-space: nowrap;
+		overflow-y: hidden;
+		.textOverflow();
+	}
+}
+// 设置控件的关闭按钮样式
+.ud2-file-full-close {
+	position: absolute;
+	top: -12px;
+	right: -12px;
+	cursor: pointer;
+
+	&::before {
+		display: block;
+		content: '\e689';
+		font-family: 'ud2';
+		color: @ColorRed;
+		font-size: 24px;
+		line-height: 24px;
+		.transition('transform .3s, color .3s');
+	}
+
+	&:hover::before {
+		color: @ColorRedDeeper;
+		.transform('rotate(90deg) scale(1.1)');
+	}
+
+	&:active::before {
+		color: @ColorRedDeepest;
+	}
+}
+// 设置控件的工具容器样式
+.ud2-file-full-tools {
+	display: none;
+	margin: 5px;
+
+	.btn:last-of-type {
+		margin-left: 10px;
 	}
 }

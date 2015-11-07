@@ -4416,6 +4416,9 @@ var ud2 = (function (window, $) {
 		// userOptions[object]: 用户参数
 		// return[calendar]: 返回生成的控件对象
 		group.init = function (ctrl, userOptions) {
+
+			// #region 私有字段
+
 			var // 样式类名
 				className = prefixLibName + group.name,
 				// 默认值
@@ -4435,7 +4438,7 @@ var ud2 = (function (window, $) {
 					// 单个文件最大尺寸(KB)
 					// 默认值为 2048KB
 					// 值可以为 png, jpg, gif, txt, doc, docx, xls, xlsx, ppt, pptx, zip, rar, ett, wpt, dpt
-					maxSize: parseInt(ctrl.$origin.attr(className + '-maxlength')) || 2048,
+					maxSize: parseInt(ctrl.$origin.attr(className + '-maxsize')) || 2048,
 					// 是否启用文件重命名控制
 					fileRename: (function () {
 						var rename = ctrl.$origin.attr(className + '-rename');
@@ -4447,15 +4450,25 @@ var ud2 = (function (window, $) {
 					// 默认值为 all
 					fileFilter: (function () {
 						var filter = ctrl.$origin.attr(className + '-filter') || '',
-							files = 'png|jpg|gif|svg|ico|html|js|cs|vb|css|less|scss|sass|mp3|mp4|wav|avi|ogg|mov|wmv|webm|flv|swf|txt|pdf|doc|docx|xls|xlsx|ppt|pptx|ett|wpt|dpt|rar|zip',
+							files = 'png|jpg|gif|bmp|svg|ico|html|js|cs|vb|css|less|scss|sass|mp3|mp4|wav|avi|ogg|mov|wmv|webm|flv|swf|txt|pdf|doc|docx|xls|xlsx|ppt|pptx|ett|wpt|dpt|rar|zip|iso',
 							i = 0, len = 0;
 						filter = (new RegExp("^((" + files + "),)*(" + files + ")$").test(filter)) ? filter : 'all';
 						filter = filter === 'all' ? files.split('|') : filter.split(',');
 						len = filter.length;
 						for (; i < len; i++) filter[filter[i]] = filter[i];
 						return filter;
-					}())
-
+					}()),
+					// 处理 URL
+					url: {
+						// 文件提交
+						fileUp: '',
+						// 文件列表
+						fileList: '',
+						// 文件重命名
+						fileRename: '',
+						// 文件移除
+						fileRemove: ''
+					}
 				},
 				// 生成一个 file full 的 jQuery 对象
 				$file = $([
@@ -4463,33 +4476,43 @@ var ud2 = (function (window, $) {
 
 					// 无文件
 					'<div class="ud2-file-full-nofile">',
-					'<button class="btn btn-blue btn-solid" ud2-file-add><i class="ico">&#xe617;</i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键多选上传</em>',
+					'<button class="btn btn-blue btn-solid" ud2-file-add><i class="ico">&#xe617;</i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em>',
 					'</div>',
 					// 拖拽文件
-					'<div class="ud2-file-full-drag">请松开鼠标按钮，以便文件上传</div>',
+					'<div class="ud2-file-full-drag">请松开鼠标按钮，文件将进入待上传队列</div>',
 					// 图片列表
 					'<div class="ud2-file-full-list">',
 					'<div class="ud2-file-full-add" ud2-file-add><div><i class="ico">&#xe683;</i><em>继续添加文件</em></div></div>',
 					'</div>',
+					// 上传按钮
+					'<div class="ud2-file-full-tools"><button class="btn btn-solid">确定上传</button><button class="btn btn-solid">清空列表</button></div>',
 
 					'</div>'
 				].join('')),
-				// 控件为空提示对象
+				// 控件为空提示容器
 				$fileEmpty = $file.children(['.', className, '-full-nofile'].join('')),
-				// 控件拖拽提示对象
+				// 控件拖拽提示容器
 				$fileDrag = $file.children(['.', className, '-full-drag'].join('')),
-				// 控件待上传文件容器对象
+				// 控件待上传文件容器
 				$fileList = $file.children(['.', className, '-full-list'].join('')),
+				// 控件工具容器
+				$fileTools = $file.children(['.', className, '-full-tools'].join('')),
 				// 控件添加按钮
 				$fileAdd = $file.find(['[', className, '-add]'].join('')),
 				// 待上传的文件集合
 				upfiles = [],
+				// 控件状态
+				// 0 未上传  1 上传中  2 已完成
+				upState = 0,
 				// 回调函数
 				callbacks = {
 					// 发生错误
 					error: $.noop
 				};
 
+			// #endregion
+
+			// #region 私有方法
 
 			// 检测文件类型
 			// files[file]: 选择文件集合
@@ -4497,10 +4520,11 @@ var ud2 = (function (window, $) {
 			function filesTypeCheck(files) {
 				var errNum = 0, ext, i = 0, len = files.length;
 
+				// 迭代
 				for (; i < len; i++) {
 					// 当前文件扩展名
 					ext = files[i].name.split('.');
-					ext = ext[ext.length - 1];
+					ext = ext[ext.length - 1].toLowerCase();
 					if (!ext || options.fileFilter[ext] === undefined) { return false; }
 				}
 
@@ -4541,6 +4565,7 @@ var ud2 = (function (window, $) {
 					if (up > 0) {
 						$fileEmpty.fadeOut(200);
 						$fileList.fadeIn(200);
+						$fileTools.fadeIn(200);
 					}
 
 					if (repeatFile.length > 0) {
@@ -4566,43 +4591,109 @@ var ud2 = (function (window, $) {
 					$form.get(0).reset();
 				}
 			}
-
+			// 读取文件显示到待上传列表
 			function fileIn(file) {
-				var reader = new FileReader();
-				reader.readAsDataURL(file);
-				reader.addEventListener('loadend', function () {
-					var $box = $([
+				var // 显示图片容器
+					$box = $([
 						'<div class="', className, '-full-figure">',
 						'<div class="', className, '-full-img"><img ondragstart="return false;" /></div><div>', file.name, '</div>',
-						'</div>'
-					].join(''));
+						'<div class="', className, '-full-close"></div></div>'
+					].join('')),
+					// 关闭按钮
+					$boxClose = $box.children(':last'),
+					// 文件读取对象
+					reader;
 
-					if (/^image\/(png|jpeg|gif)/.test(file.type)) {
+				// 图片处理方式
+				if (/^image\/(png|jpeg|gif|bmp|svg)/.test(file.type)) {
+					reader = new FileReader();
+					reader.readAsDataURL(file);
+					reader.addEventListener('loadend', function () {
 						$box.find('img').attr('src', reader.result);
-					}
+					});
+				} else {
+					$box.find('img').attr('src', 'data:image/svg+xml;base64,77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgdmlld0JveD0iMCAwIDEzOCAxMTgiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDEzOCAxMTg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+DQoJLnB7ZmlsbDojZmZmO30NCjwvc3R5bGU+DQoJPHBhdGggY2xhc3M9InAiIGQ9Ik05MS42LDQzLjJjLTEuMi0xLjctMy0zLjctNC45LTUuNmMtMS45LTEuOS0zLjktMy42LTUuNi00LjljLTIuOS0yLjEtNC4zLTIuNC01LjEtMi40SDQ4LjUNCgkJYy0yLjUsMC00LjUsMi00LjUsNC41djQ4LjJjMCwyLjUsMiw0LjUsNC41LDQuNWg0MS4xYzIuNSwwLDQuNS0yLDQuNS00LjVWNDguM0M5NCw0Ny41LDkzLjgsNDYuMSw5MS42LDQzLjJ6IE04NC4zLDQwLjINCgkJYzEuNywxLjcsMy4xLDMuMyw0LjEsNC41aC04LjZ2LTguNkM4MSwzNy4xLDgyLjUsMzguNSw4NC4zLDQwLjJMODQuMyw0MC4yeiBNOTAuNCw4My4xYzAsMC41LTAuNCwwLjktMC45LDAuOUg0OC41DQoJCWMtMC41LDAtMC45LTAuNC0wLjktMC45VjM0LjljMC0wLjUsMC40LTAuOSwwLjktMC45YzAsMCwyNy43LDAsMjcuNywwdjEyLjVjMCwxLDAuOCwxLjgsMS44LDEuOGgxMi41VjgzLjF6Ii8+DQoJPHBhdGggY2xhc3M9InAiIGQ9Ik04MS41LDc2LjloLTI1Yy0xLDAtMS44LTAuOC0xLjgtMS44YzAtMSwwLjgtMS44LDEuOC0xLjhoMjVjMSwwLDEuOCwwLjgsMS44LDEuOA0KCQlDODMuMyw3Ni4xLDgyLjUsNzYuOSw4MS41LDc2Ljl6Ii8+DQoJPHBhdGggY2xhc3M9InAiIGQ9Ik04MS41LDY5LjdoLTI1Yy0xLDAtMS44LTAuOC0xLjgtMS44YzAtMSwwLjgtMS44LDEuOC0xLjhoMjVjMSwwLDEuOCwwLjgsMS44LDEuOA0KCQlDODMuMyw2OC45LDgyLjUsNjkuNyw4MS41LDY5Ljd6Ii8+DQoJPHBhdGggY2xhc3M9InAiIGQ9Ik04MS41LDYyLjZoLTI1Yy0xLDAtMS44LTAuOC0xLjgtMS44YzAtMSwwLjgtMS44LDEuOC0xLjhoMjVjMSwwLDEuOCwwLjgsMS44LDEuOA0KCQlDODMuMyw2MS44LDgyLjUsNjIuNiw4MS41LDYyLjZ6Ii8+DQo8L3N2Zz4=');
+					$box.find('img').css('background', '#3f99d5');
+				}
+				
+				// 互相引用
+				$box.data('file', file);
+				file.element = $box;
+				event($boxClose).setTap(fileOut);
 
-					$fileList.prepend($box);
-					window.setTimeout(function () {
-						$box.addClass(className + '-full-figure-on');
-					}, 50);
+				// 放入列表
+				$fileList.prepend($box);
+				window.setTimeout(function () { $box.addClass(className + '-full-figure-on'); });
+			}
+			// 删除待上传列表中的文件
+			function fileOut() {
+				if (upState !== 0) return;
+
+				var p = this.parent(), f = p.data('file'), index = upfiles.indexOf(f);
+				upfiles.splice(index, 1);
+				p.removeClass(className + '-full-figure-on');
+				window.setTimeout(function () { p.remove(); }, 150);
+				if (upfiles.length === 0) {
+					$fileEmpty.show();
+					$fileList.hide();
+					$fileTools.hide();
+				}
+			}
+
+			// #endregion
+
+
+			function upload() {
+				if (upState !== 0 || upfiles.length === 0) return;
+
+				var data = new FormData(), i = 0, len = upfiles.length;
+				for (; i < len; i++) xhrSet(upfiles[i]);
+			}
+
+			function xhrSet(file) {
+				var data = new FormData();
+				data.append('file', file);
+
+				$.ajax({
+					// 请求类型
+					'type': 'POST',
+					'url': options.url.fileUp,
+					'data': data,
+					'contentType': false,
+					'processData': false,
+					'xhr': function () {
+						var xhr = $.ajaxSettings.xhr();
+						if (xhr.upload) {
+							xhr.upload.addEventListener('progress', function (event) {
+								var pg = parseInt((event.loaded / event.total) * 100);
+								console.log(pg);
+							}, false);
+						}
+						return xhr;
+					}
+				}).done(function () {
+					console.log(arguments);
+				}).fail(function () {
+					console.log(arguments);
 				});
 			}
 
+			// #region 事件绑定
 
-
+			// 拖拽滑入
 			function dragEnter() {
 				$file.addClass('ud2-file-full-dragenter');
 			}
-
+			// 拖拽离开
 			function dragLeave() {
 				$file.removeClass('ud2-file-full-dragenter');
 			}
-
+			// 拖拽到容器上
 			function dragOver(event) {
 				event.preventDefault();
 				$file.addClass('ud2-file-full-dragenter');
 			}
-
+			// 拖拽文件被扔下
 			function drop(event) {
 				event.preventDefault();
 				event = event.originalEvent;
@@ -4611,24 +4702,43 @@ var ud2 = (function (window, $) {
 				filesHandler(files);
 				$file.removeClass('ud2-file-full-dragenter');
 			}
-
+			// 文件添加
 			function fileAdd() {
+				if (upState !== 0) return;
+
 				ctrl.$origin.trigger("click");
 			}
-
+			// 文件选择回调
 			function fileChange() {
 				filesHandler(this.files);
 				clearInputFiles();
 			}
-
+			// 待上传文件清空
+			function fileRemoveAll() {
+				if (upState !== 0) return;
+				upfiles.length = 0;
+				$fileList.children().remove();
+				$fileEmpty.show();
+				$fileList.hide();
+				$fileTools.hide();
+			}
 			// 事件绑定
 			function bindEvent() {
+				// 文件拖拽
 				$file.bind('dragenter', dragEnter);
 				$fileDrag.bind('dragleave', dragLeave);
 				$fileDrag.bind('dragover', dragOver).bind('drop', drop);
-				$fileAdd.bind('click', fileAdd);
+				// 文件添加与编辑
+				event($fileAdd, { stopPropagation: true }).setTap(fileAdd);
+				event($fileTools.children().eq(0)).setTap(upload);
+				event($fileTools.children().eq(1)).setTap(fileRemoveAll);
+				// 文件编辑回调
 				ctrl.$origin.bind('change', fileChange);
 			}
+			
+			// #endregion
+
+			// #region 初始化
 
 			// 初始化
 			(function init() {
@@ -4651,8 +4761,14 @@ var ud2 = (function (window, $) {
 
 			}());
 
+			// #endregion
+
+			// #region 返回
+
 			// 返回
 			return ctrl.public;
+
+			// #endregion
 		};
 
 	}(controlGroup('file')));

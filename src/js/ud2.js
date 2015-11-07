@@ -2423,8 +2423,6 @@ var ud2 = (function (window, $) {
 		}());
 	};
 
-
-
 	// JS 选择控件集合
 	// * 此控件会 remove 掉原宿主对象
 	var select = (function (group) {
@@ -4449,9 +4447,12 @@ var ud2 = (function (window, $) {
 					// 默认值为 all
 					fileFilter: (function () {
 						var filter = ctrl.$origin.attr(className + '-filter') || '',
-							files = 'png|jpg|gif|txt|doc|docx|xls|xlsx|ppt|pptx|rar|zip|ett|wpt|dpt';
+							files = 'png|jpg|gif|svg|ico|html|js|cs|vb|css|less|scss|sass|mp3|mp4|wav|avi|ogg|mov|wmv|webm|flv|swf|txt|pdf|doc|docx|xls|xlsx|ppt|pptx|ett|wpt|dpt|rar|zip',
+							i = 0, len = 0;
 						filter = (new RegExp("^((" + files + "),)*(" + files + ")$").test(filter)) ? filter : 'all';
-						filter = filter === 'all' ? files.replace(/\|/g, ',') : filter;
+						filter = filter === 'all' ? files.split('|') : filter.split(',');
+						len = filter.length;
+						for (; i < len; i++) filter[filter[i]] = filter[i];
 						return filter;
 					}())
 
@@ -4459,12 +4460,17 @@ var ud2 = (function (window, $) {
 				// 生成一个 file full 的 jQuery 对象
 				$file = $([
 					'<div class="' + className + ' ' + className + '-full">',
+
 					// 无文件
 					'<div class="ud2-file-full-nofile">',
-					'<button class="btn btn-blue btn-solid"><i class="ico">&#xe617;</i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键多选上传</em>',
+					'<button class="btn btn-blue btn-solid" ud2-file-add><i class="ico">&#xe617;</i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键多选上传</em>',
 					'</div>',
 					// 拖拽文件
 					'<div class="ud2-file-full-drag">请松开鼠标按钮，以便文件上传</div>',
+					// 图片列表
+					'<div class="ud2-file-full-list">',
+					'<div class="ud2-file-full-add" ud2-file-add><div><i class="ico">&#xe683;</i><em>继续添加文件</em></div></div>',
+					'</div>',
 
 					'</div>'
 				].join('')),
@@ -4472,6 +4478,12 @@ var ud2 = (function (window, $) {
 				$fileEmpty = $file.children(['.', className, '-full-nofile'].join('')),
 				// 控件拖拽提示对象
 				$fileDrag = $file.children(['.', className, '-full-drag'].join('')),
+				// 控件待上传文件容器对象
+				$fileList = $file.children(['.', className, '-full-list'].join('')),
+				// 控件添加按钮
+				$fileAdd = $file.find(['[', className, '-add]'].join('')),
+				// 待上传的文件集合
+				upfiles = [],
 				// 回调函数
 				callbacks = {
 					// 发生错误
@@ -4480,57 +4492,100 @@ var ud2 = (function (window, $) {
 
 
 			// 检测文件类型
-			function fileTypeCheck() {
-				var mime = {
-					'png': 'image/png',
-					'jpg': 'image/jpeg',
-					'gif': 'image/gif',
-					'txt': 'text/plain',
-					'doc': 'application/msword',
-					'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-					'xls': 'application/vnd.ms-excel',
-					'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-					'ppt': 'application/vnd.ms-powerpoint',
-					'pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-				}, i = 0, j = files.length, k, type, ext, fileType = fileFilter.split(','), errs = [];
+			// files[file]: 选择文件集合
+			// return[bool]: 返回类型检测状态  false 未通过检测  true 通过检测
+			function filesTypeCheck(files) {
+				var errNum = 0, ext, i = 0, len = files.length;
 
-				for (; i < j; i++) {
-					errs[i] = false;
-
-					// 当前文件类型
-					type = files[i].type;
+				for (; i < len; i++) {
 					// 当前文件扩展名
 					ext = files[i].name.split('.');
 					ext = ext[ext.length - 1];
-
-					for (var k in fileType) {
-						if (type === mime[fileType[k]] || (fileType[k] === ext && (
-							ext === 'rar' || ext === 'zip' ||
-							ext === 'ett' || ext === 'wpt' || ext === 'dpt'
-							))) {
-							errs[i] = true;
-							break;
-						}
-					}
+					if (!ext || options.fileFilter[ext] === undefined) { return false; }
 				}
 
-				for (i = 0, j = errs.length; i < j; i++) {
-					if (errs[i] === false) {
-						return false;
-					}
-				}
 				return true;
 			}
-
-			function fileHandler(files) {
+			// 文件处理
+			// files[file]: 选择文件集合
+			function filesHandler(files) {
 				var i = 0, len = files.length;
-				if (len > options.maxLength) {
-					alert('x')
-					callbacks.error.call(ctrl.public, 'length-error');
+				if (len + upfiles.length > options.maxLength) {
+					message('您选择的文件数量已经超过最大个数限制，该限制为 ' + options.maxLength + ' 个', 4);
+					callbacks.error.call(ctrl.public, 'length');
 				}
-				for (; i < len; i++) {
-					console.log(files[i])
+				else if (!filesTypeCheck(files)) {
+					message('您选择的文件类型不符合要求，请您重新选择文件', 4);
+					callbacks.error.call(ctrl.public, 'type');
 				}
+				else {
+					var errFile = [], repeatFile = [], up = 0;
+					for (; i < len; i++) {
+						if (files[i].size > options.maxSize * 1024) {
+							errFile.push(files[i].name);
+						}
+						else {
+							if (upfiles.some(function (file) {
+								return file.name === files[i].name 
+									&& file.size === files[i].size;
+							})) {
+								repeatFile.push(files[i].name);
+							} else {
+								upfiles.push(files[i]);
+								fileIn(files[i]);
+								up++;
+							}
+						}
+					}
+
+					if (up > 0) {
+						$fileEmpty.fadeOut(200);
+						$fileList.fadeIn(200);
+					}
+
+					if (repeatFile.length > 0) {
+						message(['您选择的文件已存在于列表中，重复的文件：', repeatFile.join("、")], 3);
+						callbacks.error.call(ctrl.public, 'repeat');
+					}
+
+					if (errFile.length > 0) {
+						message(['您选择的文件超出 ', options.maxSize, 'KB 限制，尺寸不符的文件：', errFile.join("、")], 4);
+						callbacks.error.call(ctrl.public, 'size');
+					}
+				}
+			}
+			// 清除原上传控件的值
+			function clearInputFiles() {
+				var $form;
+				if (ctrl.$origin.val() !== "") {
+					if (ctrl.$origin.parent().length === 0) {
+						$form = $("<form />");
+						ctrl.$origin.wrap($form);
+					}
+					$form = ctrl.$origin.parent();
+					$form.get(0).reset();
+				}
+			}
+
+			function fileIn(file) {
+				var reader = new FileReader();
+				reader.readAsDataURL(file);
+				reader.addEventListener('loadend', function () {
+					var $box = $([
+						'<div class="', className, '-full-figure">',
+						'<div class="', className, '-full-img"><img ondragstart="return false;" /></div><div>', file.name, '</div>',
+						'</div>'
+					].join(''));
+
+					if (/^image\/(png|jpeg|gif)/.test(file.type)) {
+						$box.find('img').attr('src', reader.result);
+					}
+
+					$fileList.prepend($box);
+					window.setTimeout(function () {
+						$box.addClass(className + '-full-figure-on');
+					}, 50);
+				});
 			}
 
 
@@ -4553,8 +4608,17 @@ var ud2 = (function (window, $) {
 				event = event.originalEvent;
 				var files = (event.dataTransfer && event.dataTransfer.files)
 					|| (event.target && event.target.files);
-				fileHandler(files);
+				filesHandler(files);
 				$file.removeClass('ud2-file-full-dragenter');
+			}
+
+			function fileAdd() {
+				ctrl.$origin.trigger("click");
+			}
+
+			function fileChange() {
+				filesHandler(this.files);
+				clearInputFiles();
 			}
 
 			// 事件绑定
@@ -4562,6 +4626,8 @@ var ud2 = (function (window, $) {
 				$file.bind('dragenter', dragEnter);
 				$fileDrag.bind('dragleave', dragLeave);
 				$fileDrag.bind('dragover', dragOver).bind('drop', drop);
+				$fileAdd.bind('click', fileAdd);
+				ctrl.$origin.bind('change', fileChange);
 			}
 
 			// 初始化
@@ -4577,7 +4643,10 @@ var ud2 = (function (window, $) {
 				ctrl.$origin.after($file);
 				// 移除原标签
 				ctrl.$origin.remove();
+				// 添加功能属性
+				ctrl.$origin.attr('multiple', 'multiple').attr('accept', options.fileFilter);
 
+				// 事件绑定
 				bindEvent();
 
 			}());

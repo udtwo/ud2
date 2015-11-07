@@ -10,9 +10,9 @@
 .ud2-file-full {
 	display: block;
 	height: auto;
-	min-height: 370px;
+	min-height: 304px;
 	overflow-x: hidden;
-	padding: 0 20px 20px 0;
+	padding: 5px;
 	background: @ColorWhiteBackLight;
 
 	&.ud2-file-full-dragenter {
@@ -78,21 +78,28 @@
 // 设置控件的富文件列表样式
 .ud2-file-full-list {
 	.layout();
-	display: block;
+	display: none;
 }
 // 设置控件的富文件图片容器与添加按钮样式
 .ud2-file-full-figure, .ud2-file-full-add {
 	float: left;
 	position: relative;
-	width: 148px;
-	height: 148px;
-	margin: 20px 0 0 20px;
+	width: 138px;
+	height: 138px;
+	margin: 5px;
 	border: 1px solid @ColorWhiteBorder;
 	border-radius: 2px;
 	background: @ColorWhite;
 }
 // 设置控件的富文件图片容器样式
 .ud2-file-full-figure {
+	.transform('scale(0)');
+	.transition('transform .3s');
+
+	&.ud2-file-full-figure-on {
+		.transform('scale(1)');
+	}
+
 	div:last-child {
 		position: absolute;
 		left: 5px;
@@ -146,14 +153,14 @@
 // 设置控件的富文件图片样式
 .ud2-file-full-img {
 	display: table-cell;
-	width: 148px;
-	height: 128px;
+	width: 138px;
+	height: 118px;
 	vertical-align: middle;
 
 	img {
 		display: block;
-		max-width: 148px;
-		max-height: 128px;
+		max-width: 138px;
+		max-height: 118px;
 		margin: auto;
 	}
 }

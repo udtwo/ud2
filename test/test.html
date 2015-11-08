@@ -16,6 +16,12 @@
 		   ud2-file-maxsize="50000009" 
 		   ud2-file-filter="all" />
 
+	<script>
+		$(function () {
+			ud2.file[0].setUploadUrl('http://localhost:57001/AJAX.File');
+		})
+	</script>
+
 	<!--<form action="" method="get">
 
 		<div class="ctrl-group" style="margin: 50px">

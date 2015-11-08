@@ -6,6 +6,14 @@
 // 导入必要的文件
 @import "../import/import.less";
 
+// 为所有带有 .ud2-file 的标签设置内部样式
+.ud2-file {
+	input[type="file"] {
+		position: absolute; 
+		top: -10000px; left: -10000px;
+	}
+}
+
 // 为所有带有 .ud2-file-full 的标签设置内部样式
 .ud2-file-full {
 	display: block;
@@ -99,6 +107,14 @@
 
 	&.ud2-file-full-figure-on {
 		.transform('scale(1)');
+	}
+
+	&.success .ud2-file-full-progress {
+		background: fadeout(@ColorGreen, 20%);
+	}
+
+	&.fail .ud2-file-full-progress {
+		background: fadeout(@ColorRed, 20%);
 	}
 }
 // 设置控件的富文件添加按钮样式
@@ -199,4 +215,17 @@
 	.btn:last-of-type {
 		margin-left: 10px;
 	}
+}
+// 设置控件的进度条样式
+.ud2-file-full-progress {
+	position: absolute;
+	top: 0; left: 0;
+	width: 0;
+	color: @ColorWhite;
+	height: 118px;
+	font-size: 24px;
+	line-height: 118px;
+	text-align: center;
+	background: fadeout(@ColorGreen, 20%);
+	.transition('background .3s');
 }

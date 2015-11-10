@@ -112,3 +112,37 @@
 	-ms-perspective: 0;
 	perspective: 0;
 }
+
+// 滚动条样式
+.scrollStyle(@size: 10px) {
+	// 滚动条基础样式
+	&::-webkit-scrollbar {
+		width: @size;
+		height: @size;
+	}
+	// 滚动条默认样式
+	&::-webkit-scrollbar-thumb {
+		border-radius: @size / 2;
+		background-color: rgba(0, 0, 0, .3);
+	}
+	// 未激活的滚动条样式
+	&::-webkit-scrollbar-thumb:window-inactive {
+		background-color: rgba(0, 0, 0, .1);
+	}
+	// 鼠标滑入的竖滚动条样式
+	&::-webkit-scrollbar-thumb:vertical:hover {
+		background-color: rgba(0, 0, 0, .45);
+	}
+	// 鼠标按下的竖滚动条样式
+	&::-webkit-scrollbar-thumb:vertical:active {
+		background-color: rgba(0, 0, 0, .6);
+	}
+	// 鼠标滑入的竖滚动条样式
+	&::-webkit-scrollbar-thumb:horizontal:hover {
+		background-color: rgba(0, 0, 0, .45);
+	}
+	// 鼠标按下的竖滚动条样式
+	&::-webkit-scrollbar-thumb:horizontal:active {
+		background-color: rgba(0, 0, 0, .6);
+	}
+}

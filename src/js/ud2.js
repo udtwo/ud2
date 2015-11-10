@@ -4750,7 +4750,7 @@ var ud2 = (function (window, $) {
 			// 控件类型初始化
 			function fileTypeInit() {
 				// 添加功能属性
-				$fileInput.attr('multiple', 'multiple').attr('accept', options.fileFilter);
+				$fileInput.attr('multiple', 'multiple');
 				// 类型工厂
 				switch (options.type) {
 					case 'full': {

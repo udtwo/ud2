@@ -2352,6 +2352,7 @@ var ud2 = (function (window, $) {
 		ico = ico || '';
 		style = style || ud2.style.normal;
 
+		// 创建信息
 		function create() {
 			var $body = $('body');
 
@@ -2390,8 +2391,12 @@ var ud2 = (function (window, $) {
 			}, 100);
 		}
 
+		// 关闭信息
 		function close() {
 			$message.addClass(className + '-close');
+			window.setTimeout(function () {
+				$message.remove();
+			}, 1000);
 		}
 
 		// 计算数组之和
@@ -2402,7 +2407,7 @@ var ud2 = (function (window, $) {
 			}
 			return sum;
 		}
-
+		// 移动信息
 		function siblingsMove() {
 			var $msg = $('.' + className), height = [], padding = 10,
 				i = $msg.length;
@@ -4966,6 +4971,7 @@ var ud2 = (function (window, $) {
 				// 转移宿主属性
 				transferStyles(ctrl.$origin, $file);
 				transferAttrs(ctrl.$origin, $file);
+				$fileInput.attr('accept', ctrl.$origin.attr('accept'));
 
 				// 把 $calendar 放在原标签后
 				ctrl.$origin.after($file);

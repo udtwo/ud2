@@ -4505,7 +4505,15 @@ var ud2 = (function (window, $) {
 				// 回调函数
 				callbacks = {
 					// 发生错误
-					error: $.noop,
+					error: function (errType, userArg) {
+						switch (errType) {
+							case 'repeat-error': message('您选择的文件数量已经超过最大个数限制，该限制为 ' + options.maxLength + ' 个', 4); break;
+							case 'type-error': message('您选择的文件类型不符合要求，请您重新选择文件', 4); break;
+							case 'size-error': message(['您选择的文件超出 ', options.maxSize, 'KB 限制，尺寸不符的文件：', errFile.join("、")], 4); break;
+							case 'repeat-error': message(['您选择的文件已存在于列表中，重复的文件：', userArg.join("、")], 3); break;
+							case 'server-error': message('您的文件 ' + userArg + ' 已被阻止，请检查您的文件', 4); break;
+						}
+					},
 					// 上传完成
 					complete: $.noop
 				};
@@ -4535,12 +4543,10 @@ var ud2 = (function (window, $) {
 			function filesHandler(files) {
 				var i = 0, len = files.length;
 				if (len + upfiles.length > options.maxLength) {
-					message('您选择的文件数量已经超过最大个数限制，该限制为 ' + options.maxLength + ' 个', 4);
-					callbacks.error.call(ctrl.public, 'length');
+					callbacks.error.call(ctrl.public, 'length-error');
 				}
 				else if (!filesTypeCheck(files)) {
-					message('您选择的文件类型不符合要求，请您重新选择文件', 4);
-					callbacks.error.call(ctrl.public, 'type');
+					callbacks.error.call(ctrl.public, 'type-error');
 				}
 				else {
 					var errFile = [], repeatFile = [], up = 0;
@@ -4563,13 +4569,11 @@ var ud2 = (function (window, $) {
 					}
 
 					if (repeatFile.length > 0) {
-						message(['您选择的文件已存在于列表中，重复的文件：', repeatFile.join("、")], 3);
-						callbacks.error.call(ctrl.public, 'repeat');
+						callbacks.error.call(ctrl.public, 'repeat-error', repeatFile);
 					}
 
 					if (errFile.length > 0) {
-						message(['您选择的文件超出 ', options.maxSize, 'KB 限制，尺寸不符的文件：', errFile.join("、")], 4);
-						callbacks.error.call(ctrl.public, 'size');
+						callbacks.error.call(ctrl.public, 'size-error');
 					}
 				}
 			}
@@ -4711,11 +4715,11 @@ var ud2 = (function (window, $) {
 					file.element.addClass('success');
 				});
 				bindFailFn(function (file) {
-					message('您的文件 ' + file.name + ' 已被阻止，请检查您的文件', 4);
 					upEndNum++;
 					upErrorNum++;
 					uploadStateView();
 					file.element.addClass('fail');
+					callbacks.error.call(ctrl.public, 'server-error', file.name);
 				});
 
 				// 文件拖拽事件绑定

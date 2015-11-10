@@ -4994,6 +4994,8 @@ var ud2 = (function (window, $) {
 				clearFn: bindClearFn
 			}
 			ctrl.public.setUploadUrl = setUploadUrl;
+			ctrl.public.setError = setError;
+			ctrl.public.setComplete = setComplete;
 			ctrl.public.upfiles = upfiles;
 			return ctrl.public;
 

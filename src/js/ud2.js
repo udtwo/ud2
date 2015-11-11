@@ -4708,6 +4708,7 @@ var ud2 = (function (window, $) {
 				bindUploadFn(function () {
 					$fileList.find('[' + className + '-add]').hide();
 					$fileList.find('.' + className + '-full-close').hide();
+					$fileList.find('.' + className + '-full-figure input').attr('readonly', 'readonly');
 					$fileTools.html('文件开始上传...');
 				});
 				bindSuccessFn(function (file) {

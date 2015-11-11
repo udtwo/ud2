@@ -20,7 +20,7 @@ var ud2 = (function (window, $) {
 		// 数据属性前缀
 		prefixData = 'data-',
 		// 库属性前缀
-		prefixLibName = [libName, joinStr].join(''),
+		prefixLibName = libName + joinStr,
 		// 样式属性前缀集合
 		// 有效集合 {1-4}
 		prefixStyles = ' -webkit- -moz- -o- -ms- '.split(' '),
@@ -2343,11 +2343,11 @@ var ud2 = (function (window, $) {
 		var // 类名
 			className = prefixLibName + 'message',
 			// 信息对象
-			$message = $([
-				'<div class="ud2-message">',
-				'<div class="ud2-message-text"></div>',
-				'</div>'
-			].join(''));
+			$message = $(
+				'<div class="ud2-message">'
+				+ '<div class="ud2-message-text"></div>'
+				+ '</div>'
+			);
 
 		ico = ico || '';
 		style = style || ud2.style.normal;
@@ -2379,7 +2379,7 @@ var ud2 = (function (window, $) {
 				}
 
 				if (style && style !== 0) $message.addClass(STATE_NAME[style]);
-			} 
+			}
 
 			// 添入文本
 			$message.children().last().html(text);
@@ -2456,13 +2456,13 @@ var ud2 = (function (window, $) {
 				// 被选作值的选项集合
 				arrValOptions = [],
 				// 控件对象
-				$select = $([
-					'<div class="' + className + '">',
-					'<div class="' + className + '-put"><a class="' + className + '-btn" /><i class="' + className + '-ico" /></div>',
-					'<div class="' + className + '-list" />',
-					'<input type="checkbox" /><input type="hidden" />',
-					'</div>'
-				].join('')),
+				$select = $(
+					'<div class="' + className + '">'
+					+ '<div class="' + className + '-put"><a class="' + className + '-btn" /><i class="' + className + '-ico" /></div>'
+					+ '<div class="' + className + '-list" />'
+					+ '<input type="checkbox" /><input type="hidden" />'
+					+ '</div>'
+				),
 				// 控件 list 容器 
 				$selectList = $select.children('div:last'),
 				// 控件 box 容器
@@ -2882,15 +2882,15 @@ var ud2 = (function (window, $) {
 					provinceList: [], cityList: [], areaList: []
 				},
 				// 控件对象
-				$address = $([
-					'<div class="' + className + '"><a class="' + className + '-btn" />',
-					'<div class="ud2-ctrl-power"><i class="ico">&#xe773;</i><i class="ico">&#xe689;</i></div>',
-					'<div class="' + className + '-list">',
-					'<div class="' + className + '-tabbox"><div class="' + className + '-tab">省份</div><div class="' + className + '-tab">城市</div><div class="' + className + '-tab">区县</div></div>',
-					'<div class="' + className + '-areabox ' + className + '-load" /></div>',
-					'<input type="checkbox" /><input type="hidden" />',
-					'</div>'
-				].join('')),
+				$address = $(
+					'<div class="' + className + '"><a class="' + className + '-btn" />'
+					+ '<div class="ud2-ctrl-power"><i class="ico">&#xe773;</i><i class="ico">&#xe689;</i></div>'
+					+ '<div class="' + className + '-list">'
+					+ '<div class="' + className + '-tabbox"><div class="' + className + '-tab">省份</div><div class="' + className + '-tab">城市</div><div class="' + className + '-tab">区县</div></div>'
+					+ '<div class="' + className + '-areabox ' + className + '-load" /></div>'
+					+ '<input type="checkbox" /><input type="hidden" />'
+					+ '</div>'
+				),
 				// 控件 list 容器 
 				$addressList = $address.children('div'),
 				// 控件按钮
@@ -3279,13 +3279,13 @@ var ud2 = (function (window, $) {
 				// 步长, 步长位数, 最小值, 最大值
 				step = 0, stepDigit = 0, min = 0, max = 0,
 				// 控件对象
-				$range = $([
-					'<div class="' + className + '">',
-					'<input type="text" maxlength="20" class="ud2-ctrl-txtbox" />',
-					'<div class="ud2-ctrl-power"><i class="ico">&#xe81b;</i><i class="ico">&#xe689;</i></div>',
-					'<div class="' + className + '-list"><div class="' + className + '-end" /><div class="' + className + '-back" /></div>',
-					'</div>'
-				].join('')),
+				$range = $(
+					'<div class="' + className + '">'
+					+ '<input type="text" maxlength="20" class="ud2-ctrl-txtbox" />'
+					+ '<div class="ud2-ctrl-power"><i class="ico">&#xe81b;</i><i class="ico">&#xe689;</i></div>'
+					+ '<div class="' + className + '-list"><div class="' + className + '-end" /><div class="' + className + '-back" /></div>'
+					+ '</div>'
+				),
 				// 控件输入框
 				$rangeInput = $range.children('input'),
 				// 控件开关容器
@@ -3684,7 +3684,7 @@ var ud2 = (function (window, $) {
 					step: function () {
 						var step = ctrl.$origin.attr('step') || ctrl.$origin.attr(className + '-step') || 1;
 						step = parseFloat(step);
-						if (type.isNumber(step) || isNaN(step) || step === 0) step = 1;
+						if (isNaN(step) || step === 0) step = 1;
 						return step;
 					}(),
 					// 最小值
@@ -3707,13 +3707,13 @@ var ud2 = (function (window, $) {
 				// 值, 步长, 最小值, 最大值
 				value = 0, step = 0, min = 0, max = 0,
 				// 控件对象
-				$number = $([
-					'<div class="' + className + '">',
-					'<a class="' + className + '-ico">&#xe6b6;</a>',
-					'<div class="' + className + '-move"><input type="text" value="0" class="ud2-ctrl-txtbox" /></div>',
-					'<a class="' + className + '-ico">&#xe6b7;</a>',
-					'</div>'
-				].join('')),
+				$number = $(
+					'<div class="' + className + '">'
+					+ '<a class="' + className + '-ico">&#xe6b6;</a>'
+					+ '<div class="' + className + '-move"><input type="text" value="0" class="ud2-ctrl-txtbox" /></div>'
+					+ '<a class="' + className + '-ico">&#xe6b7;</a>'
+					+ '</div>'
+				),
 				// 控件输入框
 				$numberInput = $number.find('input'),
 				// 控件上一个按钮
@@ -3926,7 +3926,7 @@ var ud2 = (function (window, $) {
 					// 补位运算
 					// text[string]: 补位前日期
 					// return[string]: 返回补位后的结果
-					seats: function(text){
+					seats: function (text) {
 						return (text.toString().length === 1 ? '0' : '') + text;
 					},
 					// 设置控件日期数据的 toString 方法
@@ -3963,7 +3963,7 @@ var ud2 = (function (window, $) {
 						}
 					},
 					// 显示控件时间
-					view: function(){
+					view: function () {
 						$calendarInput.val(this.toString());
 					},
 					// 控件时间值
@@ -3988,35 +3988,35 @@ var ud2 = (function (window, $) {
 				// 月份天数
 				dateNum = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
 				// 生成一个 calendar 的 jQuery 对象
-				$calendar = $([
-					'<div class="' + className + '">',
-					'<input type="text" placeholder="' + options.autoText + '" maxlength="20" class="ud2-ctrl-txtbox" />',
-					'<span class="ud2-ctrl-power"><i class="ico">&#xe634;</i><i class="ico">&#xe689;</i></span>',
-					'<div class="' + className + '-list">',
+				$calendar = $(
+					'<div class="' + className + '">'
+					+ '<input type="text" placeholder="' + options.autoText + '" maxlength="20" class="ud2-ctrl-txtbox" />'
+					+ '<span class="ud2-ctrl-power"><i class="ico">&#xe634;</i><i class="ico">&#xe689;</i></span>'
+					+ '<div class="' + className + '-list">'
 
 					// 日期列表
-					'<div class="' + className + '-datelist"><div class="ud2-calendar-tools">',
-					'<div class="ud2-calendar-tools-left"><a class="ico ico-rotate-half" title="', tipsString[0], '">&#xe6f7;</a><a class="ico ico-rotate-half" title="', tipsString[2], '">&#xe6f1;</a></div>',
-					'<div class="ud2-calendar-tools-right"><a class="ico" title="', tipsString[3], '">&#xe6f1;</a><a class="ico" title="', tipsString[1], '">&#xe6f7;</a></div>',
-					'<div class="ud2-calendar-tools-text" title="', tipsString[6], '">-年 -月</div>',
-					'</div><table /><div class="ud2-calendar-btns"><button class="btn sm" tabindex="-1">今日</button></div></div>',
+					+ '<div class="' + className + '-datelist"><div class="ud2-calendar-tools">'
+					+ '<div class="ud2-calendar-tools-left"><a class="ico ico-rotate-half" title="' + tipsString[0] + '">&#xe6f7;</a><a class="ico ico-rotate-half" title="' + tipsString[2] + '">&#xe6f1;</a></div>'
+					+ '<div class="ud2-calendar-tools-right"><a class="ico" title="' + tipsString[3] + '">&#xe6f1;</a><a class="ico" title="' + tipsString[1] + '">&#xe6f7;</a></div>'
+					+ '<div class="ud2-calendar-tools-text" title="' + tipsString[6] + '">-年 -月</div>'
+					+ '</div><table /><div class="ud2-calendar-btns"><button class="btn sm" tabindex="-1">今日</button></div></div>'
 					// 时间列表
-					'<div class="' + className + '-ymlist"><div class="ud2-calendar-tools">',
-					'<div class="ud2-calendar-tools-left"><a class="ico ico-rotate-half" title="', tipsString[4], '">&#xe6f7;</a></div>',
-					'<div class="ud2-calendar-tools-right"><a class="ico" title="', tipsString[5], '">&#xe6f7;</a></div>',
-					'<div class="ud2-calendar-tools-text" title="', tipsString[7], '">年份 / 月份</div>',
-					'</div><table /><div class="ud2-calendar-btns"><button class="btn sm" tabindex="-1">确定</button></div></div>',
+					+ '<div class="' + className + '-ymlist"><div class="ud2-calendar-tools">'
+					+ '<div class="ud2-calendar-tools-left"><a class="ico ico-rotate-half" title="' + tipsString[4] + '">&#xe6f7;</a></div>'
+					+ '<div class="ud2-calendar-tools-right"><a class="ico" title="' + tipsString[5] + '">&#xe6f7;</a></div>'
+					+ '<div class="ud2-calendar-tools-text" title="' + tipsString[7] + '">年份 / 月份</div>'
+					+ '</div><table /><div class="ud2-calendar-btns"><button class="btn sm" tabindex="-1">确定</button></div></div>'
 
-					'</div></div>'
-				].join('')),
+					+ '</div></div>'
+				),
 				// 控件隐藏值插件
 				$calendarInput = $calendar.children('[type="text"]'),
 				// 控件开关容器
 				$calendarPower = $calendarInput.next(),
 				// 控件日期容器
-				$calendarDate = $calendar.find(['.', className, '-datelist'].join('')),
+				$calendarDate = $calendar.find('.' + className + '-datelist'),
 				// 控件年月容器
-				$calendarYM = $calendar.find(['.', className, '-ymlist'].join('')),
+				$calendarYM = $calendar.find('.' + className + '-ymlist'),
 
 				// 控件是否开启
 				isOpen = false,
@@ -4029,7 +4029,6 @@ var ud2 = (function (window, $) {
 					// 值改变
 					changeVal: $.noop
 				};
-
 			// #endregion
 
 			// #region 私有方法
@@ -4084,11 +4083,11 @@ var ud2 = (function (window, $) {
 			// 日期初始化
 			function dateInit() {
 				var // 工具按钮
-					$toolsBtn = $calendarDate.find(['.', className, '-tools a'].join('')),
+					$toolsBtn = $calendarDate.find('.' + className + '-tools a'),
 					// 底部按钮
-					$bottomBtn = $calendarDate.find(['.', className, '-btns button'].join('')),
+					$bottomBtn = $calendarDate.find('.' + className + '-btns button'),
 					// 文本容器 
-					$text = $calendarDate.find(['.', className, '-tools-text'].join(''));
+					$text = $calendarDate.find('.' + className + '-tools-text');
 
 				dateHtmlCreate();
 				event($toolsBtn.eq(0)).setTap(function () {
@@ -4123,7 +4122,7 @@ var ud2 = (function (window, $) {
 				var // HTML 容器
 					$html = $calendarDate.children('table'),
 					// 文本容器 
-					$text = $calendarDate.find(['.', className, '-tools-text'].join('')),
+					$text = $calendarDate.find('.' + className + '-tools-text'),
 					// 存储 HTML
 					html = [],
 					// 闰年
@@ -4146,7 +4145,7 @@ var ud2 = (function (window, $) {
 
 				// 生成 HTML
 				html.push('<tr>');
-				for (var i in weekString) html.push(['<th>', weekString[i], '</th>'].join(''));
+				for (var i in weekString) html.push('<th>' + weekString[i] + '</th>');
 				html.push('</tr><tr>');
 
 				for (var i = 0, j = -1, k = 0; i < 42; i++) {
@@ -4181,7 +4180,7 @@ var ud2 = (function (window, $) {
 				$html.children().remove();
 				$html.append(html.join(''))
 
-				event($html.find(['[', className, '-date]'].join(''))).setTap(function () {
+				event($html.find('[' + className + '-date]')).setTap(function () {
 					dateValue.setDateValue(dateValue.select.getFullYear(),
 						dateValue.select.getMonth() + 1, this.attr(className + '-date'));
 					dateValue.view();
@@ -4191,11 +4190,11 @@ var ud2 = (function (window, $) {
 			// 年份月份初始化
 			function ymInit() {
 				var // 工具按钮
-					$toolsBtn = $calendarYM.find(['.', className, '-tools a'].join('')),
+					$toolsBtn = $calendarYM.find('.' + className + '-tools a'),
 					// 底部按钮
-					$bottomBtn = $calendarYM.find(['.', className, '-btns button'].join('')),
+					$bottomBtn = $calendarYM.find('.' + className + '-btns button'),
 					// 文本容器 
-					$text = $calendarYM.find(['.', className, '-tools-text'].join(''));
+					$text = $calendarYM.find('.'+ className+ '-tools-text');
 
 				ymHtmlCreate();
 
@@ -4225,8 +4224,8 @@ var ud2 = (function (window, $) {
 			function ymHtmlCreate() {
 				var $html = $calendarYM.children('table'),
 					html = [], yearFirst = 0,
-					yearAttr = className + '-year', yearSelector = ['[', yearAttr, ']'].join(''),
-					monthAttr = className + '-month', monthSelector = ['[', monthAttr, ']'].join(''),
+					yearAttr = className + '-year', yearSelector = '[' + yearAttr + ']',
+					monthAttr = className + '-month', monthSelector = '[' + monthAttr + ']',
 					nowAttr = className + '-now';
 
 				yearFirst = dateValue.select.getFullYear() % 12 === 0
@@ -4476,11 +4475,7 @@ var ud2 = (function (window, $) {
 					}
 				},
 				// 生成一个 file 的 jQuery 对象
-				$file = $([
-					'<div class="' + className + '">',
-					'<input type="file" />',
-					'</div>'
-				].join('')),
+				$file = $('<div class="' + className + '"><input type="file" /></div>'),
 				// 控件的文件输入框
 				$fileInput = $file.children('input'),
 				// 待上传的文件集合
@@ -4561,7 +4556,7 @@ var ud2 = (function (window, $) {
 						}
 						else {
 							if (upfiles.some(function (file) {
-								return file.name === files[i].name 
+								return file.name === files[i].name
 									&& file.size === files[i].size;
 							})) {
 								repeatFile.push(files[i].name);
@@ -4603,25 +4598,13 @@ var ud2 = (function (window, $) {
 			// 控件 full 类型
 			function fileTypeFull() {
 				var // 无文件
-					$fileEmpty = $([
-						'<div class="', className, '-full-nofile">',
-						'<button class="btn btn-blue btn-solid" ud2-file-add><i class="ico">&#xe617;</i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em>',
-						'</div>'
-					].join('')),
+					$fileEmpty = $('<div class="' + className + '-full-nofile"><button class="btn btn-blue btn-solid" ud2-file-add><i class="ico">&#xe617;</i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em></div>'),
 					// 拖拽文件
-					$fileDrag = $([
-						'<div class="', className, '-full-drag">请松开鼠标按钮，文件将进入待上传队列</div>'
-					].join('')),
+					$fileDrag = $('<div class="' + className + '-full-drag">请松开鼠标按钮，文件将进入待上传队列</div>'),
 					// 图片列表
-					$fileList = $([
-						'<div class="', className, '-full-list">',
-						'<div class="', className, '-full-add" ud2-file-add><div><i class="ico">&#xe683;</i><em>继续添加文件</em></div></div>',
-						'</div>'
-					].join('')),
+					$fileList = $('<div class="' + className + '-full-list"><div class="' + className + '-full-add" ud2-file-add><div><i class="ico">&#xe683;</i><em>继续添加文件</em></div></div></div>'),
 					// 上传按钮
-					$fileTools = $([
-						'<div class="', className, '-full-tools"><button class="btn btn-solid">确定上传</button><button class="btn btn-solid">清空列表</button></div>'
-					].join('')),
+					$fileTools = $('<div class="' + className + '-full-tools"><button class="btn btn-solid">确定上传</button><button class="btn btn-solid">清空列表</button></div>'),
 					// 控件添加按钮
 					$fileAdd,
 					// 上传完毕计数
@@ -4642,20 +4625,20 @@ var ud2 = (function (window, $) {
 				$fileList.after($fileEmpty).after($fileDrag).after($fileTools);
 
 				// 寻找添加按钮并添加功能
-				$fileAdd = $file.find(['[', className, '-add]'].join(''));
+				$fileAdd = $file.find('[' + className + '-add]');
 				bindFileAdd($fileAdd);
 				bindUpload($fileTools.children().eq(0));
 				bindClear($fileTools.children().eq(1));
 				// 绑定处理方法
 				bindFileAddFn(function (file) {
 					var // 显示图片容器
-						$box = $([
-							'<div class="', className, '-full-figure">',
-							'<div class="', className, '-full-img"><img ondragstart="return false;" /></div><div>', file.name, '</div>',
-							'<div class="', className, '-full-close"></div><div class="', className, '-full-progress"></div></div>'
-						].join('')),
+						$box = $(
+							'<div class="' + className + '-full-figure">'
+							+ '<div class="' + className + '-full-img"><img ondragstart="return false;" /></div><div>' + file.name + '</div>'
+							+ '<div class="' + className + '-full-close"></div><div class="' + className + '-full-progress"></div></div>'
+						),
 						// 关闭按钮
-						$boxClose = $box.children(':last'),
+						$boxClose = $box.children('.' + className + '-full-close'),
 						// 文件读取对象
 						reader;
 
@@ -4697,7 +4680,7 @@ var ud2 = (function (window, $) {
 						$fileList.hide();
 						$fileTools.hide();
 					}
-				});		
+				});
 				bindClearFn(function () {
 					$fileList.children().not('[' + className + '-add]').remove();
 					$fileEmpty.show();
@@ -4750,7 +4733,7 @@ var ud2 = (function (window, $) {
 							|| (event.target && event.target.files);
 						filesHandler(files);
 						$file.removeClass('ud2-file-full-dragenter');
-				});		
+					});
 			}
 			// 控件类型初始化
 			function fileTypeInit() {
@@ -4856,14 +4839,14 @@ var ud2 = (function (window, $) {
 					});
 				}
 				return ctrl.public;
-			}	
+			}
 			// 为按钮绑定文件上传功能
 			// $fileUpload[jQuery]: 上传按钮
 			function bindUpload($fileUpload) {
 				if (type.isJQuery($fileUpload)) {
 					event($fileUpload, { stopPropagation: true }).setTap(function () {
 						if (upState !== 0 || upfiles.length === 0) return;
-						
+
 						var data = new FormData(), i = 0, len = upfiles.length;
 						for (; i < len; i++) xhrSetting(upfiles[i]);
 
@@ -4871,7 +4854,7 @@ var ud2 = (function (window, $) {
 					});
 				}
 				return ctrl.public;
-			}		
+			}
 			// 为按钮绑定待文件清空功能
 			// $fileClear[jQuery]: 清空按钮
 			function bindClear($fileClear) {
@@ -4958,7 +4941,7 @@ var ud2 = (function (window, $) {
 				// 文件编辑回调
 				$fileInput.bind('change', fileInputChange);
 			}
-			
+
 			// #endregion
 
 			// #region 初始化

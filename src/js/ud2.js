@@ -4194,7 +4194,7 @@ var ud2 = (function (window, $) {
 					// 底部按钮
 					$bottomBtn = $calendarYM.find('.' + className + '-btns button'),
 					// 文本容器 
-					$text = $calendarYM.find('.'+ className+ '-tools-text');
+					$text = $calendarYM.find('.' + className + '-tools-text');
 
 				ymHtmlCreate();
 
@@ -4446,8 +4446,8 @@ var ud2 = (function (window, $) {
 					// 是否启用文件重命名控制
 					fileRename: (function () {
 						var rename = ctrl.$origin.attr(className + '-rename');
-						if (rename === 'true' || rename === '') rename = true;
-						else rename = false;
+						if (rename === '' || rename === 'false') rename = false;
+						else rename = true;
 						return rename;
 					}()),
 					// 文件过滤方案
@@ -4505,13 +4505,13 @@ var ud2 = (function (window, $) {
 				// 回调函数
 				callbacks = {
 					// 发生错误
-					error: function (errType, userArg) {
+					error: function (errType, userArg1, userArg2) {
 						switch (errType) {
-							case 'repeat-error': message('您选择的文件数量已经超过最大个数限制，该限制为 ' + options.maxLength + ' 个', 4); break;
+							case 'length-error': message('您选择的文件数量已经超过最大个数限制，该限制为 ' + userArg1 + ' 个', 4); break;
 							case 'type-error': message('您选择的文件类型不符合要求，请您重新选择文件', 4); break;
-							case 'size-error': message(['您选择的文件超出 ', options.maxSize, 'KB 限制，尺寸不符的文件：', errFile.join("、")], 4); break;
-							case 'repeat-error': message(['您选择的文件已存在于列表中，重复的文件：', userArg.join("、")], 3); break;
-							case 'server-error': message('您的文件 ' + userArg + ' 已被阻止，请检查您的文件', 4); break;
+							case 'size-error': message('您选择的文件超出 ' + userArg1 + 'KB 限制，尺寸不符的文件：' + userArg2.join('、'), 4); break;
+							case 'repeat-error': message('您选择的文件已存在于列表中，重复的文件：' + userArg2.join('、'), 3); break;
+							case 'server-error': message('您的文件 ' + userArg1 + ' 已被阻止，请检查您的文件', 4); break;
 						}
 					},
 					// 上传完成
@@ -4543,7 +4543,7 @@ var ud2 = (function (window, $) {
 			function filesHandler(files) {
 				var i = 0, len = files.length;
 				if (len + upfiles.length > options.maxLength) {
-					callbacks.error.call(ctrl.public, 'length-error');
+					callbacks.error.call(ctrl.public, 'length-error', options.maxLength);
 				}
 				else if (!filesTypeCheck(files)) {
 					callbacks.error.call(ctrl.public, 'type-error');
@@ -4573,7 +4573,7 @@ var ud2 = (function (window, $) {
 					}
 
 					if (errFile.length > 0) {
-						callbacks.error.call(ctrl.public, 'size-error');
+						callbacks.error.call(ctrl.public, 'size-error', options.maxLength, errFile);
 					}
 				}
 			}
@@ -4634,9 +4634,11 @@ var ud2 = (function (window, $) {
 					var // 显示图片容器
 						$box = $(
 							'<div class="' + className + '-full-figure">'
-							+ '<div class="' + className + '-full-img"><img ondragstart="return false;" /></div><div>' + file.name + '</div>'
+							+ '<div class="' + className + '-full-img"><img ondragstart="return false;" /></div><div>' + (options.fileRename ? '<input type="text" value="' + file.name + '" maxlength="40" />' : file.name) + '</div>'
 							+ '<div class="' + className + '-full-close"></div><div class="' + className + '-full-progress"></div></div>'
 						),
+						// 输入框
+						$boxInput = $box.find('input'),
 						// 关闭按钮
 						$boxClose = $box.children('.' + className + '-full-close'),
 						// 文件读取对象
@@ -4665,6 +4667,17 @@ var ud2 = (function (window, $) {
 					$box.data('file', file);
 					file.element = $box;
 					bindFileRemove($boxClose, file);
+
+					// 如果支持重命名则开启重命名
+					if (options.fileRename) {
+						file.newname = file.name;
+						$boxInput.bind(EVENT_DOWN, function (event) {
+							event.preventDefault();
+							$(this).select();
+						}).bind('blur', function () {
+							file.newname = $(this).val();
+						});
+					}
 
 					// 放入列表
 					$fileList.prepend($box);
@@ -4758,12 +4771,14 @@ var ud2 = (function (window, $) {
 			}
 			// 控件 XML HTTP REQUEST 设置
 			function xhrSetting(file) {
-				var data = new FormData();
+				var data = new FormData(), url = options.url.upload;
 				data.append('file', file);
+
+				if (options.fileRename) url += '?newname=' + file.newname;
 
 				$.ajax({
 					'type': 'POST',
-					'url': options.url.upload,
+					'url': url,
 					'data': data,
 					'contentType': false,
 					'processData': false,

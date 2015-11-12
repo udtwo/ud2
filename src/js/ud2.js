@@ -4805,10 +4805,10 @@ var ud2 = (function (window, $) {
 						return xhr;
 					}
 				}).done(function (data) {
-					if (upCompleteNum === upfiles.length) callbacks.complete.call(ctrl.public);
+					if (getDoneNum() === upfiles.length) callbacks.complete.call(ctrl.public);
 					fileFn.done(data, file);
 				}).fail(function (data) {
-					if (upCompleteNum === upfiles.length) callbacks.complete.call(ctrl.public);
+					if (getDoneNum() === upfiles.length) callbacks.complete.call(ctrl.public);
 					fileFn.fail(data, file);
 				});
 			}

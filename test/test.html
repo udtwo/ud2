@@ -10,14 +10,14 @@
 </head>
 <body>
 
-	<input type="file" ud2="file" 
+	<input type="file" ud2="file"  ud2-file-maxsize="5000000000"
 		   ud2-file-rename="true" 
 		   ud2-file-filter="all" />
 
 	<script>
 		$(function () {
 			ud2.file[0].setUploadUrl('http://localhost:57001/AJAX.File');
-		})
+		});
 	</script>
 
 	<!--<form action="" method="get">

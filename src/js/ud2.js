@@ -4500,7 +4500,9 @@ var ud2 = (function (window, $) {
 					// 文件上传进度
 					progress: $.noop,
 					// 文件上传完成
-					success: $.noop
+					done: $.noop,
+					// 文件上传失败
+					fail: $.noop
 				},
 				// 回调函数
 				callbacks = {
@@ -4514,8 +4516,10 @@ var ud2 = (function (window, $) {
 							case 'server-error': message('您的文件 ' + userArg1 + ' 已被阻止，请检查您的文件', 4); break;
 						}
 					},
-					// 上传完成
-					complete: $.noop
+					// 全部上传完成
+					complete: $.noop,
+					// 单文件上传完成
+					done: $.noop
 				};
 
 			// #endregion
@@ -4573,7 +4577,7 @@ var ud2 = (function (window, $) {
 					}
 
 					if (errFile.length > 0) {
-						callbacks.error.call(ctrl.public, 'size-error', options.maxLength, errFile);
+						callbacks.error.call(ctrl.public, 'size-error', options.maxSize, errFile);
 					}
 				}
 			}
@@ -4711,12 +4715,13 @@ var ud2 = (function (window, $) {
 					$fileList.find('.' + className + '-full-figure input').attr('readonly', 'readonly');
 					$fileTools.html('文件开始上传...');
 				});
-				bindSuccessFn(function (file) {
+				bindDoneFn(function (data, file) {
 					upEndNum++;
 					uploadStateView();
 					file.element.addClass('success');
+					callbacks.done.call(ctrl.public, data, file);
 				});
-				bindFailFn(function (file) {
+				bindFailFn(function (data, file) {
 					upEndNum++;
 					upErrorNum++;
 					uploadStateView();
@@ -4793,15 +4798,16 @@ var ud2 = (function (window, $) {
 						}
 						return xhr;
 					}
-				}).done(function () {
+				}).done(function (data) {
 					upCompleteNum++;
 					if (upCompleteNum === upfiles.length) callbacks.complete.call(ctrl.public);
-					fileFn.success(file);
-				}).fail(function () {
+					callbacks.done.call(data, file);
+					fileFn.done(data, file);
+				}).fail(function (data) {
 					upCompleteNum++;
 					upErrorNum++;
 					if (upCompleteNum === upfiles.length) callbacks.complete.call(ctrl.public);
-					fileFn.fail(file);
+					fileFn.fail(data, file);
 				});
 			}
 
@@ -4926,10 +4932,10 @@ var ud2 = (function (window, $) {
 				return ctrl.public;
 			}
 			// 为文件完成功能绑定处理方法
-			// success[function]: 处理方法
-			function bindSuccessFn(success) {
-				if (type.isFunction(success)) {
-					fileFn.success = success;
+			// done[function]: 处理方法
+			function bindDoneFn(done) {
+				if (type.isFunction(done)) {
+					fileFn.done = done;
 				}
 				return ctrl.public;
 			}

@@ -4788,7 +4788,7 @@ var ud2 = (function (window, $) {
 				var data = new FormData(), url = options.url.upload;
 				data.append('file', file);
 
-				if (options.fileRename) url += '?newname=' + file.newname;
+				if (options.fileRename) url += '?newname=' + file.newname + '&t=' + (+new Date());
 
 				$.ajax({
 					'type': 'POST',

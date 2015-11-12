@@ -4807,11 +4807,11 @@ var ud2 = (function (window, $) {
 						return xhr;
 					}
 				}).done(function (data) {
-					if (getDoneNum() === upfiles.length) callbacks.complete.call(ctrl.public);
 					fileFn.done(data, file);
-				}).fail(function (data) {
 					if (getDoneNum() === upfiles.length) callbacks.complete.call(ctrl.public);
+				}).fail(function (data) {
 					fileFn.fail(data, file);
+					if (getDoneNum() === upfiles.length) callbacks.complete.call(ctrl.public);
 				});
 			}
 

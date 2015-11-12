@@ -4514,6 +4514,7 @@ var ud2 = (function (window, $) {
 							case 'size-error': message('您选择的文件超出 ' + userArg1 + 'KB 限制，尺寸不符的文件：' + userArg2.join('、'), 4); break;
 							case 'repeat-error': message('您选择的文件已存在于列表中，重复的文件：' + userArg2.join('、'), 3); break;
 							case 'server-error': message('您的文件 ' + userArg1 + ' 已被阻止，请检查您的文件', 4); break;
+							case 'server-return-error': message('文件 ' + userArg1 + ' 被服务器退回，请检查您的文件是否符合要求', 4); break;
 						}
 					},
 					// 全部上传完成
@@ -4723,6 +4724,7 @@ var ud2 = (function (window, $) {
 					} else {
 						setErrorNumIncrease();
 						file.element.addClass('fail');
+						callbacks.error.call(ctrl.public, 'server-return-error', file.name)
 					}
 					uploadStateView();
 				});

@@ -4820,11 +4820,16 @@ var ud2 = (function (window, $) {
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
 			function setError(fn) { callbacks.error = fn; return ctrl.public; }
-			// 设置上传完成回调函数
+			// 设置全部上传完成回调函数
 			// 所回调的函数 this 指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
 			function setComplete(fn) { callbacks.complete = fn; return ctrl.public; }
+			// 设置单个上传完成回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setDown(fn) { callbacks.done = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -5007,6 +5012,7 @@ var ud2 = (function (window, $) {
 			ctrl.public.setUploadUrl = setUploadUrl;
 			ctrl.public.setError = setError;
 			ctrl.public.setComplete = setComplete;
+			ctrl.public.setDone = setDown;
 			ctrl.public.upfiles = upfiles;
 			return ctrl.public;
 

@@ -4484,7 +4484,7 @@ var ud2 = (function (window, $) {
 				// 0 未上传  1 上传中  2 已完成
 				upState = 0,
 				// 上传完成统计
-				upCompleteNum = 0,
+				upDownNum = 0,
 				// 上传失败统计
 				upErrorNum = 0,
 				// 文件操作功能函数
@@ -4612,16 +4612,14 @@ var ud2 = (function (window, $) {
 					// 上传按钮
 					$fileTools = $('<div class="' + className + '-full-tools"><button class="btn btn-solid">确定上传</button><button class="btn btn-solid">清空列表</button></div>'),
 					// 控件添加按钮
-					$fileAdd,
-					// 上传完毕计数
-					upEndNum = 0, upErrorNum = 0;
+					$fileAdd;
 
 				// 上传状态显示
 				function uploadStateView() {
-					if (upEndNum === upfiles.length) {
-						$fileTools.html('全部文件已上传完毕，共 ' + upEndNum + ' 个' + (upErrorNum !== 0 ? '，失败 ' + upErrorNum + ' 个' : ''));
+					if (getDoneNum() === upfiles.length) {
+						$fileTools.html('全部文件已上传完毕，共 ' + getDoneNum() + ' 个' + (getErrorNum() !== 0 ? '，失败 ' + getErrorNum() + ' 个' : ''));
 					} else {
-						$fileTools.html('已上传文件 ' + upEndNum + ' 个' + (upErrorNum !== 0 ? '，失败 ' + upErrorNum + ' 个' : ''));
+						$fileTools.html('已上传文件 ' + getDoneNum() + ' 个' + (getErrorNum() !== 0 ? '，失败 ' + getErrorNum() + ' 个' : ''));
 					}
 				}
 
@@ -4718,18 +4716,23 @@ var ud2 = (function (window, $) {
 					$fileTools.html('文件开始上传...');
 				});
 				bindDoneFn(function (data, file) {
-					upEndNum++;
+					setDoneNumIncrease();
+					var isSuccess = callbacks.done.call(ctrl.public, data, file);
+					if (isSuccess) {
+						file.element.addClass('success');
+					} else {
+						setErrorNumIncrease();
+						file.element.addClass('fail');
+					}
 					uploadStateView();
-					file.element.addClass('success');
-					callbacks.done.call(ctrl.public, data, file);
 				});
 				bindFailFn(function (data, file) {
-					upEndNum++;
-					upErrorNum++;
-					uploadStateView();
+					setDoneNumIncrease();
+					setErrorNumIncrease();
 					file.element.addClass('fail');
 					callbacks.fail.call(ctrl.public, data, file);
 					callbacks.error.call(ctrl.public, 'server-error', file.name);
+					uploadStateView(); 
 				});
 
 				// 文件拖拽事件绑定
@@ -4802,12 +4805,9 @@ var ud2 = (function (window, $) {
 						return xhr;
 					}
 				}).done(function (data) {
-					upCompleteNum++;
 					if (upCompleteNum === upfiles.length) callbacks.complete.call(ctrl.public);
 					fileFn.done(data, file);
 				}).fail(function (data) {
-					upCompleteNum++;
-					upErrorNum++;
 					if (upCompleteNum === upfiles.length) callbacks.complete.call(ctrl.public);
 					fileFn.fail(data, file);
 				});
@@ -4837,6 +4837,22 @@ var ud2 = (function (window, $) {
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
 			function setFail(fn) { callbacks.fail = fn; return ctrl.public; }
+			// 设置完成文件数量递增
+			function setDoneNumIncrease() {
+				upDownNum++;
+			}
+			// 设置失败文件数量递增
+			function setErrorNumIncrease() {
+				upErrorNum++;
+			}
+			// 获取完成文件数量
+			function getDoneNum() {
+				return upDownNum;
+			}
+			// 获取失败文件数量
+			function getErrorNum() {
+				return upErrorNum;
+			}
 
 			// #endregion
 

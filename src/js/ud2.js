@@ -4519,7 +4519,9 @@ var ud2 = (function (window, $) {
 					// 全部上传完成
 					complete: $.noop,
 					// 单文件上传完成
-					done: $.noop
+					done: $.noop,
+					// 单文件上传失败
+					fail: $.fail
 				};
 
 			// #endregion
@@ -4726,6 +4728,7 @@ var ud2 = (function (window, $) {
 					upErrorNum++;
 					uploadStateView();
 					file.element.addClass('fail');
+					callbacks.fail.call(ctrl.public, data, file);
 					callbacks.error.call(ctrl.public, 'server-error', file.name);
 				});
 
@@ -4801,7 +4804,6 @@ var ud2 = (function (window, $) {
 				}).done(function (data) {
 					upCompleteNum++;
 					if (upCompleteNum === upfiles.length) callbacks.complete.call(ctrl.public);
-					callbacks.done.call(data, file);
 					fileFn.done(data, file);
 				}).fail(function (data) {
 					upCompleteNum++;
@@ -4829,7 +4831,12 @@ var ud2 = (function (window, $) {
 			// 所回调的函数 this 指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
-			function setDown(fn) { callbacks.done = fn; return ctrl.public; }
+			function setDone(fn) { callbacks.done = fn; return ctrl.public; }
+			// 设置单个上传失败回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[select]: 当前事件对象，方便链式调用
+			function setFail(fn) { callbacks.fail = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -5012,7 +5019,8 @@ var ud2 = (function (window, $) {
 			ctrl.public.setUploadUrl = setUploadUrl;
 			ctrl.public.setError = setError;
 			ctrl.public.setComplete = setComplete;
-			ctrl.public.setDone = setDown;
+			ctrl.public.setDone = setDone;
+			ctrl.public.setFail = setFail;
 			ctrl.public.upfiles = upfiles;
 			return ctrl.public;
 

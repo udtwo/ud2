@@ -1,0 +1,144 @@
+﻿/**
+ * panel-signal.less
+ * 警示面板的默认样式
+ */
+
+// 导入必要的文件
+@import "../import/import.less";
+
+/* 警示面板 */
+// 为所有带有 .panel-signal 的标签设置内部样式
+.panel-signal,
+.ud2-message {
+	padding: @BaseSize / 2;
+	border: 1px solid @ColorWhiteBorder;
+	border-radius: @BorderRadius;
+	background: @ColorWhiteBackLight;
+	line-height: 1.7;
+	.layout();
+}
+// 设置警示面板内部图标样式
+.panel-signal > .ico, .panel-signal-ico {
+	width: 24px;
+	font-size: 24px;
+}
+// 图标放置左侧样式
+.panel-signal-ico-left {
+	float: left;
+	margin-right: @BaseSize / 3 * 2;
+}
+// 图标放置右侧样式
+.panel-signal-ico-right {
+	float: right; 
+	margin-left: @BaseSize / 3 * 2;
+}
+
+// 设置警示面板的根元素与文本元素默认为块级元素
+.panel-signal, .panel-signal-text {
+	display: block;
+}
+
+// 警示面板的蓝色样式
+.panel-signal-blue, .panel-signal.info {
+	color: @ColorBlue;
+	border-color: @ColorBlueBorder;
+	background: @ColorBlueBackLight;
+}
+// 警示面板的绿色样式
+.panel-signal-green, .panel-signal.success {
+	color: @ColorGreen;
+	border-color: @ColorGreenBorder;
+	background: @ColorGreenBackLight;
+}
+// 信息控件的橙色样式
+.panel-signal-orange, .panel-signal.warning {
+	color: @ColorOrange;
+	border-color: @ColorOrangeBorder;
+	background: @ColorOrangeBackLight;
+}
+// 信息控件的红色样式
+.panel-signal-red, .panel-signal.danger {
+	color: @ColorRed;
+	border-color: @ColorRedBorder;
+	background: @ColorRedBackLight;
+}
+// 信息控件的深色样式
+.panel-signal-dark {
+	color: @ColorDark;
+	border-color: @ColorDarkBorder;
+	background: @ColorDarkBackLight;
+}
+// 信息控件的紫色样式
+.panel-signal-violet {
+	color: @ColorViolet;
+	border-color: @ColorVioletBorder;
+	background: @ColorVioletBackLight;
+}
+// 信息控件的天蓝色样式
+.panel-signal-skyblue {
+	color: @ColorSkyBlue;
+	border-color: @ColorSkyBlueBorder;
+	background: @ColorSkyBlueBackLight;
+}
+// 信息控件的黄色样式
+.panel-signal-yellow {
+	color: @ColorYellow;
+	border-color: @ColorYellowBorder;
+	background: @ColorYellowBackLight;
+}
+
+.panel-signal-solid {
+	background: @ColorWhite;
+}
+// 警示面板的蓝色样式
+.panel-signal-blue.panel-signal-solid, .panel-signal-solid.info,
+.ud2-message.info {
+	color: @ColorWhite;
+	border-color: @ColorBlueDeeper;
+	background: @ColorBlueDeeper;
+}
+// 警示面板的绿色样式
+.panel-signal-green.panel-signal-solid, .panel-signal-solid.success,
+.ud2-message.success {
+	color: @ColorWhite;
+	border-color: @ColorGreenDeeper;
+	background: @ColorGreenDeeper;
+}
+// 信息控件的橙色样式
+.panel-signal-orange.panel-signal-solid, .panel-signal-solid.warning,
+.ud2-message.warning {
+	color: @ColorWhite;
+	border-color: @ColorOrangeDeeper;
+	background: @ColorOrangeDeeper;
+}
+// 信息控件的红色样式
+.panel-signal-red.panel-signal-solid, .panel-signal-solid.danger,
+.ud2-message.danger {
+	color: @ColorWhite;
+	border-color: @ColorRedDeeper;
+	background: @ColorRedDeeper;
+}
+// 信息控件的深色样式
+.panel-signal-dark.panel-signal-solid {
+	color: @ColorWhite;
+	border-color: @ColorDarkDeeper;
+	background: @ColorDarkDeeper;
+}
+// 信息控件的紫色样式
+.panel-signal-violet.panel-signal-solid {
+	color: @ColorWhite;
+	border-color: @ColorVioletDeeper;
+	background: @ColorVioletDeeper;
+}
+// 信息控件的天蓝色样式
+.panel-signal-skyblue.panel-signal-solid {
+	color: @ColorWhite;
+	border-color: @ColorSkyBlueDeeper;
+	background: @ColorSkyBlueDeeper;
+}
+// 信息控件的黄色样式
+.panel-signal-yellow.panel-signal-solid {
+	color: @ColorWhite;
+	border-color: @ColorYellowDeeper;
+	background: @ColorYellowDeeper;
+}

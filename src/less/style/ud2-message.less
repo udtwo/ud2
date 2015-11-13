@@ -7,17 +7,13 @@
 @import "../import/import.less";
 
 /* JS滚动控件 */
-// 滚动控件内部央视
+// 为所有带有 .ud2-message 的标签设置内部样式
 .ud2-message {
 	position: fixed;
 	z-index: @MaxZIndex + 1;
 	top: 0;
 	right: 10px;
 	width: 300px;
-	padding: @BaseSize / 2;
-	border: 1px solid @ColorWhiteBorder;
-	border-radius: @BorderRadius;
-	background: @ColorWhiteBackLight;
 	line-height: 1.5;
 	.transform('scale(0)');
 	.transition('transform .3s ease-out, top .3s, right 1s ease-in');
@@ -31,7 +27,7 @@
 
 	> .ico + .ud2-message-text {
 		width: 300px - 32px;
-		padding-left: 8px;
+		padding-left: @BaseSize / 3 * 2;
 	}
 
 	&.ud2-message-on {
@@ -43,27 +39,7 @@
 	}
 }
 
-.ud2-message.info, .ud2-message.success, .ud2-message.warning, .ud2-message.danger {
-	color: @ColorWhite;
-}
-
-.ud2-message.info {
-	border-color: @ColorBlueDeeper;
-	background: @ColorBlueDeeper;
-}
-.ud2-message.success {
-	border-color: @ColorGreenDeeper;
-	background: @ColorGreenDeeper;
-}
-.ud2-message.warning {
-	border-color: @ColorOrangeDeeper;
-	background: @ColorOrangeDeeper;
-}
-.ud2-message.danger {
-	border-color: @ColorRedDeeper;
-	background: @ColorRedDeeper;
-}
-
+// 信息控件文本样式
 .ud2-message-text {
 	display: table-cell;
 	font-size: 12px;

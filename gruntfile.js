@@ -64,6 +64,8 @@ module.exports = function (grunt) {
 						'src/less/style/table.less',
 						'src/less/style/ctrl.less',
 
+						'src/less/style/panel-signal.less',
+
 						'src/less/style/ud2-address.less',
 						'src/less/style/ud2-calendar.less',
 						'src/less/style/ud2-file.less',

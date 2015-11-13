@@ -4618,7 +4618,7 @@ var ud2 = (function (window, $) {
 				// 上传状态显示
 				function uploadStateView() {
 					if (getDoneNum() === upfiles.length) {
-						$fileTools.html('全部文件已上传完毕，共 ' + getDoneNum() + ' 个' + (getErrorNum() !== 0 ? '，失败 ' + getErrorNum() + ' 个' : ''));
+						$fileTools.html('<span class="c-success">全部文件已上传完毕，共 ' + getDoneNum() + ' 个' + (getErrorNum() !== 0 ? '，失败 ' + getErrorNum() + ' 个' : '') + '</span>');
 					} else {
 						$fileTools.html('已上传文件 ' + getDoneNum() + ' 个' + (getErrorNum() !== 0 ? '，失败 ' + getErrorNum() + ' 个' : ''));
 					}

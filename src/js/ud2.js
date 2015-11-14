@@ -4825,7 +4825,6 @@ var ud2 = (function (window, $) {
 			// 文件处理并加入到待上传列表
 			// files[file]: 选择文件集合
 			function filesHandler(files) {
-				console.log(files);
 				var i = 0, len = files.length;
 				if (len + upfiles.length > options.maxLength) {
 					callbacks.error.call(ctrl.public, 'length-error', options.maxLength);
@@ -4876,7 +4875,6 @@ var ud2 = (function (window, $) {
 			}
 			// 文件输入框选择回调
 			function fileInputChange() {
-				console.log(this.files);
 				filesHandler(this.files);
 				fileInputClear();
 			}

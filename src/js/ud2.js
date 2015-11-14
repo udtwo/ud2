@@ -12,6 +12,9 @@ var ud2 = (function (window, $) {
 		$win = $(window),
 		// document 的 jQuery 对象
 		$dom = $(document),
+		// body 对象
+		// 在 init 回调中创建
+		$body,
 
 		// 库名称
 		libName = 'ud2',
@@ -1424,8 +1427,6 @@ var ud2 = (function (window, $) {
 	var ud2 = (function () {
 		var // 样式
 			style = {};
-		// 迭代样式
-		for (var i = 0; i < STATE_NAME.length; i++) style[STATE_NAME[i]] = i;
 
 		// 初始化全部 ud2ui 控件
 		// 用于初始化全部页面中未初始化的 ud2ui 控件
@@ -1460,6 +1461,24 @@ var ud2 = (function (window, $) {
 				if (ud2[i] && ud2[i].isControlsGroup) ud2[i].findDocument();
 			}
 		}
+
+		// 迭代样式
+		(function () {
+			for (var i = 0; i < STATE_NAME.length; i++) {
+				style[STATE_NAME[i]] = i;
+			}
+
+			style.ico = function (style) {
+				var str;
+				switch (style) {
+					case 1: str = '<i class="ico">&#xe687;</i>'; break;
+					case 2: str = '<i class="ico">&#xe693;</i>'; break;
+					case 3: str = '<i class="ico">&#xe698;</i>'; break;
+					case 4: str = '<i class="ico">&#xe689;</i>'; break;
+				}
+				return str;
+			}
+		}());
 
 		// 返回控件对象
 		return {
@@ -2031,6 +2050,11 @@ var ud2 = (function (window, $) {
 
 		// #region 公有方法
 
+		// 获取滚动条内容区域对象
+		// return[jQuery]: 返回内容区域对象
+		function getContent() {
+			return $wrapper;
+		}
 		// 获取滚动条的当前状态
 		function getState() { return isScrolling; }
 		// 重计算滚动条滚动位置
@@ -2319,9 +2343,9 @@ var ud2 = (function (window, $) {
 
 		// 公开方法
 		scrollObj = {
-			$content: $wrapper,
 			move: move,
 			getState: getState,
+			getContent: getContent,
 			recountPosition: recountPosition
 		};
 		// 返回
@@ -2336,9 +2360,11 @@ var ud2 = (function (window, $) {
 	// #region ud2 库控件
 
 	// 信息控件
-	// 用于生成信息提示
-	// userOptions[object]: 用户参数
-	// return[scroll] => 返回一个滚动条控件
+	// 用于生成信息控件
+	// text[string]: 文本内容
+	// ico[string]: 图标内容
+	// style[ud2.style]: 样式
+	// return[scroll] => 返回一个信息控件
 	var message = function (text, ico, style) {
 		var // 类名
 			className = prefixLibName + 'message',
@@ -2354,27 +2380,13 @@ var ud2 = (function (window, $) {
 
 		// 创建信息
 		function create() {
-			var $body = $('body');
-
 			// 添入图标
 			if (ico) {
-				if (ico === 1) {
-					$message.children().first().before('<i class="ico">&#xe687;</i>');
-					$message.addClass(STATE_NAME[1]);
-				}
-				else if (ico === 2) {
-					$message.children().first().before('<i class="ico">&#xe693;</i>');
-					$message.addClass(STATE_NAME[2]);
-				}
-				else if (ico === 3) {
-					$message.children().first().before('<i class="ico">&#xe698;</i>');
-					$message.addClass(STATE_NAME[3]);
-				}
-				else if (ico === 4) {
-					$message.children().first().before('<i class="ico">&#xe689;</i>');
-					$message.addClass(STATE_NAME[4]);
-				}
-				else {
+				var icoElement = ud2.style.ico(ico);
+				if (icoElement) {
+					$message.children().first().before(icoElement);
+					$message.addClass(STATE_NAME[ico]);
+				} else {
 					$message.children().first().before('<i class="ico">' + ico + '</i>');
 				}
 
@@ -2388,11 +2400,11 @@ var ud2 = (function (window, $) {
 			$body.append($message);
 			window.setTimeout(function () {
 				$message.addClass(className + '-on');
-			}, 100);
+			}, 50);
 		}
 
 		// 关闭信息
-		function close() {
+		function remove() {
 			$message.addClass(className + '-close');
 			window.setTimeout(function () {
 				$message.remove();
@@ -2424,9 +2436,273 @@ var ud2 = (function (window, $) {
 		(function init() {
 			create();
 			siblingsMove();
-			window.setTimeout(close, 5000);
+			window.setTimeout(remove, 5000);
 		}());
 	};
+	// 会话控件
+	// 用于生成会话控件
+	var dialog = (function () {
+
+		var // 样式类名
+			className = prefixLibName + 'dialog';
+
+		// 创建一个会话控件
+		// dialogType[dialog.type]: 会话类型
+		// userOptions[object]: 用户参数
+		// return[scroll] => 返回一个滚动条控件
+		function dialog(userOptions) {
+			var // 会话返回对象
+				dialogObj = {},
+				// 选项
+				options = {
+					// 会话类型
+					type: dialog.type.alert,
+					// 会话窗口宽度
+					width: null,
+					// 会话窗口高度
+					height: null,
+					// 会话图标
+					ico: null,
+					// 会话图标样式
+					icoStyle: null,
+					// 会话标题
+					title: '',
+					// 会话内容
+					content: ''
+				},
+				// 控件对象
+				$dialog = $(
+					'<div class="ud2-dialog">'
+					+ '<div class="ud2-dialog-box">'
+					+ '<div class="ud2-dialog-box-header"></div>'
+					+ '<div class="ud2-dialog-box-body"><div class="ud2-dialog-box-text"></div></div>'
+					+ '<div class="ud2-dialog-box-footer"></div>'
+					+ '</div></div>'
+				),
+				// 主内容对象
+				$dialogBox = $dialog.children(),
+				// 头部对象
+				$dialogHeader = $dialogBox.children(':first'),
+				// 主体对象
+				$dialogBody = $dialogHeader.next(),
+				// 主体内容对象
+				$dialogBodyContent = $dialogBody.children(':last'),
+				// 尾部对象
+				$dialogFooter = $dialogBody.next(),
+				// 回调	
+				callbacks = {
+					// 确定按钮触发回调
+					send: $.noop,
+					// 取消按钮触发回调
+					cancel: $.noop
+				};
+
+			function create() {
+				var btns, ico;
+
+				// 添加标题
+				$dialogHeader.html(options.title);
+				// 添加内容
+				if (type.isJQuery(options.content))
+					$dialogBodyContent.append(options.content);
+				else
+					$dialogBodyContent.html(options.content);
+				// 添加图标
+				if (options.ico) {
+					ico = ud2.style.ico(options.ico);
+					if (!ico) {
+						ico = $('<i class="ico">' + options.ico + '</i>');
+						if (options.icoStyle) {
+							ico.addClass('c-' + STATE_NAME[options.icoStyle]);
+						}
+					}
+					else {
+						ico = $(ico);
+						ico.addClass('c-' + STATE_NAME[options.ico]);
+					}
+				}
+				$dialogBody.prepend(ico);
+
+				// 添加操作按钮
+				switch (options.type) {
+					case dialog.type.alert:
+						btns = '<a class="btn btn-solid btn-square" ud2-dialog-send>确　定</a>'; break;
+					case dialog.type.confirm:
+					case dialog.type.prompt:
+						btns = '<a class="btn btn-solid btn-square" ud2-dialog-send>确　定</a><a class="btn btn-solid btn-square" ud2-dialog-cancel>取　消</a>'; break;
+				}
+				$dialogFooter.html(btns);
+				$body.append($dialog);
+
+				// 设置按钮事件
+				event($dialogFooter.children('[' + className + '-send]')).setTap(function () {
+					if (options.type === dialog.type.prompt) {
+						callbacks.send.call(dialogObj, $dialogBodyContent.find('[' + className + '-input]').val());
+					} else {
+						callbacks.send.call(dialogObj);
+					}
+					remove();
+				});
+				event($dialogFooter.children('[' + className + '-cancel]')).setTap(function () {
+					callbacks.cancel.call(dialogObj);
+					remove();
+				});
+
+				// 设置开启动画
+				window.setTimeout(function () {
+					$dialog.addClass(className + '-on');
+				}, 50);
+			}
+
+			function remove() {
+				// 设置关闭动画
+				$dialog.addClass(className + '-close');
+				// 移出会话
+				window.setTimeout(function () {
+					$dialog.remove();
+				}, 300);
+			}
+
+			// 设置确定按钮回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[dialog]: 当前事件对象，方便链式调用
+			function setSend(fn) { if (type.isFunction(fn)) callbacks.send = fn; return dialogObj; }
+			// 设置取消按钮回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[dialog]: 当前事件对象，方便链式调用
+			function setCancel(fn) { if (type.isFunction(fn)) callbacks.cancel = fn; return dialogObj; }
+			// 获取会话内容区域对象
+			// return[jQuery]: 返回内容区域对象
+			function getContent() { return $dialogBodyContent; }
+
+			// 初始化
+			(function init() {
+				// 设置初始选项
+				setOptions(options, userOptions);
+				// 创建会话
+				create();
+			}());
+
+			// 返回
+			dialogObj = {
+				setSend: setSend,
+				setCancel: setCancel,
+				getContent: getContent
+			}
+			return dialogObj;
+		}
+		// 参数管理
+		// (title)
+		// (title, content)
+		// (title, content, sendFn)
+		// (title, content, sendFn, cancelFn)
+		// (title, content, ico, sendFn)
+		// (title, content, ico, sendFn, cancelFn)
+		// (title, content, ico, icoStyle, sendFn)
+		// (title, content, ico, icoStyle, sendFn, cancelFn)
+		function dialogArgs() {
+			var // 参数集合
+				args = arguments,
+				// 参数数量
+				len = args.length,
+				// 会话对象
+				dl,
+				// 传参内容
+				title, content, ico, icoStyle, sendFn, cancelFn;
+
+			// 会话标题与内容
+			title = args[0];
+			content = args[1];
+			// 会话按钮 ICO
+			if (type.isNumber(args[2]) || type.isString(args[2])) ico = args[2];
+			if (type.isNumber(args[3])) icoStyle = args[3];
+			// 会话确定按钮事件
+			if (len === 3 && type.isFunction(args[2])) {
+				sendFn = args[2];
+			}
+			if (len === 4 && type.isFunction(args[2]) && type.isFunction(args[3])) {
+				sendFn = args[2];
+				cancelFn = args[3];
+			}
+			if (len === 4 && !type.isFunction(args[2]) && type.isFunction(args[3])) {
+				sendFn = args[3];
+			}
+			if (len === 5 && type.isFunction(args[3]) && type.isFunction(args[4])) {
+				sendFn = args[3];
+				cancelFn = args[4];
+			}
+			if (len === 5 && !type.isFunction(args[3]) && type.isFunction(args[4])) {
+				sendFn = args[4];
+			}
+			if (len === 6) {
+				sendFn = args[4];
+				cancelFn = args[5];
+			}
+
+			// 返回
+			return {
+				title: title,
+				content: content,
+				ico: ico,
+				icoStyle: icoStyle,
+				sendFn: sendFn,
+				cancelFn: cancelFn
+			};
+		}
+
+		// 会话类型
+		dialog.type = {
+			// 弹出框
+			alert: 0,
+			// 确认提示
+			confirm: 1,
+			// 输入对话框
+			prompt: 2,
+			// 自定义
+			custom: 3
+		};
+
+		// 生成一个弹出框
+		// (title)
+		// (title, content)
+		// (title, content, sendFn)
+		// (title, content, ico, icoStyle, sendFn)
+		dialog.alert = function () {
+			var obj = dialogArgs.apply(this, arguments), dl;
+			obj.type = dialog.type.alert;
+			dl = dialog(obj).setSend(obj.sendFn);
+			if (dl) return dl;
+		};
+		// 生成一个确认提示
+		dialog.confirm = function () {
+			var obj = dialogArgs.apply(this, arguments), dl;
+			obj.type = dialog.type.confirm;
+			dl = dialog(obj).setSend(obj.sendFn).setCancel(obj.cancelFn);
+			if (dl) return dl;
+		};
+		// 生成一个对话框提示
+		// (title)
+		// (title, content)
+		// (title, content, sendFn, cancelFn)
+		// (title, content, ico, sendFn, cancelFn)
+		// (title, content, ico, icoStyle, sendFn, cancelFn)
+		dialog.prompt = function () {
+			var obj = dialogArgs.apply(this, arguments), dl, input = '<input type="text" class="txtbox" ' + className + '-input />';
+			obj.type = dialog.type.prompt;
+			if (type.isJQuery(obj.content))
+				obj.content.append(input);
+			else
+				obj.content += input;
+			dl = dialog(obj).setSend(obj.sendFn).setCancel(obj.cancelFn);
+			if (dl) return dl;
+		};
+
+		// 返回
+		return dialog;
+
+	}());
 
 	// JS 选择控件集合
 	// * 此控件会 remove 掉原宿主对象
@@ -2463,21 +2739,21 @@ var ud2 = (function (window, $) {
 					+ '<input type="checkbox" /><input type="hidden" />'
 					+ '</div>'
 				),
-				// 控件 list 容器 
+				// 列表容器 
 				$selectList = $select.children('div:last'),
-				// 控件 box 容器
+				// 显示容器
 				$selectBox = $select.children('div:first'),
-				// 控件按钮
+				// 下拉菜单按钮
 				$selectBtn = $selectBox.children('a'),
-				// 控件 tabindex 功能插件
+				// 索引功能插件
 				$selectTabindex = $select.children('[type="checkbox"]'),
-				// 控件隐藏值功能插件
+				// 隐藏值功能插件
 				$selectValue = $select.children('[type="hidden"]'),
 				// 空 option 对象
 				$emptyOption = $a.clone(),
-				// 控件滚动条
+				// 滚动条对象
 				selectScroll = null,
-				// 标记是否处于开启状态
+				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 列表滚动条
 				listScroll = null,
@@ -2615,7 +2891,7 @@ var ud2 = (function (window, $) {
 				var inGroup = group ? true : false,
 					$options = group ? $group.children('option') : ctrl.$origin.children('option');
 
-				for (var i = 0, l = $options.length; i < l ; i++) {
+				for (var i = 0, l = $options.length; i < l; i++) {
 					var $select = $options.eq(i),
 						name = $options.eq(i).html(),
 						val = $options.eq(i).val(),
@@ -2780,6 +3056,7 @@ var ud2 = (function (window, $) {
 				overHeight = overHeight > options.maxHeight ? options.maxHeight : overHeight;
 				$selectList.css('height', overHeight + 'em');
 				listScroll.recountPosition();
+				return ctrl.public;
 			}
 
 			// #endregion
@@ -2842,8 +3119,8 @@ var ud2 = (function (window, $) {
 			ctrl.public.close = close;
 			ctrl.public.toggle = toggle;
 			ctrl.public.val = val;
-			ctrl.public.setShowText = setShowText;
 			ctrl.public.recountHeight = recountHeight;
+			ctrl.public.setShowText = setShowText;
 			ctrl.public.setOpen = setOpen;
 			ctrl.public.setClose = setClose;
 			ctrl.public.setChangeVal = setChangeVal;
@@ -2891,23 +3168,23 @@ var ud2 = (function (window, $) {
 					+ '<input type="checkbox" /><input type="hidden" />'
 					+ '</div>'
 				),
-				// 控件 list 容器 
+				// 列表容器
 				$addressList = $address.children('div'),
-				// 控件按钮
+				// 列表开关按钮
 				$addressBtn = $address.children('a'),
-				// 控件开关容器
+				// 显示开关容器
 				$addressPower = $addressBtn.next(),
-				// 控件列表选项卡容器
+				// 列表选项卡容器
 				$addressListTab = $addressList.children('div:first'),
-				// 控件列表内容容器
+				// 列表内容容器
 				$addressListContent = $addressList.children('div:last'),
-				// 控件 tabindex 功能插件
+				// 索引功能插件
 				$addressTabindex = $address.children('[type="checkbox"]'),
-				// 控件隐藏值插件
+				// 隐藏值插件
 				$addressValue = $address.children('[type="hidden"]'),
 				// 存储一个空的区域元素
 				$emptyArea = $div.clone().addClass(className + '-area'),
-				// 标记是否处于开启状态
+				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 延迟加载等待定时器
 				delayTimer = null,
@@ -3286,15 +3563,15 @@ var ud2 = (function (window, $) {
 					+ '<div class="' + className + '-list"><div class="' + className + '-end" /><div class="' + className + '-back" /></div>'
 					+ '</div>'
 				),
-				// 控件输入框
+				// 输入框对象
 				$rangeInput = $range.children('input'),
-				// 控件开关容器
+				// 显示开关容器
 				$rangePower = $rangeInput.next(),
-				// 控件 list 容器
+				// 列表容器
 				$rangeList = $rangePower.next(),
-				// 第一个按钮
+				// 左拖拽按钮
 				$btnLeft = $a.clone().addClass(className + '-hand'),
-				// 第二个按钮
+				// 右拖拽按钮
 				$btnRight = $a.clone().addClass(className + '-hand'),
 				// 按钮背景
 				$btnsBack = $rangeList.find('.' + className + '-back'),
@@ -3313,7 +3590,7 @@ var ud2 = (function (window, $) {
 				},
 				// 浮点运算常数
 				DEBUG_NUM = 10000000,
-				// 控件开关状态
+				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 回调函数
 				callbacks = {
@@ -3714,13 +3991,13 @@ var ud2 = (function (window, $) {
 					+ '<a class="' + className + '-ico">&#xe6b7;</a>'
 					+ '</div>'
 				),
-				// 控件输入框
+				// 输入框对象
 				$numberInput = $number.find('input'),
-				// 控件上一个按钮
+				// 值递减按钮
 				$numberPrev = $number.children('a:first'),
-				// 控件下一个按钮
+				// 值递增按钮
 				$numberNext = $number.children('a:last'),
-				// 控件移动容器
+				// 移动容器
 				$move = $numberPrev.next(),
 				// 浮点运算常数
 				DEBUG_NUM = 10000000,
@@ -3921,7 +4198,7 @@ var ud2 = (function (window, $) {
 				},
 				// 本地日期
 				localDate = new Date(),
-				// 控件日期数据对象
+				// 日期值数据对象
 				dateValue = {
 					// 补位运算
 					// text[string]: 补位前日期
@@ -3987,7 +4264,7 @@ var ud2 = (function (window, $) {
 				monthString = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
 				// 月份天数
 				dateNum = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
-				// 生成一个 calendar 的 jQuery 对象
+				// 控件对象
 				$calendar = $(
 					'<div class="' + className + '">'
 					+ '<input type="text" placeholder="' + options.autoText + '" maxlength="20" class="ud2-ctrl-txtbox" />'
@@ -4009,16 +4286,15 @@ var ud2 = (function (window, $) {
 
 					+ '</div></div>'
 				),
-				// 控件隐藏值插件
+				// 隐藏值控件
 				$calendarInput = $calendar.children('[type="text"]'),
-				// 控件开关容器
+				// 显示开关容器
 				$calendarPower = $calendarInput.next(),
-				// 控件日期容器
+				// 日期容器
 				$calendarDate = $calendar.find('.' + className + '-datelist'),
-				// 控件年月容器
+				// 年月容器
 				$calendarYM = $calendar.find('.' + className + '-ymlist'),
-
-				// 控件是否开启
+				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 回调函数
 				callbacks = {
@@ -4412,6 +4688,7 @@ var ud2 = (function (window, $) {
 	}(controlGroup('calendar')));
 	// JS 文件上传控件集合
 	// * 此控件会 remove 掉原宿主对象
+	// ! 暂不支持 IE9
 	var file = (function (group) {
 
 		// 重写 init 方法
@@ -4474,9 +4751,9 @@ var ud2 = (function (window, $) {
 						fileRemove: ''
 					}
 				},
-				// 生成一个 file 的 jQuery 对象
+				// 控件对象
 				$file = $('<div class="' + className + '"><input type="file" /></div>'),
-				// 控件的文件输入框
+				// 输入框对象
 				$fileInput = $file.children('input'),
 				// 待上传的文件集合
 				upfiles = [],
@@ -4548,6 +4825,7 @@ var ud2 = (function (window, $) {
 			// 文件处理并加入到待上传列表
 			// files[file]: 选择文件集合
 			function filesHandler(files) {
+				console.log(files);
 				var i = 0, len = files.length;
 				if (len + upfiles.length > options.maxLength) {
 					callbacks.error.call(ctrl.public, 'length-error', options.maxLength);
@@ -4598,6 +4876,7 @@ var ud2 = (function (window, $) {
 			}
 			// 文件输入框选择回调
 			function fileInputChange() {
+				console.log(this.files);
 				filesHandler(this.files);
 				fileInputClear();
 			}
@@ -4734,7 +5013,7 @@ var ud2 = (function (window, $) {
 					file.element.addClass('fail');
 					callbacks.fail.call(ctrl.public, data, file);
 					callbacks.error.call(ctrl.public, 'server-error', file.name);
-					uploadStateView(); 
+					uploadStateView();
 				});
 
 				// 文件拖拽事件绑定
@@ -5237,6 +5516,9 @@ var ud2 = (function (window, $) {
 	(function init() {
 		// 当文档加载完成时的回调方法
 		$dom.ready(function () {
+			// 获取 body 对象
+			$body = $('body');
+
 			// 如果是 Safari 浏览器则为 body 添加 touchstart 事件监听
 			// 用途是解决 :hover :active 等伪类选择器延迟的问题
 			if (support.safari) document.body.addEventListener('touchstart', $.noop);
@@ -5265,14 +5547,16 @@ var ud2 = (function (window, $) {
 	ud2.type = type;
 	ud2.convert = convert;
 	ud2.form = form;
-	// 公开对象及方法
+	// 公开事件对象
 	ud2.animateFrame = animateFrame;
 	ud2.event = event;
 	ud2.eventMouseWheel = eventMouseWheel;
+	// 公开控件对象
 	ud2.ctrl = control;
 	ud2.ctrlGroup = controlGroup;
 	ud2.scroll = scroll;
 	ud2.message = message;
+	ud2.dialog = dialog;
 	// 返回控件
 	return ud2;
 

@@ -1,0 +1,117 @@
+﻿/**
+ * ud2-dialog.less
+ * 对话框控件的默认样式
+ */
+
+// 导入必要的文件
+@import "../import/import.less";
+
+/* JS滚动控件 */
+// 为所有带有 .ud2-dialog 的标签设置内部样式
+.ud2-dialog {
+	position: fixed;
+	z-index: @MaxZIndex + 1;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	opacity: 0;
+	background: fadeout(@ColorBlack, 80%);
+	.transition('opacity .3s');
+
+	&.ud2-dialog-on {
+		opacity: 1;
+	}
+
+	&.ud2-dialog-on > .ud2-dialog-box {
+		opacity: 1;
+		.transform('scale(1)');
+	}
+
+	&.ud2-dialog-close {
+		opacity: 0;
+	}
+
+	&.ud2-dialog-close > .ud2-dialog-box {
+		opacity: 0;
+		.transform('scale(.75)');
+	}
+}
+// 对话框控件主容器
+.ud2-dialog-box {
+	position: fixed;
+	width: 30em;
+	height: 16em;
+	background: @ColorWhite;
+	top: 50%;
+	left: 50%;
+	margin: -8em 0 0 -15em;
+	box-shadow: 3px 3px 3px fadeout(@ColorBlack, 92%);
+	opacity: 0;
+	.transform('scale(1.5)');
+	.transition('transform .3s, opacity .3s');
+}
+// 对话框控件头部、主体、尾部容器样式
+.ud2-dialog-box-header,
+.ud2-dialog-box-body,
+.ud2-dialog-box-footer {
+	padding: .5em;
+	.boxSizing('border-box');
+}
+// 对话框控件头部样式
+.ud2-dialog-box-header {
+	height: 1.5em;
+	padding: .5em 1em;
+	font-weight: 800;
+}
+// 对话框控件主体样式
+.ud2-dialog-box-body {
+	display: table;
+	width: 100%;
+	height: e('-moz-calc(100% - 5em)');
+	height: e('-webkit-calc(100% - 5em)');
+	height: e('calc(100% - 5em)');
+
+	input {
+		margin-top: @BaseSize / 2;
+	}
+}
+// 对话框控件图标及文本样式
+.ud2-dialog-box-body > .ico, .ud2-dialog-box-text {
+	display: table-cell;
+	height: 100%;
+	line-height: 1.5;
+	vertical-align: middle;
+}
+// 对话框控件图标样式
+.ud2-dialog-box-body > .ico {
+	width: 1em;
+	padding: 0 0 0 .2em;
+	font-size: 6em;
+	line-height: 1;
+	text-align: center;
+
+	& + .ud2-dialog-box-text {
+		text-align: left;
+	}
+}
+// 对话框控件文本样式
+.ud2-dialog-box-text {
+	padding: 0 1em;
+	text-align: center;
+}
+// 对话框控件尾部样式
+.ud2-dialog-box-footer {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	width: 100%;
+	height: 3.5em;
+	background: @ColorWhiteBackLight;
+	text-align: center;
+
+	> .btn {
+		width: 80px;
+		margin: 0 @BaseSize/4;
+	}
+}

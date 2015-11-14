@@ -2791,7 +2791,7 @@ var ud2 = (function (window, $) {
 				if (this.group) {
 					this.group.addOption(this);
 				} else {
-					listScroll.$content.append(this.$element);
+					listScroll.getContent().append(this.$element);
 				}
 			}
 			// 选项集合

@@ -1619,7 +1619,7 @@ var ud2 = (function (window, $) {
 		};
 
 		// 公开组对象
-		ud2[group.name] = group;
+		ud2[group.controlName] = group;
 
 		// 返回组对象
 		return group;

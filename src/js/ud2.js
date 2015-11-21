@@ -328,8 +328,8 @@ var ud2 = (function (window, $) {
 				if (text.length === 18) {
 					var factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2],
 						parity = [1, 0, 'X', 9, 8, 7, 6, 5, 4, 3, 2],
-					    code = text.split(''),
-					    sum = 0;
+						code = text.split(''),
+						sum = 0;
 					for (var i = 0; i < 17; i++) {
 						sum += code[i] * factor[i];
 					}
@@ -1496,7 +1496,9 @@ var ud2 = (function (window, $) {
 			// 控件自定义名称
 			name,
 			// 控件对象
-			control = {};
+			control = {},
+			// 获取调用组对象
+			group = this;
 
 		// 判断 $element 是否有效，并设定有效的 $element
 		$origin = checkJQElements($element);
@@ -1542,20 +1544,52 @@ var ud2 = (function (window, $) {
 			control.style = style;
 			control.$current.addClass(styleStr[style]);
 		}
+		// 将控件插入到指定元素的后端
+		// $element[jQuery]: jQuery 对象
+		function insertAfter(sibling) {
+			checkJQElements(sibling).after(control.$current);
+		}
+		// 将控件插入到指定元素的前端
+		// $element[jQuery]: jQuery 对象
+		function insertBefore(sibling) {
+			checkJQElements(sibling).before(control.$current);
+		}
+		// 将控件插入到指定元素内部的结尾处
+		// $element[jQuery]: jQuery 对象
+		function appendTo(parent) {
+			checkJQElements(parent).after(control.$current);
+		}
+		// 将控件插入到指定元素内部的开头处
+		// $element[jQuery]: jQuery 对象
+		function prependTo(parent) {
+			checkJQElements(parent).after(control.$current);
+		}
 
 		// 控件样式
 		control.style = ud2.style.normal;
-		// 原 jQuery 对象
+		// 原生对象
 		control.$origin = $origin;
-		// 当前 jQuery 对象
+		// 获取原生对象标签控件属性
+		// name[string]: 标签控件属性
+		// isNative[bool]: 是否为原生属性
+		// return[string]: 返回标签控件属性值
+		control.attr = function (name, isNative) {
+			var attr = !!isNative ? name : group.class + joinStr + name;
+			return $origin.attr(attr);
+		};
+		// 通过控件生成的对象
 		control.$current = null;
 		// 控件关闭
 		control.autoClose = function () { };
 		// 可公开的属性及方法
 		control.public = {
-			name: name,
 			isUD2: true,
-			style: style
+			name: name,
+			style: style,
+			insertAfter: insertAfter,
+			insertBefore: insertBefore,
+			appendTo: appendTo,
+			prependTo: prependTo
 		};
 
 		// 增加关闭回调
@@ -1574,6 +1608,8 @@ var ud2 = (function (window, $) {
 
 		// 控件标准名称，通常为 css 类相关名
 		group.name = type.isString(name) ? name : 'empty';
+		// 控件默认样式类
+		group.class = prefixLibName + group.name;
 		// 控件对象名称，通常为 js 属性相关名
 		group.controlName = getControlNameByName(name);
 		// 标记此集合为控件集合
@@ -1602,7 +1638,7 @@ var ud2 = (function (window, $) {
 			if (!$elements) return;
 
 			// 创建一个 control
-			var ctrl = control($elements);
+			var ctrl = control.call(this, $elements);
 
 			// 将控件添入数组中
 			this.push(ctrl.public);
@@ -2719,15 +2755,21 @@ var ud2 = (function (window, $) {
 			// #region 私有字段
 
 			var // 样式类名
-				className = prefixLibName + group.name,
+				className = group.class,
 				// 选项
 				options = {
 					// 最大高度，单位 em
 					maxHeight: 20,
 					// 默认文本
-					autoText: ctrl.$origin.attr(className + '-text') || '请选择以下项目',
+					autoText: ctrl.attr('text') || '请选择以下项目',
 					// 是否为多选框
-					isMultiple: !!ctrl.$origin.attr('multiple')
+					isMultiple: !!ctrl.attr('multiple', 1),
+					// 列表方向
+					direction: (function () {
+						var dir = ctrl.attr('dir') || 'down';
+						if (dir !== 'up') dir = 'down';
+						return dir;
+					}())
 				},
 				// 被选作值的选项集合
 				arrValOptions = [],
@@ -2841,7 +2883,7 @@ var ud2 = (function (window, $) {
 				this.createElement();
 
 				Group.list.push(this);
-				listScroll.$content.append(this.$element);
+				listScroll.getContent().append(this.$element);
 			}
 			// 选项组集合 
 			Group.list = [];
@@ -2954,6 +2996,19 @@ var ud2 = (function (window, $) {
 				}
 
 				callbacks.changeVal.call(ctrl.public, val);
+			}
+			// 设置列表方向
+			function setListDirection() {
+				switch (options.direction) {
+					case 'up': {
+						$select.addClass(className + '-dir-up');
+						break;
+					}
+					case 'down': {
+						$select.addClass(className + '-dir-down');
+						break;
+					}
+				}
 			}
 
 			// #endregion
@@ -3098,6 +3153,8 @@ var ud2 = (function (window, $) {
 					barColorOn: 'rgba(0,0,0,.4)'
 				});
 
+				// 设置列表方向
+				setListDirection();
 				// 显示默认文本
 				setShowText();
 				// 分析控件组和控件
@@ -4686,6 +4743,12 @@ var ud2 = (function (window, $) {
 		};
 
 	}(controlGroup('calendar')));
+	// JS 文件页码控件集合
+	// * 此控件会 remove 掉原宿主对象
+	var page = (function (group) {
+		
+	}(controlGroup('page')));
+
 	// JS 文件上传控件集合
 	// * 此控件会 remove 掉原宿主对象
 	// ! 暂不支持 IE9
@@ -5324,6 +5387,7 @@ var ud2 = (function (window, $) {
 		};
 
 	}(controlGroup('file')));
+	
 
 
 	var table = (function (group) {

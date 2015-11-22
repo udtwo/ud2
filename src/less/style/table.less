@@ -9,7 +9,7 @@
 /**
  * 表格样式
  */
-
+// 表格默认样式
 .table {
 	width: 100%;
 	border-radius: @BorderRadius;
@@ -36,7 +36,7 @@
 	// 所有单元格的默认样式
 	> * > tr {
 		> td, > th {
-			padding: @BaseSize/2;
+			padding: @BaseSize / 2;
 			line-height: 1.4;
 		}
 	}
@@ -75,6 +75,10 @@
 			}
 		}
 	}
+}
+// 表格无边框
+.table-square {
+	border-radius: 0;
 }
 // 表格单元格信息样式
 .table tr.info > td, .table tr.info > th, .table td.info, .table th.info {
@@ -132,4 +136,3 @@
 		}
 	}
 }
-

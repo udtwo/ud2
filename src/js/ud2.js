@@ -132,7 +132,9 @@ var ud2 = (function (window, $) {
 
 		// 页面完成加载时的回调函数
 		callbacksPageReady = $.Callbacks(),
-		// 控件完全关闭的回调
+		// 页面尺寸改变时的回调函数
+		callbacksPageResize = $.Callbacks(),
+		// 控件完全关闭的回调函数
 		callbacksCtrlClose = $.Callbacks();
 
 	// #endregion
@@ -365,28 +367,30 @@ var ud2 = (function (window, $) {
 	// 内部已包含参数 jQuery 对象检测 chekcJQElements
 	// 当传入的 jQuery 对象不是 1 时自动迭代多次控件的 create 方法
 	// $elements[string, jQuery]: 待检测的变量
+	// userOptions[object]: 用户选项
+	// ctrlName[string]: 控件名
 	// return[jQuery] => 返回每个检测后的 jQuery 对象
 	// - 当 jQuery 的 length 不为 1 则迭代多次创建操作，且不返回任何值
-	function checkCreateControls($elements) {
+	function checkCreateControls($elements, userOptions, ctrlName) {
 		// 对传入的 $elements 进行 jQuery 检测
 		$elements = checkJQElements($elements);
 
-		// 如果检测结果为空则生成一个空 $div 对象
-		if ($elements.length === 0)
-			return $div.clone();
-		// 如果检测结果为一个则返回该 jQuery 对象
-		if ($elements.length === 1) {
-			return $elements.attr(prefixLibName + this.name + '-state')
-			? undefined : $elements;
-		}
 		// 当长度大于 1 时，则迭代出发多次 create 方法
-		var // 迭代长度
-			len = $elements.length,
+		var // 元素长度
+			elesLen = $elements.length,
 			// 迭代种子
 			i = 0;
 
+		// 如果检测结果为空则生成一个空 $div 对象
+		if (elesLen === 0)
+			return $div.clone();
+		// 如果检测结果为一个则返回该 jQuery 对象
+		if (elesLen === 1) {
+			return $elements.attr(prefixLibName + this.name + '-state') ? undefined : $elements;
+		}
+
 		// 迭代 create 方法
-		for (; i < len; i++) this.create($elements.eq(i));
+		for (; i < elesLen; i++) this.create($elements.eq(i), userOptions, ctrlName + joinStr + i);
 	}
 	// 检测传入的参数是否为 jQuery 对象
 	// 如果是字符串则通过字符串生成 jQuery 对象
@@ -470,7 +474,7 @@ var ud2 = (function (window, $) {
 	// options[optionObject]: 控件默认选项
 	// userOptions[optionObject]: 用户设置默认选项
 	function setOptions(options, userOptions) {
-		if (type.isObject(userOptions)) {
+		if (type.isObject(options) && type.isObject(userOptions)) {
 			for (var i in userOptions) {
 				if (options[i] !== undefined) {
 					options[i] = userOptions[i];
@@ -544,6 +548,19 @@ var ud2 = (function (window, $) {
 		var reg = /\{(?:(ico):([0-9a-z]{4}))\}/g, r;
 		txt = txt.replace(reg, '');
 		return txt;
+	}
+	// 对象扩展
+	// 将扩展对象属性添加到原对象中
+	// origin[object]: 原对象
+	// source[object]: 扩展对象
+	// return[object]: 返回扩展后的原对象
+	function extendObjects(origin, source) {
+		if (type.isObject(origin) && type.isObject(source)) {
+			for (var i in source) {
+				origin[i] = source[i];
+			}
+			return origin;
+		}
 	}
 
 	// #endregion
@@ -1489,12 +1506,11 @@ var ud2 = (function (window, $) {
 	// 控件父对象
 	// 生成的控件是由此对象继承而来
 	// $element[jQuery]: jQuery 对象
+	// name[string]: 控件名称
 	// return[control]: 默认的 ud2 控件
-	var control = function ($element) {
+	var control = function ($element, name) {
 		var // jQuery 对象，如果不包含任何元素则创建一个空 DIV
 			$origin,
-			// 控件自定义名称
-			name,
 			// 控件对象
 			control = {},
 			// 获取调用组对象
@@ -1509,11 +1525,11 @@ var ud2 = (function (window, $) {
 
 		// 判断或生成控件自定义名称属性
 		// 当 ud2-name 不存在时则自动在 guid 对象中创建
-		name = $origin.attr(prefixLibName + 'name');
+		name = $origin.attr(prefixLibName + 'name') || name;
 		if (!name) {
 			name = ctrlGUID.create();
-			$origin.attr(prefixLibName + 'name', name);
 		}
+		$origin.attr(prefixLibName + 'name', name);
 
 		// 自动关闭方法
 		// target[element]: 事件目标
@@ -1557,12 +1573,12 @@ var ud2 = (function (window, $) {
 		// 将控件插入到指定元素内部的结尾处
 		// $element[jQuery]: jQuery 对象
 		function appendTo(parent) {
-			checkJQElements(parent).after(control.$current);
+			checkJQElements(parent).append(control.$current);
 		}
 		// 将控件插入到指定元素内部的开头处
 		// $element[jQuery]: jQuery 对象
 		function prependTo(parent) {
-			checkJQElements(parent).after(control.$current);
+			checkJQElements(parent).prepend(control.$current);
 		}
 
 		// 控件样式
@@ -1629,16 +1645,51 @@ var ud2 = (function (window, $) {
 
 		// 创建一个控件的默认执行父函数
 		// 用于将控件添加至控件对象集合，建立控件唯一识别符
+		// ()
+		// ($elements)
+		// (userOption)
+		// ($elements, userOption)
+		// (userOption, ctrlName)
+		// * ($elements, userOption, ctrlName)
 		// $elements[jQuery] => 要创建的指定jQuery对象
 		// - 当元素长度大于 0 时，则迭代多次 create 方法
 		// return[controls] => 返回要创建的控件对象信息
-		group.create = function ($elements, userOptions) {
+		group.create = function () {
+			// 处理参数
+			var args = arguments,
+				len = args.length;
+
+			if (len !== 3) {
+				switch (len) {
+					case 0: {
+						return this.create('', undefined, undefined);
+						break;
+					}
+					case 1: {
+						if (type.isObject(args[0]) && !type.isJQuery(args[0])) {
+							return this.create('', args[0], undefined);
+						} else {
+							return this.create(args[0], undefined, undefined);
+						}
+						break;
+					}
+					case 2: {
+						if (type.isObject(args[0]) && !type.isJQuery(args[0]) && type.isString(args[1])) {
+							return this.create('', args[0], args[1]);
+						} else {
+							return this.create(args[0], args[1], undefined);
+						}
+						break;
+					}
+				}
+			}
+
 			// 检测传入的 $elements 对象
-			$elements = checkCreateControls.call(this, $elements);
+			var $elements = checkCreateControls.apply(this, arguments);
 			if (!$elements) return;
 
 			// 创建一个 control
-			var ctrl = control.call(this, $elements);
+			var ctrl = control.call(this, $elements, args[2]);
 
 			// 将控件添入数组中
 			this.push(ctrl.public);
@@ -1648,7 +1699,7 @@ var ud2 = (function (window, $) {
 			addName(ctrl.$origin, this.name);
 			ctrl.$origin.attr(prefixLibName + this.name + '-state', true);
 
-			this.init(ctrl, userOptions);
+			this.init(ctrl, args[1]);
 
 			// 初始化控件，并返回控件的信息
 			return ctrl.public;
@@ -2701,10 +2752,6 @@ var ud2 = (function (window, $) {
 		};
 
 		// 生成一个弹出框
-		// (title)
-		// (title, content)
-		// (title, content, sendFn)
-		// (title, content, ico, icoStyle, sendFn)
 		dialog.alert = function () {
 			var obj = dialogArgs.apply(this, arguments), dl;
 			obj.type = dialog.type.alert;
@@ -2719,11 +2766,6 @@ var ud2 = (function (window, $) {
 			if (dl) return dl;
 		};
 		// 生成一个对话框提示
-		// (title)
-		// (title, content)
-		// (title, content, sendFn, cancelFn)
-		// (title, content, ico, sendFn, cancelFn)
-		// (title, content, ico, icoStyle, sendFn, cancelFn)
 		dialog.prompt = function () {
 			var obj = dialogArgs.apply(this, arguments), dl, input = '<input type="text" class="txtbox" ' + className + '-input />';
 			obj.type = dialog.type.prompt;
@@ -2806,32 +2848,49 @@ var ud2 = (function (window, $) {
 					// 关闭回调
 					close: $.noop,
 					// 值改变
-					changeVal: $.noop
+					change: $.noop
 				};
 
 			// #endregion
 
 			// #region 选项与组对象
+			// 选项绑定与解绑数组
+			// (?) group[Group]: 选项组对象
+			function optionBindGroup(group) {
+				// 从原组中删除旧数据
+				if (this.group) {
+					var index = this.group.options.indexOf(this);
+					this.group.options.splice(index, 1);
+				}
+				if (group) {
+					this.group = group
+				} else {
+					this.group = null;
+				}
+			}
 
 			// 选项
 			// name[string]: 选项名称
-			// value[string]: 选项值
-			// disabled[bool]: 是否为禁用状态
-			// selected[bool]: 是否为选中状态
+			// (?) value[string]: 选项值，若为空则 value 等同于 name
+			// (?) disabled[bool]: 是否为禁用状态
+			// (?) selected[bool]: 是否为选中状态
 			// (?) group[group]: 选项是否存在于某个组中
 			function Option(name, value, disabled, selected, group) {
+				// 直接调用函数执行 new Group
+				if (!(this instanceof Option)) return new Option(name, value, disabled, selected, group);
+
 				var that = this;
 				this.group = group || null;
 				this.name = name || '';
-				this.value = value || '';
+				this.value = value || this.name;
 				this.disabled = disabled || false;
 				this.selected = !this.disabled && (selected || false);
 				this.createElement();
-				if (this.selected) selectValue(this);
+				if (this.selected) select(this);
 
 				Option.list.push(this);
 				if (this.group) {
-					this.group.addOption(this);
+					this.inGroup(this.group);
 				} else {
 					listScroll.getContent().append(this.$element);
 				}
@@ -2853,7 +2912,7 @@ var ud2 = (function (window, $) {
 						$opt.attr(className + '-disabled', 'true');
 					this.$element = $opt;
 					event(this.$element).setTap(function () {
-						selectValue(that);
+						select(that);
 					});
 				},
 				// 设置被选中元素
@@ -2870,12 +2929,50 @@ var ud2 = (function (window, $) {
 						this.setSelected(false);
 					else
 						this.setSelected(true);
+				},
+				// 将选项放入分组
+				inGroup: function (group) {
+					if (group instanceof Group) {
+						optionBindGroup.call(this, group);
+						this.group.options.push(this);
+
+						this.$element.addClass(className + '-ingroup');
+						if (this.group.disabled) this.$element.attr(className + '-disabled', 'true');
+						else this.$element.removeAttr(className + '-disabled');
+
+						var next = group.$element.nextUntil(':not(.' + className + '-ingroup)'), nextLen = next.length;
+						if (nextLen === 0) {
+							group.$element.after(this.$element);
+						}
+						else {
+							next.last().after(this.$element);
+						}
+					}
+				},
+				// 将选项移出(任意)分组
+				outGroup: function () {
+					if (this.group) {
+						optionBindGroup.call(this);
+						listScroll.getContent().append(this.$element);
+						this.$element.removeClass(className + '-ingroup');
+						if (!this.disabled) this.$element.removeAttr(className + '-disabled');
+					}
+				},
+				// 移除选项
+				remove: function () {
+					optionBindGroup.call(this);
+					var indexOption = Option.list.indexOf(this);
+					Option.list.splice(indexOption, 1);
+					this.$element.remove();
 				}
 			};
 			// 选项组
 			// name[string]: 选项组名称
-			// disabled[bool]: 被选中状态
+			// (?) disabled[bool]: 被选中状态
 			function Group(name, disabled) {
+				// 直接调用函数执行 new Group
+				if (!(this instanceof Group)) return new Group(name, disabled);
+
 				var that = this;
 				this.name = name || '';
 				this.disabled = disabled || false;
@@ -2896,17 +2993,7 @@ var ud2 = (function (window, $) {
 						.attr('title', this.name)
 						.addClass(className + '-group');
 					this.$element = $group;
-				},
-				// 向组内添加一个选项
-				// name[string]: 选项名称
-				// value[string]: 选项值
-				// disabled[bool]: 是否被禁用
-				// selected[bool]: 是否被选中
-				addOption: function (option) {
-					if (option instanceof Option) {
-						this.options.push(option);
-						this.$element.after(option.$element);
-					}
+					if (this.disabled) this.$element.attr(className + '-disabled', 'true');
 				}
 			};
 
@@ -2995,7 +3082,7 @@ var ud2 = (function (window, $) {
 					$selectValue.val(val);
 				}
 
-				callbacks.changeVal.call(ctrl.public, val);
+				callbacks.change.call(ctrl.public, val);
 			}
 			// 设置列表方向
 			function setListDirection() {
@@ -3029,18 +3116,28 @@ var ud2 = (function (window, $) {
 			// 所回调的函数 this 指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
-			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
+			function setChange(fn) { callbacks.change = fn; return ctrl.public; }
 
 			// #endregion
 
 			// #region 公有方法
 
-			// 选择一个控件值
+			// 设置控件的选项处于被选上状态
 			// option[option]: 控件选项
-			function selectValue(option) {
+			function select(option) {
 				if (option.disabled || (option.group && option.group.disabled)) return;
 				setValue(option);
 				if (!options.isMultiple) close();
+			}
+			// 通过一个值设置控件的选项处于被选上状态
+			// value[string]: 寻找控件中的值
+			function selectByValue(value) {
+				for (var i in Option.list) {
+					if (Option.list[i].value === value) {
+						select(Option.list[i]);
+						if (!options.isMultiple) break;
+					}
+				}
 			}
 			// 设置控件的默认文本
 			// text[string]: 默认文本
@@ -3113,6 +3210,16 @@ var ud2 = (function (window, $) {
 				listScroll.recountPosition();
 				return ctrl.public;
 			}
+			// 列表移动
+			function moveToSelected() {
+				if (arrValOptions[0]) {
+					var y;
+					open();
+					y = arrValOptions[0].$element.position().top;
+					close();
+					listScroll.move(0, y, 300);
+				}
+			}
 
 			// #endregion
 
@@ -3172,16 +3279,22 @@ var ud2 = (function (window, $) {
 
 			// #region 返回
 
-			ctrl.public.open = open;
-			ctrl.public.close = close;
-			ctrl.public.toggle = toggle;
-			ctrl.public.val = val;
-			ctrl.public.recountHeight = recountHeight;
-			ctrl.public.setShowText = setShowText;
-			ctrl.public.setOpen = setOpen;
-			ctrl.public.setClose = setClose;
-			ctrl.public.setChangeVal = setChangeVal;
-			return ctrl.public;
+			return extendObjects(ctrl.public, {
+				open: open,
+				close: close,
+				toggle: toggle,
+				val: val,
+				select: select,
+				selectByValue: selectByValue,
+				moveToSelected: moveToSelected,
+				recountHeight: recountHeight,
+				setShowText: setShowText,
+				setOpen: setOpen,
+				setClose: setClose,
+				setChange: setChange,
+				option: Option,
+				group: Group
+			});
 
 			// #endregion
 
@@ -3202,13 +3315,13 @@ var ud2 = (function (window, $) {
 			// #region 私有属性
 
 			var // 样式类名
-				className = prefixLibName + group.name,
+				className = group.class,
 				// 选项
 				options = {
 					// 默认文本
-					autoText: ctrl.$origin.attr(className + '-text') || '请选择城市信息',
+					autoText: ctrl.attr('text') || '请选择城市信息',
 					// 地址 JSON 数据位置
-					json: ctrl.$origin.attr(className + '-json') || '/dist/json/address.json'
+					json: ctrl.attr('json') || '/dist/json/address.json'
 				},
 				// 值集合对象
 				arrValObjects = {
@@ -3252,7 +3365,7 @@ var ud2 = (function (window, $) {
 					// 关闭回调
 					close: $.noop,
 					// 值改变
-					changeVal: $.noop
+					change: $.noop
 				};
 
 			// #endregion
@@ -3406,7 +3519,7 @@ var ud2 = (function (window, $) {
 				}
 
 				$addressValue.val(val.join(','));
-				callbacks.changeVal.call(ctrl.public, val);
+				callbacks.change.call(ctrl.public, val);
 			}
 
 			// #endregion
@@ -3427,7 +3540,7 @@ var ud2 = (function (window, $) {
 			// 所回调的函数 this 指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[address]: 当前事件对象，方便链式调用
-			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
+			function setChange(fn) { callbacks.change = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -3563,14 +3676,15 @@ var ud2 = (function (window, $) {
 
 			// #region 返回
 
-			ctrl.public.open = open;
-			ctrl.public.close = close;
-			ctrl.public.toggle = toggle;
-			ctrl.public.val = val;
-			ctrl.public.setOpen = setOpen;
-			ctrl.public.setClose = setClose;
-			ctrl.public.setChangeVal = setChangeVal;
-			return ctrl.public;
+			return extendObjects(ctrl.public, {
+				val: val,
+				open: open,
+				close: close,
+				toggle: toggle,
+				setOpen: setOpen,
+				setClose: setClose,
+				setChange: setChange
+			});
 
 			// #endregion
 
@@ -3591,22 +3705,22 @@ var ud2 = (function (window, $) {
 			// #region 私有字段
 
 			var // 样式类名
-				className = prefixLibName + group.name,
+				className = group.class,
 				// 选项
 				options = {
 					// 是否支持双手柄
 					both: function () {
-						var both = ctrl.$origin.attr(prefixLibName + group.name + '-both');
+						var both = ctrl.attr('both');
 						return (!both || both === 'false') ? false : true;
 					}(),
 					// 步长
-					step: ctrl.$origin.attr('step') || ctrl.$origin.attr(prefixLibName + group.name + '-step'),
+					step: ctrl.attr('step', 1) || ctrl.attr('step'),
 					// 最小值
-					min: ctrl.$origin.attr('min') || ctrl.$origin.attr(prefixLibName + group.name + '-min'),
+					min: ctrl.attr('min', 1) || ctrl.attr('min'),
 					// 最大值
-					max: ctrl.$origin.attr('max') || ctrl.$origin.attr(prefixLibName + group.name + '-max'),
+					max: ctrl.attr('max', 1) || ctrl.attr('max'),
 					// 获取值
-					value: ctrl.$origin.attr('value') || ctrl.$origin.attr(prefixLibName + group.name + '-value')
+					value: ctrl.attr('value', 1) || ctrl.attr('value')
 				},
 				// 左右值
 				valueLeft = 0, valueRight = 0,
@@ -3656,7 +3770,7 @@ var ud2 = (function (window, $) {
 					// 关闭回调
 					close: $.noop,
 					// 值改变
-					changeVal: $.noop
+					change: $.noop
 				};
 
 			// #endregion
@@ -3765,7 +3879,7 @@ var ud2 = (function (window, $) {
 					val = [valMin, valMax];
 				}
 
-				callbacks.changeVal.call(ctrl.public, val);
+				callbacks.change.call(ctrl.public, val);
 			}
 			// 值转换
 			// oldVal[string]: 旧值
@@ -3811,7 +3925,7 @@ var ud2 = (function (window, $) {
 			// 所回调的函数 this 指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[range]: 当前事件对象，方便链式调用
-			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
+			function setChange(fn) { callbacks.change = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -3983,14 +4097,15 @@ var ud2 = (function (window, $) {
 
 			// #region 返回
 
-			ctrl.public.val = val;
-			ctrl.public.open = open;
-			ctrl.public.close = close;
-			ctrl.public.toggle = toggle;
-			ctrl.public.setOpen = setOpen;
-			ctrl.public.setClose = setClose;
-			ctrl.public.setChangeVal = setChangeVal;
-			return ctrl.public;
+			return extendObjects(ctrl.public, {
+				val: val,
+				open: open,
+				close: close,
+				toggle: toggle,
+				setOpen: setOpen,
+				setClose: setClose,
+				setChange: setChange
+			});
 
 			// #endregion
 
@@ -4011,32 +4126,32 @@ var ud2 = (function (window, $) {
 			// #region 私有字段
 
 			var // 样式类名
-				className = prefixLibName + group.name,
+				className = group.class,
 				// 默认值
 				options = {
 					// 步长
 					step: function () {
-						var step = ctrl.$origin.attr('step') || ctrl.$origin.attr(className + '-step') || 1;
+						var step = ctrl.attr('step', 1) || ctrl.attr('step') || 1;
 						step = parseFloat(step);
 						if (isNaN(step) || step === 0) step = 1;
 						return step;
 					}(),
 					// 最小值
 					min: function () {
-						var min = ctrl.$origin.attr('min') || ctrl.$origin.attr(className + '-min') || 0;
+						var min = ctrl.attr('min', 1) || ctrl.attr('min') || 0;
 						min = parseFloat(min);
 						if (type.isNumber(step) || isNaN(min)) min = 0;
 						return min;
 					}(),
 					// 最大值
 					max: function () {
-						var max = ctrl.$origin.attr('max') || ctrl.$origin.attr(className + '-max') || 100;
+						var max = ctrl.attr('max', 1) || ctrl.attr('max') || 100;
 						max = parseFloat(max);
 						if (type.isNumber(step) || isNaN(max)) max = 100;
 						return max;
 					}(),
 					// 值
-					value: ctrl.$origin.attr('value') || ctrl.$origin.attr(className + '-value') || 0
+					value: ctrl.attr('value', 1) || ctrl.attr('value') || 0
 				},
 				// 值, 步长, 最小值, 最大值
 				value = 0, step = 0, min = 0, max = 0,
@@ -4063,7 +4178,7 @@ var ud2 = (function (window, $) {
 				// 回调函数
 				callbacks = {
 					// 值改变
-					changeVal: $.noop
+					change: $.noop
 				};
 
 			// #endregion
@@ -4146,7 +4261,7 @@ var ud2 = (function (window, $) {
 			function setValue(val) {
 				value = val;
 				$numberInput.val(value);
-				callbacks.changeVal.call(ctrl.public, value);
+				callbacks.change.call(ctrl.public, value);
 			}
 
 			// #endregion
@@ -4157,7 +4272,7 @@ var ud2 = (function (window, $) {
 			// 所回调的函数 this 指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[number]: 当前事件对象，方便链式调用
-			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
+			function setChange(fn) { callbacks.change = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -4220,9 +4335,10 @@ var ud2 = (function (window, $) {
 
 			// #region 返回
 
-			ctrl.public.val = val;
-			ctrl.public.setChangeVal = setChangeVal;
-			return ctrl.public;
+			return extendObjects(ctrl.public, {
+				val: val,
+				setChange: setChange
+			});
 
 			// #endregion
 
@@ -4243,15 +4359,15 @@ var ud2 = (function (window, $) {
 			// #region 私有字段
 
 			var // 样式类名
-				className = prefixLibName + group.name,
+				className = group.class,
 				// 默认值
 				options = {
 					// 默认文本
-					autoText: ctrl.$origin.attr('placeholder') || ctrl.$origin.attr(className + '-text') || '请选择日期',
+					autoText: ctrl.attr('placeholder', 1) || ctrl.attr('text') || '请选择日期',
 					// 默认日期格式化
-					format: ctrl.$origin.attr(prefixLibName + group.name + '-format') || 'yyyy/MM/dd',
+					format: ctrl.attr('format') || 'yyyy/MM/dd',
 					// 获取原控件日期数据
-					date: ctrl.$origin.attr('value') || ctrl.$origin.attr(prefixLibName + group.name + '-value') || ''
+					date: ctrl.attr('value', 1) || ctrl.attr('value') || ''
 				},
 				// 本地日期
 				localDate = new Date(),
@@ -4292,7 +4408,7 @@ var ud2 = (function (window, $) {
 								|| this.time.getDate() !== d) {
 								this.time = new Date(y, M, d);
 								this.view();
-								callbacks.changeVal.call(ctrl.public, this.toString());
+								callbacks.change.call(ctrl.public, this.toString());
 							}
 						}
 					},
@@ -4360,7 +4476,7 @@ var ud2 = (function (window, $) {
 					// 关闭回调
 					close: $.noop,
 					// 值改变
-					changeVal: $.noop
+					change: $.noop
 				};
 			// #endregion
 
@@ -4616,7 +4732,7 @@ var ud2 = (function (window, $) {
 			// 所回调的函数 this 指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
-			function setChangeVal(fn) { callbacks.changeVal = fn; return ctrl.public; }
+			function setChange(fn) { callbacks.change = fn; return ctrl.public; }
 
 			// #endregion
 
@@ -4731,22 +4847,207 @@ var ud2 = (function (window, $) {
 
 			// #region 返回
 
-			ctrl.public.open = open;
-			ctrl.public.close = close;
-			ctrl.public.toggle = toggle;
-			ctrl.public.setOpen = setOpen;
-			ctrl.public.setClose = setClose;
-			ctrl.public.setChangeVal = setChangeVal;
-			return ctrl.public;
+			return extendObjects(ctrl.public, {
+				open: open,
+				close: close,
+				toggle: toggle,
+				setOpen: setOpen,
+				setClose: setClose,
+				setChange: setChange
+			});
 
 			// #endregion
+
 		};
 
 	}(controlGroup('calendar')));
 	// JS 文件页码控件集合
 	// * 此控件会 remove 掉原宿主对象
 	var page = (function (group) {
-		
+
+		// 重写 init 方法
+		// 创建一个 JS 页码控件
+		// ctrl[control]: control 对象
+		// userOptions[object]: 用户参数
+		// return[calendar]: 返回生成的控件对象
+		group.init = function (ctrl, userOptions) {
+
+			// #region 私有字段
+
+			var // 类名
+				className = group.class,
+				// 选项
+				options = {
+					// 页码初始值
+					now: (function () {
+						var now = ctrl.attr('now') || 1;
+						now = parseInt(now);
+						if (isNaN(now) || now < 1) now = 1;
+						return now;
+					}()),
+					// 页码最大值
+					max: (function () {
+						var max = ctrl.attr('max') || 100;
+						max = parseInt(max);
+						if (isNaN(max) || max < 1) max = 100;
+						return max;
+					}()),
+					// 页码当前页两侧显示数量
+					show: (function () {
+						var show = ctrl.attr('show') || 2;
+						show = parseInt(show);
+						if (isNaN(show) || show < 1) show = 2;
+						return show;
+					}())
+				},
+				// 控件对象
+				$page = ctrl.$origin,
+				// 控件按钮对象
+				$pageBtns,
+				// 页码内 HTML 文本
+				pageHtml = '<a>首页</a><a>上页</a><a>下页</a><a>尾页</a>',
+				// 页码上拉列表
+				pageSelect,
+				// 页码当前值 页码最大值 页码当前页两侧显示数量
+				now, max, show,
+				// 回调
+				callbacks = {
+					// 页面改变回调
+					change: $.noop
+				};
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 获取旧控件全部属性
+			function detectOptions() {
+				// 输出新数据
+				now = options.now;
+				max = options.max;
+				show = options.show;
+
+				// 解决当前值大于最大值问题
+				if (now > max) { now = max; }
+			}
+			// 创建页码
+			function linksCreate() {
+				var links = [], i, $num = $page.find('[' + className + '-num]');
+				$num.remove();
+				for (i = show; i >= 1; i--) if (now - i > 0) links.push('<a class="btn btn-solid" ' + className + '-num="' + (now - i) + '">' + (now - i) + '</a>');
+				links.push('<a class="btn btn-solid btn-green" ' + className + '-num="' + now + '" ' + className + '-now>' + now + '</a>');
+				for (i = 1; i <= show; i++) if (now + i <= max) links.push('<a class="btn btn-solid" ' + className + '-num="' + (now + i) + '">' + (now + i) + '</a>');
+				$pageBtns.eq(1).after(links.join(''));
+				$num = $page.find('[' + className + '-num]');
+				event($num).setTap(function () {
+					var pageNum = this.attr(className + '-num');
+					pageNum = parseInt(pageNum);
+					if (pageNum !== now) {
+						changePage(pageNum);
+					}
+				});
+			}
+			// 创建列表
+			function listCreate() {
+				pageSelect = ud2.select.create({ 'direction': 'up' }, ctrl.public.name + '-list');
+				pageSelect.appendTo($page);
+				for (var i = 1; i <= max ; i++) {
+					var selected = i == now ? true : false;
+					pageSelect.option(i, i, false, selected);
+				}
+			}
+			// 页面发生改变
+			function changePage(pageNum, pageSelected) {
+				now = pageNum;
+				if (now > max) now = max;
+				if (now < 1) now = 1;
+				linksCreate();
+
+				if (!pageSelected) {
+					pageSelect.selectByValue(now);
+					pageSelect.moveToSelected();
+				} else {
+					callbacks.change.call(ctrl.public, now);
+				}
+			}
+			// 首页
+			function pageHome() {
+				changePage(1);
+			}
+			// 尾页
+			function pageEnd() {
+				changePage(max);
+			}
+			// 上一页
+			function pagePrev() {
+				changePage(now - 1);
+			}
+			// 下一页
+			function pageNext() {
+				changePage(now + 1);
+			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置页码改变回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[number]: 当前事件对象，方便链式调用
+			function setChange(fn) { callbacks.change = fn; return ctrl.public; }
+
+			// #endregion
+
+			// #region 事件绑定
+
+			// 事件绑定
+			function bindEvent() {
+				event($pageBtns.eq(0)).setTap(pageHome);
+				event($pageBtns.eq(1)).setTap(pagePrev);
+				event($pageBtns.eq(2)).setTap(pageNext);
+				event($pageBtns.eq(3)).setTap(pageEnd);
+
+				pageSelect.setChange(function (val) {
+					changePage(val, 1);
+				});
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 设置初始选项
+				setOptions(options, userOptions);
+				// 获取旧控件属性
+				detectOptions();
+
+				$page.addClass(className + ' ctrl-group').html(pageHtml);
+				$pageBtns = $page.find('a').addClass('btn btn-solid');
+
+				// 创建页码
+				linksCreate();
+				// 创建列表
+				listCreate();
+				// 事件绑定
+				bindEvent();
+				
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			return extendObjects(ctrl.public, {
+				setChange: setChange
+			});
+
+			// #endregion 
+
+		};
+
 	}(controlGroup('page')));
 
 	// JS 文件上传控件集合
@@ -4764,28 +5065,26 @@ var ud2 = (function (window, $) {
 			// #region 私有字段
 
 			var // 样式类名
-				className = prefixLibName + group.name,
+				className = group.class,
 				// 默认值
 				options = {
 					// 默认控件样式
 					// full 富文件样式 | base 常规文件样式 | single 单文件样式 | custom 自定义样式
 					type: (function () {
-						var t = ctrl.$origin.attr(className + '-type');
-						if (t !== 'full' && t !== 'base' && t !== 'single' && t !== 'custom') {
-							t = 'full';
-						}
+						var t = ctrl.attr('type');
+						if (t !== 'full' && t !== 'base' && t !== 'single' && t !== 'custom') t = 'full';
 						return t;
 					}()),
 					// 最大文件量
 					// 默认为 20
-					maxLength: parseInt(ctrl.$origin.attr(className + '-maxlength')) || 20,
+					maxLength: parseInt(ctrl.attr('maxlength')) || 20,
 					// 单个文件最大尺寸(KB)
 					// 默认值为 2048KB
 					// 值可以为 png, jpg, gif, txt, doc, docx, xls, xlsx, ppt, pptx, zip, rar, ett, wpt, dpt
-					maxSize: parseInt(ctrl.$origin.attr(className + '-maxsize')) || 2048,
+					maxSize: parseInt(ctrl.attr('maxsize')) || 2048,
 					// 是否启用文件重命名控制
 					fileRename: (function () {
-						var rename = ctrl.$origin.attr(className + '-rename');
+						var rename = ctrl.attr('rename');
 						if (rename === '' || rename === 'false') rename = false;
 						else rename = true;
 						return rename;
@@ -4793,7 +5092,7 @@ var ud2 = (function (window, $) {
 					// 文件过滤方案
 					// 默认值为 all
 					fileFilter: (function () {
-						var filter = ctrl.$origin.attr(className + '-filter') || '',
+						var filter = ctrl.attr('filter') || '',
 							files = 'png|jpg|gif|bmp|svg|ico|html|js|cs|vb|css|less|scss|sass|mp3|mp4|wav|avi|ogg|mov|wmv|webm|flv|swf|txt|pdf|doc|docx|xls|xlsx|ppt|pptx|ett|wpt|dpt|rar|zip|iso',
 							i = 0, len = 0;
 						filter = (new RegExp("^((" + files + "),)*(" + files + ")$").test(filter)) ? filter : 'all';
@@ -5323,6 +5622,10 @@ var ud2 = (function (window, $) {
 				options.url.upload = url;
 				return ctrl.public;
 			}
+			// 获取上传文件集合
+			function getUpfiles() {
+				return upfiles;
+			}
 
 			// #endregion
 
@@ -5363,31 +5666,32 @@ var ud2 = (function (window, $) {
 
 			// #region 返回
 
-			// 控件绑定对象
-			ctrl.public.bind = {
-				fileAddBtn: bindFileAdd,
-				fileRemoveBtn: bindFileRemove,
-				fileAddFn: bindFileAddFn,
-				fileRemoveFn: bindFileRemoveFn,
-				upload: bindUpload,
-				uploadFn: bindUploadFn,
-				clear: bindClear,
-				clearFn: bindClearFn
-			}
-			ctrl.public.setUploadUrl = setUploadUrl;
-			ctrl.public.setError = setError;
-			ctrl.public.setComplete = setComplete;
-			ctrl.public.setDone = setDone;
-			ctrl.public.setFail = setFail;
-			ctrl.public.upfiles = upfiles;
-			return ctrl.public;
+			return extendObjects(ctrl.public, {
+				// 控件绑定对象
+				bind: {
+					fileAddBtn: bindFileAdd,
+					fileRemoveBtn: bindFileRemove,
+					fileAddFn: bindFileAddFn,
+					fileRemoveFn: bindFileRemoveFn,
+					upload: bindUpload,
+					uploadFn: bindUploadFn,
+					clear: bindClear,
+					clearFn: bindClearFn
+				},
+				setUploadUrl: setUploadUrl,
+				setError: setError,
+				setComplete: setComplete,
+				setDone: setDone,
+				setFail: setFail,
+				getUpfiles: getUpfiles
+			});
 
 			// #endregion
 
 		};
 
 	}(controlGroup('file')));
-	
+
 
 
 	var table = (function (group) {
@@ -5598,6 +5902,10 @@ var ud2 = (function (window, $) {
 				if (type === 'mousedown') $dom.data(typeName, null);
 			});
 		});
+
+		$win.resize(function () {
+			callbacksPageReady.fire();
+		})
 
 		// 把 ud2.createAll 方法添入页面加载完成回调函数中
 		callbacksPageReady.add(ud2.createAll);

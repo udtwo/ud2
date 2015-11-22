@@ -98,6 +98,7 @@
 		display: block;
 		line-height: 1;
 		border-bottom: 1px solid @ColorWhiteBorder;
+		.boxSizing('border-box');
 	}
 }
 // 设置控件的列表项样式
@@ -107,11 +108,6 @@
 	// 鼠标滑入样式
 	&:hover {
 		background: @ColorWhiteBackLight;
-	}
-	// 被禁用的列表项样式
-	&[ud2-select-disabled] {
-		opacity: @OpacityNoImport;
-		cursor: not-allowed;
 	}
 }
 // 设置控件的列表项被选择样式
@@ -154,6 +150,11 @@
 	.ud2-select-ico {
 		border-top-color: @ColorBlueBackDark;
 	}
+}
+// 设置被禁用样式
+[ud2-select-disabled] {
+	opacity: @OpacityNoImport;
+	cursor: not-allowed;
 }
 // 设置控件的小尺寸方案
 .ud2-select.sm, .ctrl-group.sm {

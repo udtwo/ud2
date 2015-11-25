@@ -9,52 +9,51 @@
 // 为所有带有 .ud2-table 的标签设置内部样式
 .ud2-table {
 	width: 100%;
+	height: 100%;
 	border: 1px solid @ColorWhiteBorder;
 	border-radius: @BorderRadius;
 	overflow: hidden;
 	.boxSizing('border-box');
 
-	table {
+	> * > table {
 		table-layout: fixed;
 		border-spacing: 0;
 		border-collapse: separate;
-	}
 
-	td, th {
-		border-bottom: 1px solid @ColorWhiteBorder;
-		padding: @BaseSize/2;
-		line-height: 1.4;
-		.boxSizing('border-box');
+		> * > tr > td, > * > tr > th {
+			border-bottom: 1px solid @ColorWhiteBorder;
+			padding: @BaseSize / 2;
+			line-height: 1.4;
+			.boxSizing('border-box');
 
-		
-
-		&:not(:last-child) {
-			border-right: 1px solid @ColorWhiteBorder;
+			&:not(:last-child) {
+				border-right: 1px solid @ColorWhiteBorder;
+			}
 		}
 	}
-
-	table table {
-
-	}
 }
-
-.ud2-table-head {
+// 设置表格头部、表格尾部样式
+.ud2-table-thead, .ud2-table-tfoot {
 	position: relative;
 	top: 0; left: 0;
 	overflow: hidden;
 	background: @ColorWhiteDeeper;
-	border-bottom: 1px solid @ColorWhiteBorder;
-}
 
-.ud2-table-body {
+}
+// 设置表格主题样式
+.ud2-table-tbody {
 	position: relative;
 	top: 0; left: 0;
-	height: 300px;
 	width: 100%;
+	height: 300px;
 	overflow: scroll;
 	.scrollStyle(5px);
 }
-
+// 设置表格头部边框样式
+.ud2-table-thead {
+	border-bottom: 1px solid @ColorWhiteBorder;
+}
+// 设置表格尾部边框样式
 .ud2-table-tfoot {
 	border-top: 2px solid @ColorWhiteBorder;
 }

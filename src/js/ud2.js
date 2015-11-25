@@ -2325,7 +2325,7 @@ var ud2 = (function (window, $) {
 		// 事件绑定
 		function bindEvent() {
 			// 绑定屏幕尺寸变化的事件
-			if (options.recountByResize) $win.bind('resize orientationchange', recountPosition);
+			if (options.recountByResize) callbacksPageResize.add(recountPosition);
 
 			// 鼠标在滑入滑出滚动区域时滚动条的显示处理
 			if (options.barState === 0) {
@@ -5049,6 +5049,301 @@ var ud2 = (function (window, $) {
 		};
 
 	}(controlGroup('page')));
+	// JS 表格控件集合
+	// * 此控件会 remove 掉原宿主对象
+	var table = (function (group) {
+
+		// 重写 init 方法
+		// 创建一个 JS 选择控件，此控件重写了原 HTML 的 table 控件
+		// IMPORT: 对象或生成的对象必须为 table
+		// ctrl[control]: control 对象
+		// userOptions[object]: 用户参数
+		// return[select]: 返回生成的控件对象
+		group.init = function (ctrl, userOptions) {
+
+			// #region 私有字段
+
+			var // 样式类名
+				className = group.class,
+				// 选项
+				options = {
+					// 设置浏览器尺寸发生改变时是否重新计算表格主题区域高度
+					// 如果设置此值为 true，则浏览器发生 orientationchange 与 resize 事件时，滚动区域重新计算
+					recountHeightByResize: false,
+					// 默认表格列宽度
+					colWidth: ctrl.attr('col-width') || 200,
+				},
+				// 表格外层容器
+				$tableBox = $('<div class="' + className + '" />'),
+				// 表格数据
+				tableData = {
+					thead: { row: [], col: [], cell: [] },
+					tbody: { row: [], col: [], cell: [] },
+					tfoot: { row: [], col: [], cell: [] },
+					colWidth: []
+				};
+
+			// #endregion
+
+			// #region 表格对象
+
+			// 表格行对象
+			function Row(section) {
+				this.section = section;
+				this.cells = [];
+
+				section.row.push(this);
+			}
+			Row.prototype = {
+				addCell: function (cell) {
+					this.cells.push(cell);
+				}
+			};
+			// 表格列对象
+			function Col(section) {
+				this.section = section;
+				this.cells = [];
+				section.col.push(this);
+
+				// 宽度数据管理
+				if (tableData.colWidth.current === undefined
+					|| tableData.colWidth.current === this.section) {
+					var index = section.col.length - 1;
+					if (tableData.colWidth[index] === undefined) {
+						tableData.colWidth[index] = options.colWidth;
+					}
+				}
+			}
+			Col.prototype = {
+				addCell: function (cell) {
+					this.cells.push(cell);
+				}
+			};
+			// 表格单元格对象
+			function Cell(section, text, rowspan, colspan, merged, rowIndex, colIndex) {
+				this.section = section;
+				this.text = text;
+				this.rowspan = rowspan;
+				this.colspan = colspan;
+				this.merged = merged || false;
+
+				this.section.cell.push(this);
+				if (rowIndex !== undefined && colIndex !== undefined) {
+					this.bindRowAndCol(rowIndex, colIndex);
+				}
+			}
+			Cell.prototype = {
+				bindRowAndCol: function (rowIndex, colIndex) {
+					this.section.row[rowIndex].addCell(this);
+					this.section.col[colIndex].addCell(this);
+				}
+			};
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 分析表格行列
+			function analysisRanks(section) {
+				var $rows = section.$origin.children('tr'),
+					$cell = $rows.eq(0).children('td'),
+					r = 0, c = 0, cs = 0, rs = 0;
+
+				rs = $rows.length;
+				$cell.each(function (i) { cs += parseInt($(this).attr('colspan') || 1); });
+
+				for (var i = 0; i < cs; i++) new Col(section);
+				for (var i = 0; i < rs; i++) new Row(section);
+
+				return { row: rs, col: cs };
+			}
+			// 分析节点
+			function analysisSection(section) {
+				var $trs = section.$origin.children('tr'), $tr, $tds, $td,
+					ranks = analysisRanks(section), rule = [],
+					cs, rs;
+
+				for (var r = 0; r < ranks.row; r++) {
+					for (var c = 0, cby = 0; c < ranks.col; c++, cby++) {
+						var isRule = false;
+						rule.forEach(function (item) {
+							if (c >= item.start[1] && c <= item.start[1] + item.len[1]
+								&& r >= item.start[0] && r <= item.start[0] + item.len[0]) {
+								cby--;
+								isRule = true;
+								return;
+							}
+						});
+						if (isRule) {
+							new Cell(section, '', rs, cs, true, r, c);
+						} else {
+							$td = $trs.eq(r).children('td').eq(cby);
+							cs = parseInt($td.attr('colspan') || 1);
+							rs = parseInt($td.attr('rowspan') || 1);
+							if (cs > 0 || rs > 0) rule.push({ start: [r, c], len: [rs - 1, cs - 1] });
+							new Cell(section, $td.html(), rs, cs, false, r, c);
+						}
+
+					}
+				}
+			}
+			// 分析表格
+			function analysisTable() {
+				var $thead = ctrl.$origin.children('thead'),
+					$tbody = ctrl.$origin.children('tbody'),
+					$tfoot = ctrl.$origin.children('tfoot');
+
+				tableData.thead.$origin = $thead;
+				tableData.thead.$origin.parent = tableData.thead;
+				tableData.tbody.$origin = $tbody;
+				tableData.tbody.$origin.parent = tableData.tbody;
+				tableData.tfoot.$origin = $tfoot;
+				tableData.tfoot.$origin.parent = tableData.tfoot;
+
+				if (tableData.thead.$origin.length !== 0) analysisSection(tableData.thead);
+				if (tableData.tbody.$origin.length !== 0) analysisSection(tableData.tbody);
+				if (tableData.tfoot.$origin.length !== 0) analysisSection(tableData.tfoot);
+			}
+
+			// 表格创建
+			function tableCreate(section) {
+				if (section === undefined) {
+					if (tableData.thead.$origin.length !== 0) $tableBox.append(tableCreate(tableData.thead));
+					if (tableData.tbody.$origin.length !== 0) $tableBox.append(tableCreate(tableData.tbody));
+					if (tableData.tfoot.$origin.length !== 0) $tableBox.append(tableCreate(tableData.tfoot));
+					return;
+				}
+
+				var $div = $('<div class="' + className + '-' + section.$origin.get(0).nodeName.toLowerCase() + '"><table><tbody /></table></div>'),
+					$tbody = $div.find('tbody'), $tr, $td,
+					rl = section.row.length, cl = section.col.length, cell, rh, ch;
+
+				for (var r = 0; r < rl ; r++) {
+					$tr = $('<tr />');
+					for (var c = 0; c < cl; c++) {
+						cell = section.cell[cl * r + c];
+						if (cell.merged) continue;
+						rh = cell.rowspan > 1 ? ' rowspan="' + cell.rowspan + '"' : '';
+						ch = cell.colspan > 1 ? ' colspan="' + cell.colspan + '"' : '';
+						$td = $('<td' + rh + ch + '>' + cell.text + '</td>');
+						cell.$current = $td;
+						$tr.append($td);
+					}
+					$tbody.append($tr);
+				}
+
+				section.$current = $div;
+				return $div;
+			}
+			// 表格宽度重置
+			function tableWidthResize(section) {
+				if (section === undefined) {
+					if (tableData.thead.$origin.length !== 0) tableWidthResize(tableData.thead);
+					if (tableData.tbody.$origin.length !== 0) tableWidthResize(tableData.tbody);
+					if (tableData.tfoot.$origin.length !== 0) tableWidthResize(tableData.tfoot);
+					return;
+				}
+
+				var // 表格行           
+					row = section.row,
+					// 表格行长度
+					rl = row.length,
+					// 行内单元格
+					cells,
+					// 行内单元格长度
+					cl;
+
+				// 设置表格宽度
+				section.$current.children('table').width(tableData.colWidth.reduce(function (a, b) { return a + b; }));
+				// 遍历表格，设置每个单元格宽度
+				for (var r = 0; r < rl; r++) {
+					cells = row[r].cells; cl = cells.length;
+					for (var c = 0; c < cl ; c++) {
+						var width = tableData.colWidth[c];
+						if (cells[c].merged) continue;
+
+						if (cells[c].colspan !== 1) {
+							for (var j = 1; j <= cells[c].colspan - 1; j++) {
+								width += tableData.colWidth[c + j];
+							}
+							cells[c].$current.css('width', width);
+						} else {
+							cells[c].$current.css('width', width);
+						}
+					}
+				}
+			}
+			// 表格高度重置
+			function tableHeightResize(height) {
+				var theadHeight = tableData.thead.$current ? tableData.thead.$current.outerHeight() : 0,
+					tfootHeight = tableData.tfoot.$current ? tableData.tfoot.$current.outerHeight() : 0;
+
+				if (height === undefined) {
+					var $parent = $tableBox.parent(),
+						parentHeight = $parent.height();
+					tableData.tbody.$current.css('height', parentHeight - theadHeight - tfootHeight);
+				} else {
+					tableData.tbody.$current.css('height', parseInt(height) - theadHeight - tfootHeight);
+				}
+			}
+
+			// #endregion
+
+			// #region 事件绑定
+
+			// 事件绑定
+			function bindEvent() {
+				if (options.recountHeightByResize) callbacksPageResize.add(tableHeightResize);
+				tableData.tbody.$current.scroll(function () {
+					var left = -tableData.tbody.$current.scrollLeft();
+					if (tableData.thead.$current) tableData.thead.$current.css('margin-left', left);
+					if (tableData.tfoot.$current) tableData.tfoot.$current.css('margin-left', left);
+				});
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 设置初始选项
+				setOptions(options, userOptions);
+				// 转移宿主属性
+				transferStyles(ctrl.$origin, $tableBox);
+				transferAttrs(ctrl.$origin, $tableBox);
+
+				// 分析控件组和控件
+				analysisTable();
+				tableCreate();
+
+				// 加入表格盒子
+				ctrl.$origin.after($tableBox);
+				ctrl.$origin.remove();
+
+				// 表格尺寸设置与重置
+				tableWidthResize();
+				tableHeightResize();
+
+				// 事件绑定
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			// 返回
+			return extendObjects(ctrl.public, {
+				thead: tableData.thead,
+				tbody: tableData.tbody,
+				tfoot: tableData.tfoot
+			});
+
+			// #endregion
+		};
+
+	}(controlGroup('table')));
 
 	// JS 文件上传控件集合
 	// * 此控件会 remove 掉原宿主对象
@@ -5692,188 +5987,6 @@ var ud2 = (function (window, $) {
 
 	}(controlGroup('file')));
 
-
-
-	var table = (function (group) {
-
-		// 重写 init 方法
-		// 创建一个 JS 选择控件，此控件重写了原 HTML 的 table 控件
-		// IMPORT: 对象或生成的对象必须为 table
-		// ctrl[control]: control 对象
-		// userOptions[object]: 用户参数
-		// return[select]: 返回生成的控件对象
-		group.init = function (ctrl, userOptions) {
-			var // 样式类名
-				className = prefixLibName + group.name,
-				// 选项
-				options = {
-					// 默认表格列宽度
-					colWidth: 200
-				},
-				// 表格外层容器
-				$tableBox = $div.clone(),
-				// 表格数据
-				tableData = {
-					thead: { row: [], col: [], cell: [] },
-					tbody: { row: [], col: [], cell: [] },
-					tfoot: { row: [], col: [], cell: [] }
-				};
-
-			// 表格行对象
-			function Row(section) {
-				this.section = section;
-				this.cells = [];
-
-				section.row.push(this);
-			}
-			Row.prototype = {
-				addCell: function (cell) {
-					this.cells.push(cell);
-				}
-			}
-
-			// 表格列对象
-			function Col(section, width) {
-				this.section = section;
-				this.cells = [];
-				this.width = width || options.colWidth;
-
-				section.col.push(this);
-			}
-			Col.prototype = {
-				addCell: function (cell) {
-					this.cells.push(cell);
-				}
-			}
-
-			// 表格单元格对象
-			function Cell(section, text, rowspan, colspan, merged, rowIndex, colIndex) {
-				this.section = section;
-				this.text = text;
-				this.rowspan = rowspan;
-				this.colspan = colspan;
-				this.merged = merged || false;
-
-				section.row[rowIndex].addCell(this);
-				section.col[colIndex].addCell(this);
-				section.cell.push(this);
-			}
-
-
-			// 分析表格行列
-			function analysisRanks(section) {
-				var $rows = section.$origin.children('tr'),
-					$colCells = $rows.eq(0).children('td'),
-					r = 0, c = 0, cs = 0, rs = 0;
-
-				rs = $rows.length;
-				$colCells.each(function (i) { cs += parseInt($(this).attr('colspan') || 1); });
-
-				for (var i = 0; i < cs; i++) new Col(section);
-				for (var i = 0; i < rs; i++) new Row(section);
-
-				return { row: rs, col: cs };
-			}
-
-			// 分析节点
-			function analysisSection(section) {
-				var $trs = section.$origin.children('tr'), $tr, $tds, $td,
-					ranks = analysisRanks(section), rule = [],
-					cs, rs;
-
-				for (var r = 0; r < ranks.row; r++) {
-					for (var c = 0, cby = 0; c < ranks.col; c++, cby++) {
-						var isRule = false;
-						rule.forEach(function (item) {
-							if (c >= item.start[1] && c <= item.start[1] + item.len[1]
-								&& r >= item.start[0] && r <= item.start[0] + item.len[0]) {
-								cby--;
-								isRule = true;
-								return;
-							}
-						});
-						if (isRule) {
-							new Cell(section, '', rs, cs, true, r, c);
-						} else {
-							$td = $trs.eq(r).children('td').eq(cby);
-							cs = parseInt($td.attr('colspan') || 1);
-							rs = parseInt($td.attr('rowspan') || 1);
-							if (cs > 0 || rs > 0) rule.push({ start: [r, c], len: [rs - 1, cs - 1] });
-							new Cell(section, $td.html(), rs, cs, false, r, c);
-						}
-					}
-				}
-
-
-			}
-			// 分析表格
-			function analysisTable() {
-				var $thead = ctrl.$origin.children('thead'),
-					$tbody = ctrl.$origin.children('tbody'),
-					$tfoot = ctrl.$origin.children('tfoot');
-
-				tableData.thead.$origin = $thead;
-				tableData.thead.$origin.parent = tableData.thead;
-				tableData.tbody.$origin = $tbody;
-				tableData.tbody.$origin.parent = tableData.tbody;
-				tableData.tfoot.$origin = $tfoot;
-				tableData.tfoot.$origin.parent = tableData.tfoot;
-
-				if (tableData.thead.$origin.length !== 0) analysisSection(tableData.thead);
-				if (tableData.tbody.$origin.length !== 0) analysisSection(tableData.tbody);
-				if (tableData.tfoot.$origin.length !== 0) analysisSection(tableData.tfoot);
-			}
-
-			function getScrollSize() {
-				var p = document.createElement('p'),
-					styles = {
-						width: '100px',
-						height: '100px',
-						overflowY: 'scroll'
-					}, i, scrollbarWidth;
-				for (i in styles) p.style[i] = styles[i];
-				document.body.appendChild(p);
-				scrollbarWidth = p.offsetWidth - p.clientWidth;
-				p.remove();
-				return scrollbarWidth;
-			}
-
-			// 初始化
-			(function init() {
-				// 设置初始选项
-				setOptions(options, userOptions);
-				// 转移宿主属性
-				transferStyles(ctrl.$origin, $tableBox);
-				transferAttrs(ctrl.$origin, $tableBox);
-
-				// 分析控件组和控件
-				analysisTable();
-
-
-
-
-				// 
-				ctrl.$origin.after($tableBox);
-				ctrl.$origin.remove();
-
-
-				var $table = $('<table />');
-				var $tr = $('<tr />');
-				var $td = $('<td />');
-
-
-			}());
-
-			ctrl.public.thead = tableData.thead;
-			ctrl.public.tbody = tableData.tbody;
-			ctrl.public.tfoot = tableData.tfoot;
-
-			// 返回
-			return ctrl.public;
-		};
-
-	}(controlGroup('table')));
-
 	// #endregion
 
 	// #region ud2 初始化及返回参数
@@ -5902,33 +6015,36 @@ var ud2 = (function (window, $) {
 				if (type === 'mousedown') $dom.data(typeName, null);
 			});
 		});
-
-		$win.resize(function () {
-			callbacksPageReady.fire();
-		})
+		// 窗口尺寸改变事件
+		$win.bind('resize orientationchange', function () {
+			callbacksPageResize.fire();
+		});
 
 		// 把 ud2.createAll 方法添入页面加载完成回调函数中
 		callbacksPageReady.add(ud2.createAll);
 	}());
 
-	// 公开对象函数库
-	ud2.regex = regex;
-	ud2.support = support;
-	ud2.type = type;
-	ud2.convert = convert;
-	ud2.form = form;
-	// 公开事件对象
-	ud2.animateFrame = animateFrame;
-	ud2.event = event;
-	ud2.eventMouseWheel = eventMouseWheel;
-	// 公开控件对象
-	ud2.ctrl = control;
-	ud2.ctrlGroup = controlGroup;
-	ud2.scroll = scroll;
-	ud2.message = message;
-	ud2.dialog = dialog;
 	// 返回控件
-	return ud2;
+	return extendObjects(ud2, {
+		// 公开对象函数库
+		regex: regex,
+		support: support,
+		type: type,
+		convert: convert,
+		form: form,
+
+		// 公开事件对象
+		animateFrame: animateFrame,
+		event: event,
+		eventMouseWheel: eventMouseWheel,
+
+		// 公开控件对象
+		ctrl: control,
+		ctrlGroup: controlGroup,
+		scroll: scroll,
+		message: message,
+		dialog: dialog
+	});
 
 	// #endregion
 

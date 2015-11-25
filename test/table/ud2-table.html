@@ -15,7 +15,7 @@
 <body>
 
 	<div>
-		<table ud2="table">
+		<table ud2="table" ud2-table-colwidth="200,5*,2.5*,*,2.2.1*">
 			<thead>
 				<tr>
 					<td>标题 1</td>
@@ -33,58 +33,13 @@
 				<td>1.5</td>
 				<td>1.6</td>
 			</tr>
-			<tr>
-				<td>2.2</td>
-				<td>2.3</td>
-				<td>2.4</td>
-				<td>2.5</td>
-				<td>2.6</td>
-			</tr>
-			<tr>
-				<td rowspan="2">3.1</td>
-				<td>3.2</td>
-				<td>3.3</td>
-				<td>3.4</td>
-				<td>3.5</td>
-				<td>3.6</td>
-			</tr>
-			<tr>
-				<td>4.2</td>
-				<td>4.3</td>
-				<td>4.4</td>
-				<td>4.5</td>
-				<td>4.6</td>
-			</tr>
-			<tr>
-				<td rowspan="2">5.1</td>
-				<td>5.2</td>
-				<td>5.3</td>
-				<td>5.4</td>
-				<td>5.5</td>
-				<td>5.6</td>
-			</tr>
-			<tr>
-				<td>6.2</td>
-				<td>6.3</td>
-				<td>6.4</td>
-				<td>6.5</td>
-				<td>6.6</td>
-			</tr>
-			<tfoot>
-				<tr>
-					<td>标题 1</td>
-					<td>标题 2</td>
-					<td colspan="2" rowspan="2">标题 3</td>
-					<td>标题 5</td>
-					<td>标题 6</td>
-				</tr>
-			</tfoot>
+			
 		</table>
 	</div>
 
 	<script>
 		$(function () {
-			ud2.table[0].setHeight(500);
+			ud2.table[0].setRecountByResize(true);
 		});
 	</script>
 

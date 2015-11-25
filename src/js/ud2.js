@@ -5080,7 +5080,15 @@ var ud2 = (function (window, $) {
 					thead: { row: [], col: [], cell: [] },
 					tbody: { row: [], col: [], cell: [] },
 					tfoot: { row: [], col: [], cell: [] },
-					colWidth: []
+					colWidth: [],
+					getColWidth: function (i) {
+						var w = tableData.colWidth[i];
+						if (w === undefined) {
+							w = options.colWidth;
+							tableData.colWidth[i] = w;
+						}
+						return w;
+					}
 				};
 
 			// #endregion
@@ -5094,6 +5102,7 @@ var ud2 = (function (window, $) {
 
 				section.row.push(this);
 			}
+			// 表格行对象原型
 			Row.prototype = {
 				addCell: function (cell) {
 					this.cells.push(cell);
@@ -5114,6 +5123,7 @@ var ud2 = (function (window, $) {
 					}
 				}
 			}
+			// 表格列对象原型
 			Col.prototype = {
 				addCell: function (cell) {
 					this.cells.push(cell);
@@ -5132,6 +5142,7 @@ var ud2 = (function (window, $) {
 					this.bindRowAndCol(rowIndex, colIndex);
 				}
 			}
+			// 表格单元格对象原型
 			Cell.prototype = {
 				bindRowAndCol: function (rowIndex, colIndex) {
 					this.section.row[rowIndex].addCell(this);
@@ -5236,39 +5247,49 @@ var ud2 = (function (window, $) {
 				return $div;
 			}
 			// 表格宽度重置
-			function tableWidthResize(section) {
-				if (section === undefined) {
+			function tableWidthResize() {
+				var args = arguments, argsLen = arguments.length;
+				if (argsLen === 0) {
 					if (tableData.thead.$origin.length !== 0) tableWidthResize(tableData.thead);
 					if (tableData.tbody.$origin.length !== 0) tableWidthResize(tableData.tbody);
 					if (tableData.tfoot.$origin.length !== 0) tableWidthResize(tableData.tfoot);
 					return;
 				}
+				else if (args[0] instanceof Array) {
+					tableData.colWidth = args[0];
+					tableWidthResize();
+				}
+				else if (typeof args[0] === 'number' && typeof args[1] === 'number') {
+					tableData.colWidth[args[0]] = args[1];
+					tableWidthResize();
+				}
+				else if (typeof args[0] === 'object') {
+					var // 表格行           
+						row = args[0].row,
+						// 表格行长度
+						rl = row.length,
+						// 行内单元格
+						cells,
+						// 行内单元格长度
+						cl;
 
-				var // 表格行           
-					row = section.row,
-					// 表格行长度
-					rl = row.length,
-					// 行内单元格
-					cells,
-					// 行内单元格长度
-					cl;
+					// 设置表格宽度
+					args[0].$current.children('table').width(tableData.colWidth.reduce(function (a, b) { return a + b; }));
+					// 遍历表格，设置每个单元格宽度
+					for (var r = 0; r < rl; r++) {
+						cells = row[r].cells; cl = cells.length;
+						for (var c = 0; c < cl ; c++) {
+							var width = tableData.getColWidth(c);
+							if (cells[c].merged) continue;
 
-				// 设置表格宽度
-				section.$current.children('table').width(tableData.colWidth.reduce(function (a, b) { return a + b; }));
-				// 遍历表格，设置每个单元格宽度
-				for (var r = 0; r < rl; r++) {
-					cells = row[r].cells; cl = cells.length;
-					for (var c = 0; c < cl ; c++) {
-						var width = tableData.colWidth[c];
-						if (cells[c].merged) continue;
-
-						if (cells[c].colspan !== 1) {
-							for (var j = 1; j <= cells[c].colspan - 1; j++) {
-								width += tableData.colWidth[c + j];
+							if (cells[c].colspan !== 1) {
+								for (var j = 1; j <= cells[c].colspan - 1; j++) {
+									width += tableData.getColWidth(c + j);
+								}
+								cells[c].$current.css('width', width);
+							} else {
+								cells[c].$current.css('width', width);
 							}
-							cells[c].$current.css('width', width);
-						} else {
-							cells[c].$current.css('width', width);
 						}
 					}
 				}
@@ -5335,6 +5356,9 @@ var ud2 = (function (window, $) {
 
 			// 返回
 			return extendObjects(ctrl.public, {
+				setWidth: tableWidthResize,
+				setHeight: tableHeightResize,
+
 				thead: tableData.thead,
 				tbody: tableData.tbody,
 				tfoot: tableData.tfoot

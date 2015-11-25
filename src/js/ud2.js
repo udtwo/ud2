@@ -5205,7 +5205,6 @@ var ud2 = (function (window, $) {
 						cw[i] = '*';
 					}
 				}
-				console.log(cw);
 				return cw;
 			}
 			// 分析表格行列

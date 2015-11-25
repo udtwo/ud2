@@ -5146,7 +5146,7 @@ var ud2 = (function (window, $) {
 			// 分析表格行列
 			function analysisRanks(section) {
 				var $rows = section.$origin.children('tr'),
-					$cell = $rows.eq(0).children('td'),
+					$cell = $rows.eq(0).children('td, th'),
 					r = 0, c = 0, cs = 0, rs = 0;
 
 				rs = $rows.length;
@@ -5177,7 +5177,7 @@ var ud2 = (function (window, $) {
 						if (isRule) {
 							new Cell(section, '', rs, cs, true, r, c);
 						} else {
-							$td = $trs.eq(r).children('td').eq(cby);
+							$td = $trs.eq(r).children('td, th').eq(cby);
 							cs = parseInt($td.attr('colspan') || 1);
 							rs = parseInt($td.attr('rowspan') || 1);
 							if (cs > 0 || rs > 0) rule.push({ start: [r, c], len: [rs - 1, cs - 1] });

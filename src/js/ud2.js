@@ -5148,9 +5148,11 @@ var ud2 = (function (window, $) {
 				}
 			};
 			// 表格单元格对象
-			function Cell(section, text, rowspan, colspan, merged, rowIndex, colIndex) {
+			function Cell(section, text, className, style, rowspan, colspan, merged, rowIndex, colIndex) {
 				this.section = section;
 				this.text = text;
+				this.className = className;
+				this.style = style;
 				this.rowspan = rowspan;
 				this.colspan = colspan;
 				this.merged = merged || false;
@@ -5225,7 +5227,8 @@ var ud2 = (function (window, $) {
 			function analysisSection(section) {
 				var $trs = section.$origin.children('tr'), $tr, $tds, $td,
 					ranks = analysisRanks(section), rule = [],
-					cs, rs;
+					// colspan rowspan class style
+					cs, rs, cn, sy;
 
 				for (var r = 0; r < ranks.row; r++) {
 					for (var c = 0, cby = 0; c < ranks.col; c++, cby++) {
@@ -5239,13 +5242,15 @@ var ud2 = (function (window, $) {
 							}
 						});
 						if (isRule) {
-							new Cell(section, '', rs, cs, true, r, c);
+							new Cell(section, '', '', '', rs, cs, true, r, c);
 						} else {
 							$td = $trs.eq(r).children('td, th').eq(cby);
 							cs = parseInt($td.attr('colspan') || 1);
 							rs = parseInt($td.attr('rowspan') || 1);
+							cn = $td.attr('class');
+							sy = $td.attr('style');
 							if (cs > 0 || rs > 0) rule.push({ start: [r, c], len: [rs - 1, cs - 1] });
-							new Cell(section, $td.html(), rs, cs, false, r, c);
+							new Cell(section, $td.html(), cn, sy, rs, cs, false, r, c);
 						}
 					}
 				}
@@ -5288,6 +5293,7 @@ var ud2 = (function (window, $) {
 						rh = cell.rowspan > 1 ? ' rowspan="' + cell.rowspan + '"' : '';
 						ch = cell.colspan > 1 ? ' colspan="' + cell.colspan + '"' : '';
 						$td = $('<td' + rh + ch + '>' + cell.text + '</td>');
+						$td.addClass(cell.className).attr('style', cell.style);
 						cell.$current = $td;
 						$tr.append($td);
 					}

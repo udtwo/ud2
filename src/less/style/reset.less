@@ -36,6 +36,11 @@ li {
 // 清除 a 的默认样式
 a {
 	text-decoration: none;
+
+	// 部分浏览器 a 标签内的图像会有默认的边框，清除此边框
+	img {
+		border: 0;
+	}
 }
 // 清除交互控件的默认系统样式
 :not(:root) {

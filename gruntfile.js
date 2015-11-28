@@ -59,6 +59,7 @@ module.exports = function (grunt) {
 					'dist/css/ud2.css': [
 						'src/less/style/reset.less',
 						'src/less/style/base.less',
+						'src/less/style/ico.less',
 						'src/less/style/form.less',
 						'src/less/style/scroll.less',
 						'src/less/style/table.less',

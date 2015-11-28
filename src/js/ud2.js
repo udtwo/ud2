@@ -3331,7 +3331,7 @@ var ud2 = (function (window, $) {
 				// 控件对象
 				$address = $(
 					'<div class="' + className + '"><a class="' + className + '-btn" />'
-					+ '<div class="ud2-ctrl-power"><i class="ico">&#xe773;</i><i class="ico">&#xe689;</i></div>'
+					+ '<div class="ud2-ctrl-power"><i class="ico ico-position"></i><i class="ico ico-solid-cancel"></i></div>'
 					+ '<div class="' + className + '-list">'
 					+ '<div class="' + className + '-tabbox"><div class="' + className + '-tab">省份</div><div class="' + className + '-tab">城市</div><div class="' + className + '-tab">区县</div></div>'
 					+ '<div class="' + className + '-areabox ' + className + '-load" /></div>'
@@ -3730,7 +3730,7 @@ var ud2 = (function (window, $) {
 				$range = $(
 					'<div class="' + className + '">'
 					+ '<input type="text" maxlength="20" class="ud2-ctrl-txtbox" />'
-					+ '<div class="ud2-ctrl-power"><i class="ico">&#xe81b;</i><i class="ico">&#xe689;</i></div>'
+					+ '<div class="ud2-ctrl-power"><i class="ico ico-range-x"></i><i class="ico ico-solid-cancel"></i></div>'
 					+ '<div class="' + className + '-list"><div class="' + className + '-end" /><div class="' + className + '-back" /></div>'
 					+ '</div>'
 				),
@@ -4158,9 +4158,9 @@ var ud2 = (function (window, $) {
 				// 控件对象
 				$number = $(
 					'<div class="' + className + '">'
-					+ '<a class="' + className + '-ico">&#xe6b6;</a>'
+					+ '<a class="' + className + '-ico">&#xe106;</a>'
 					+ '<div class="' + className + '-move"><input type="text" value="0" class="ud2-ctrl-txtbox" /></div>'
-					+ '<a class="' + className + '-ico">&#xe6b7;</a>'
+					+ '<a class="' + className + '-ico">&#xe107;</a>'
 					+ '</div>'
 				),
 				// 输入框对象
@@ -4441,7 +4441,7 @@ var ud2 = (function (window, $) {
 				$calendar = $(
 					'<div class="' + className + '">'
 					+ '<input type="text" placeholder="' + options.autoText + '" maxlength="20" class="ud2-ctrl-txtbox" />'
-					+ '<span class="ud2-ctrl-power"><i class="ico">&#xe634;</i><i class="ico">&#xe689;</i></span>'
+					+ '<span class="ud2-ctrl-power"><i class="ico ico-calendar"></i><i class="ico ico-solid-cancel"></i></span>'
 					+ '<div class="' + className + '-list">'
 
 					// 日期列表
@@ -5697,11 +5697,11 @@ var ud2 = (function (window, $) {
 			// 控件 full 类型
 			function fileTypeFull() {
 				var // 无文件
-					$fileEmpty = $('<div class="' + className + '-full-nofile"><button class="btn btn-blue btn-solid" ud2-file-add><i class="ico">&#xe617;</i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em></div>'),
+					$fileEmpty = $('<div class="' + className + '-full-nofile"><button class="btn btn-blue btn-solid" ud2-file-add><i class="ico ico-group-file"></i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em></div>'),
 					// 拖拽文件
 					$fileDrag = $('<div class="' + className + '-full-drag">请松开鼠标按钮，文件将进入待上传队列</div>'),
 					// 图片列表
-					$fileList = $('<div class="' + className + '-full-list"><div class="' + className + '-full-add" ud2-file-add><div><i class="ico">&#xe683;</i><em>继续添加文件</em></div></div></div>'),
+					$fileList = $('<div class="' + className + '-full-list"><div class="' + className + '-full-add" ud2-file-add><div><i class="ico ico-hollow-plus"></i><em>继续添加文件</em></div></div></div>'),
 					// 上传按钮
 					$fileTools = $('<div class="' + className + '-full-tools"><button class="btn btn-solid">确定上传</button><button class="btn btn-solid">清空列表</button></div>'),
 					// 控件添加按钮

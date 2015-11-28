@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+	<title></title>
+	<link href="../../dist/css/ud2.css" rel="stylesheet" />
+	<script src="../../vendor/js/jquery.js"></script>
+	<script src="../../src/js/ud2.js"></script>
+
+	<style>
+		.a {
+			width: 300px;
+			height: 200px;
+			background: #fcd679;
+		}
+
+		.b {
+			position: fixed;
+			top: 0;
+			right: 0;
+			width: 200px;
+			height: 100%;
+			background: #fc79d6;
+		}
+
+		.c {
+			width: 500px;
+			height: 500px;
+			background: #79d6fc;
+		}
+
+		.b a {
+			cursor: pointer;
+		}
+
+		.c .main {
+			width: 3000px;
+			height: 1000px;
+			background: #d679fc;
+		}
+	</style>
+</head>
+<body>
+
+	<script>
+		ud2.message("这是一个信息提示", ud2.style.info);
+		ud2.message("这是一个成功提示", ud2.style.success);
+		ud2.message("这是一个警告提示", ud2.style.warning);
+		ud2.message("这是一个危险提示", ud2.style.danger);
+
+		window.setTimeout(function () {
+			ud2.message("1秒后，这是一个成功提示", ud2.style.success);
+		}, 1000);
+		window.setTimeout(function () {
+			ud2.message("3秒后，这是一个信息提示", ud2.style.info);
+		}, 3000);
+		window.setTimeout(function () {
+			ud2.message("5秒后，这是一个危险提示", ud2.style.danger);
+		}, 5000);
+		window.setTimeout(function () {
+			ud2.message("7秒后，这是一个警告提示", ud2.style.warning);
+		}, 7000);
+	</script>
+
+</body>
+</html>
+

@@ -130,6 +130,8 @@ var ud2 = (function (window, $) {
 		// 返回 false 的空方法
 		fnReturnFalse = function () { return false; },
 
+		// 标记页面是否加载完成
+		pageLoaded = false,
 		// 页面完成加载时的回调函数
 		callbacksPageReady = $.Callbacks(),
 		// 页面尺寸改变时的回调函数
@@ -1488,10 +1490,10 @@ var ud2 = (function (window, $) {
 			style.ico = function (style) {
 				var str;
 				switch (style) {
-					case 1: str = '<i class="ico">&#xe687;</i>'; break;
-					case 2: str = '<i class="ico">&#xe693;</i>'; break;
-					case 3: str = '<i class="ico">&#xe698;</i>'; break;
-					case 4: str = '<i class="ico">&#xe689;</i>'; break;
+					case 1: str = '<i class="ico ico-info"></i>'; break;
+					case 2: str = '<i class="ico ico-ok"></i>'; break;
+					case 3: str = '<i class="ico ico-warning"></i>'; break;
+					case 4: str = '<i class="ico ico-cancel"></i>'; break;
 				}
 				return str;
 			}
@@ -2521,9 +2523,16 @@ var ud2 = (function (window, $) {
 
 		// 初始化
 		(function init() {
-			create();
-			siblingsMove();
-			window.setTimeout(remove, 5000);
+			var init = function () {
+				create();
+				siblingsMove();
+				window.setTimeout(remove, 5000);
+			};
+
+			// 创建信息
+			// 页面未加载完成时，自动加入页面完成回调，否则直接执行
+			if (pageLoaded) init();
+			else callbacksPageReady.add(init);
 		}());
 	};
 	// 会话控件
@@ -2668,8 +2677,11 @@ var ud2 = (function (window, $) {
 			(function init() {
 				// 设置初始选项
 				setOptions(options, userOptions);
+
 				// 创建会话
-				create();
+				// 页面未加载完成时，自动加入页面完成回调，否则直接执行
+				if (pageLoaded) create();
+				else callbacksPageReady.add(create);
 			}());
 
 			// 返回
@@ -6161,6 +6173,8 @@ var ud2 = (function (window, $) {
 			if (support.safari) document.body.addEventListener('touchstart', $.noop);
 			// 执行 PageReady 的回调函数
 			callbacksPageReady.fire();
+			// 网页加载完成标记
+			pageLoaded = true;
 
 			// 当用户触碰屏幕且未触碰任何有价值(无效触碰)控件时，执行页面触碰按下的事件回调
 			// 用途是解决部分控件当触碰控件外时执行相应回调方法

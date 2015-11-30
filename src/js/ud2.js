@@ -5412,7 +5412,10 @@ var ud2 = (function (window, $) {
 							if (cells[c].merged) continue;
 
 							if (cells[c].colspan !== 1) {
-								for (var j = 1, w, we; j <= cells[c].colspan - 1; j++) {
+								var // 合并单元格个数(不包括自己)
+									cross = cells[c].colspan - 1;
+
+								for (var j = 1, w, we; j <= cross; j++) {
 									w = tableData.getColWidth(c + j);
 									we = colWidthReg.exec(w);
 									if (we) {
@@ -5421,8 +5424,10 @@ var ud2 = (function (window, $) {
 										w = xWidth * wn;
 										w = w < options.autoMinWidth ? options.autoMinWidth : w;
 									}
-									width += w;
+									width += w - cross;
 								}
+							} else {
+								width -= 1;
 							}
 
 							cells[c].$current.css('width', width).children().css('width', width);

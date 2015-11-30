@@ -21,17 +21,40 @@
 		border-spacing: 0;
 		border-collapse: separate;
 
-		> * > tr > td, > * > tr > th {
+		> * > tr > * {
 			border-bottom: 1px solid @ColorWhiteBorder;
-			padding: @BaseSize / 2;
-			line-height: 1.4;
-			.textOverflow();
-			.boxSizing('border-box');
+			padding: 0;
 
-			&:not(:last-child) {
-				border-right: 1px solid @ColorWhiteBorder;
+			&, > div {
+				.boxSizing('border-box');
+			}
+
+			> div {
+				position: relative;
+				width: 100%;
+				line-height: 1.5;
+				padding: @BaseSize / 2;
+				.textOverflow();
+			}
+
+			&:not(:last-child) > div {
+				&::before {
+					display: block;
+					content: '';
+					right: 0;
+					top: 0;
+					bottom: 0;
+					position: absolute;
+					width: 1px;
+					background: @ColorWhiteBorder;
+				}
 			}
 		}
+	}
+}
+.ud2-table-tbody {
+	> table > tbody > tr:hover > * {
+		background: @ColorBlueBackLight;
 	}
 }
 // 用于计算滚动条尺寸的容器样式
@@ -51,7 +74,7 @@
 	overflow: hidden;
 	background: @ColorWhiteDeeper;
 
-	> table > tbody > tr > td, > table > tbody > tr > th {
+	> table > tbody > tr > * {
 		font-weight: 800;
 	}
 }
@@ -60,7 +83,7 @@
 	position: relative;
 	top: 0; left: 0;
 	width: 100%;
-	height: 300px;
+	height: 400px;
 	overflow: scroll;
 }
 // 设置表格头部边框样式

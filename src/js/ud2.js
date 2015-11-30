@@ -5082,6 +5082,8 @@ var ud2 = (function (window, $) {
 					// 设置浏览器尺寸发生改变时是否重新计算表格主体区域宽度及高度
 					// 如果设置此值为 true，则浏览器发生 orientationchange 与 resize 事件时，表格主体区域重新计算
 					recountByResize: false,
+					// 自动运算单元格最小宽度
+					autoMinWidth: ctrl.attr('colwidth-auto') || 26,
 					// 默认表格列宽度
 					// * 表格整个宽度去掉已确定的部分单元格宽度后，剩余宽度平分
 					colNormalWidth: ctrl.attr('colwidth-normal') || '*',
@@ -5188,11 +5190,12 @@ var ud2 = (function (window, $) {
 
 			// 获取滚动条尺寸
 			function getScrollSize() {
-				var p = document.createElement('p'), i, scrollbarWidth;
+				var p = document.createElement('p'), main = tableData.tbody.$current.get(0),
+					i, scrollbarWidth;
 				p.className = className + '-scroll';
-				tableData.tbody.$current.get(0).appendChild(p);
+				main.appendChild(p);
 				scrollbarWidth = p.offsetWidth - p.clientWidth;
-				p.remove();
+				main.removeChild(p);
 				return scrollbarWidth + 3;
 			}
 			// 处理传入列宽度集合
@@ -5304,7 +5307,7 @@ var ud2 = (function (window, $) {
 						if (cell.merged) continue;
 						rh = cell.rowspan > 1 ? ' rowspan="' + cell.rowspan + '"' : '';
 						ch = cell.colspan > 1 ? ' colspan="' + cell.colspan + '"' : '';
-						$td = $('<td' + rh + ch + '>' + cell.text + '</td>');
+						$td = $('<td' + rh + ch + '><div>' + cell.text + '</div></td>');
 						$td.addClass(cell.className).attr('style', cell.style);
 						cell.$current = $td;
 						$tr.append($td);
@@ -5374,25 +5377,26 @@ var ud2 = (function (window, $) {
 						}
 					});
 
+
 					if (xNum > 0) {
 						var // tableBox 父元素宽度
 							pw = $tableBox.parent().width();
 						if (!scrollSize) scrollSize = getScrollSize();
 						pw -= scrollSize;
-						if (pw > cWidth + 26 * xNum) {
+						if (pw > cWidth + options.autoMinWidth * xNum) {
 							tableWidth = pw;
 							xWidth = (pw - cWidth) / xTimes;
 						}
 						else {
 							tableWidth = cWidth;
-							xWidth = 26;
+							xWidth = options.autoMinWidth;
 						}
 					}
 					else {
 						tableWidth = tableData.colWidth.reduce(function (a, b) { return a + b; });
 					}
 					args[0].$current.children('table').width(tableWidth);
-
+					
 					// 迭代表格，设置每个单元格宽度
 					for (var r = 0; r < rl; r++) {
 						cells = row[r].cells; cl = cells.length;
@@ -5402,7 +5406,7 @@ var ud2 = (function (window, $) {
 								var n = parseFloat(e[1]);
 								n = isNaN(n) ? 1 : n;
 								width = xWidth * n;
-								width = width < 26 ? 26 : width;
+								width = width < options.autoMinWidth ? options.autoMinWidth : width;
 							}
 
 							if (cells[c].merged) continue;
@@ -5415,12 +5419,13 @@ var ud2 = (function (window, $) {
 										var wn = parseFloat(we[1]);
 										wn = isNaN(wn) ? 1 : wn;
 										w = xWidth * wn;
-										w = w < 26 ? 26 : w;
+										w = w < options.autoMinWidth ? options.autoMinWidth : w;
 									}
 									width += w;
 								}
 							}
-							cells[c].$current.css('width', width);
+
+							cells[c].$current.css('width', width).children().css('width', width);
 						}
 					}
 				}

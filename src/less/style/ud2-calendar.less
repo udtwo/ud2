@@ -102,12 +102,15 @@
 // 设置控件的两侧工具样式
 .ud2-calendar-tools-left, .ud2-calendar-tools-right {
 	position: absolute;
-	top: .25em;
+	top: 2px;
 
 	.ico {
-		display: inline-block;
-		cursor: pointer;
+		display: inline-block; 
+		width: 2em;
+		font-size: 12px;
+		text-align: center;
 		color: @ColorTextNoImport;
+		cursor: pointer;
 		.transition('color .3s');
 
 		&:hover {
@@ -168,10 +171,22 @@
 	.ud2-calendar-list {
 		top: @CtrlHeight;
 	}
+
+	.ud2-calendar-tools-left, .ud2-calendar-tools-right {
+		.ico {
+			.transform('scale(.9)');
+		}
+	}
 }
 // 设置控件的大尺寸方案
 .ud2-calendar.lg, .ctrl-group.lg {
 	.ud2-calendar-list {
 		top: @CtrlHeight + 8;
+	}
+	
+	.ud2-calendar-tools-left, .ud2-calendar-tools-right {
+		.ico {
+			.transform('scale(1.1)');
+		}
 	}
 }

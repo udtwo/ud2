@@ -648,6 +648,28 @@ var ud2 = (function (window, $) {
 				else $element.unbind('selectstart', fnReturnFalse);
 			}
 		}
+		// 临时遮罩阻止 touch 穿透行为
+		function temporaryMask() {
+			if (!support.safari) return;
+			var $mask = $div.clone().css({
+				'position': 'fixed',
+				'top': 0, 'right': 0, 'left': 0, 'bottom': 0,
+				'z-index': 999999999
+			}), timer;
+
+			$body.append($mask);
+			$mask.bind(TOUCH_START, function (event) {
+				event.stopPropagation();
+				event.preventDefault();
+				return;
+			}).bind('click', function (event) {
+				event.preventDefault();
+				event.stopPropagation();
+				if (timer) window.clearTimeout(timer);
+				$mask.remove();
+			});
+			timer = window.setTimeout(function () { $mask.remove(); }, 500);
+		}
 
 		// #endregion
 
@@ -1107,6 +1129,7 @@ var ud2 = (function (window, $) {
 							// 检测是否 tap 方式
 							// 存在一个按压时间，且时间小于 options.tapMaxTime
 							if (interval < options.tapMaxTime) {
+								temporaryMask();
 								callbacks.tap.call($element);
 							}
 							else {
@@ -4458,14 +4481,14 @@ var ud2 = (function (window, $) {
 
 					// 日期列表
 					+ '<div class="' + className + '-datelist"><div class="ud2-calendar-tools">'
-					+ '<div class="ud2-calendar-tools-left"><a class="ico ico-rotate-half" title="' + tipsString[0] + '">&#xe6f7;</a><a class="ico ico-rotate-half" title="' + tipsString[2] + '">&#xe6f1;</a></div>'
-					+ '<div class="ud2-calendar-tools-right"><a class="ico" title="' + tipsString[3] + '">&#xe6f1;</a><a class="ico" title="' + tipsString[1] + '">&#xe6f7;</a></div>'
+					+ '<div class="ud2-calendar-tools-left"><a class="ico" title="' + tipsString[0] + '">&#xec00;</a><a class="ico" title="' + tipsString[2] + '">&#xec01;</a></div>'
+					+ '<div class="ud2-calendar-tools-right"><a class="ico" title="' + tipsString[3] + '">&#xec02;</a><a class="ico" title="' + tipsString[1] + '">&#xec03;</a></div>'
 					+ '<div class="ud2-calendar-tools-text" title="' + tipsString[6] + '">-年 -月</div>'
 					+ '</div><table /><div class="ud2-calendar-btns"><button class="btn sm" tabindex="-1">今日</button></div></div>'
 					// 时间列表
 					+ '<div class="' + className + '-ymlist"><div class="ud2-calendar-tools">'
-					+ '<div class="ud2-calendar-tools-left"><a class="ico ico-rotate-half" title="' + tipsString[4] + '">&#xe6f7;</a></div>'
-					+ '<div class="ud2-calendar-tools-right"><a class="ico" title="' + tipsString[5] + '">&#xe6f7;</a></div>'
+					+ '<div class="ud2-calendar-tools-left"><a class="ico" title="' + tipsString[4] + '">&#xec00;</a></div>'
+					+ '<div class="ud2-calendar-tools-right"><a class="ico" title="' + tipsString[5] + '">&#xec03;</a></div>'
 					+ '<div class="ud2-calendar-tools-text" title="' + tipsString[7] + '">年份 / 月份</div>'
 					+ '</div><table /><div class="ud2-calendar-btns"><button class="btn sm" tabindex="-1">确定</button></div></div>'
 
@@ -4479,6 +4502,12 @@ var ud2 = (function (window, $) {
 				$calendarDate = $calendar.find('.' + className + '-datelist'),
 				// 年月容器
 				$calendarYM = $calendar.find('.' + className + '-ymlist'),
+				// 日期文本容器 
+				$textDate = $calendarDate.find('.' + className + '-tools-text'),
+				// 年月文本容器
+				$textYM = $calendarYM.find('.' + className + '-tools-text'),
+				// 今日按钮
+				$todayBtn = $calendarDate.find('.' + className + '-btns button'),
 				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 回调函数
@@ -4544,11 +4573,7 @@ var ud2 = (function (window, $) {
 			// 日期初始化
 			function dateInit() {
 				var // 工具按钮
-					$toolsBtn = $calendarDate.find('.' + className + '-tools a'),
-					// 底部按钮
-					$bottomBtn = $calendarDate.find('.' + className + '-btns button'),
-					// 文本容器 
-					$text = $calendarDate.find('.' + className + '-tools-text');
+					$toolsBtn = $calendarDate.find('.' + className + '-tools a');
 
 				dateHtmlCreate();
 				event($toolsBtn.eq(0)).setTap(function () {
@@ -4567,13 +4592,13 @@ var ud2 = (function (window, $) {
 					dateValue.select.setMonth(dateValue.select.getMonth() + 1);
 					dateHtmlCreate();
 				});
-				event($text).setTap(function () {
+				event($textDate).setTap(function () {
 					$calendarDate.slideUp(300);
 					$calendarYM.slideDown(300);
 					ymHtmlCreate();
 				});
 
-				event($bottomBtn.eq(0)).setTap(function () {
+				event($todayBtn).setTap(function() {
 					dateValue.setDateValue(dateValue.now.getFullYear(), dateValue.now.getMonth() + 1, dateValue.now.getDate());
 					close(true);
 				});
@@ -4653,9 +4678,7 @@ var ud2 = (function (window, $) {
 				var // 工具按钮
 					$toolsBtn = $calendarYM.find('.' + className + '-tools a'),
 					// 底部按钮
-					$bottomBtn = $calendarYM.find('.' + className + '-btns button'),
-					// 文本容器 
-					$text = $calendarYM.find('.' + className + '-tools-text');
+					$bottomBtn = $calendarYM.find('.' + className + '-btns button');
 
 				ymHtmlCreate();
 
@@ -4663,19 +4686,17 @@ var ud2 = (function (window, $) {
 					dateValue.select.setFullYear(dateValue.select.getFullYear() - 12);
 					ymHtmlCreate();
 				});
-
 				event($toolsBtn.eq(1)).setTap(function () {
 					dateValue.select.setFullYear(dateValue.select.getFullYear() + 12);
 					ymHtmlCreate();
 				});
-
 				event($bottomBtn.eq(0)).setTap(function () {
 					$calendarDate.slideDown(300);
 					$calendarYM.slideUp(300);
 					dateHtmlCreate();
 				});
 
-				event($text).setTap(function () {
+				event($textYM).setTap(function () {
 					$calendarDate.slideDown(300);
 					$calendarYM.slideUp(300);
 					dateHtmlCreate();

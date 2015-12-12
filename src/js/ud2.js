@@ -5560,10 +5560,10 @@ var ud2 = (function (window, $) {
 			}
 			// 设置浏览器窗口触发 resize 事件时，是否重新计算控件尺寸
 			function setRecountByResize(val) {
-				val = !!val;
-				recountByResize = val;
-				if (val) {
+				recountByResize = !!val;
+				if (recountByResize) {
 					callbacksPageResize.add(resizeEvent);
+					resizeEvent();
 				} else {
 					callbacksPageResize.remove(resizeEvent);
 				}

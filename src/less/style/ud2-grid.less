@@ -1,5 +1,5 @@
 ﻿/**
- * ud2-table.less
+ * ud2-grid.less
  * 表格控件的默认样式
  */
 
@@ -7,67 +7,67 @@
 @import "../import/import.less";
 
 // 为所有带有 .ud2-table 的标签设置内部样式
-.ud2-table {
+.ud2-grid {
 	display: block;
 	width: 100%;
 	height: 100%;
 	border: 1px solid @ColorWhiteBorder;
 	border-radius: @BorderRadius;
 	overflow: hidden;
-	.boxSizing('border-box');
-
-	> * > table {
-		table-layout: fixed;
-		border-spacing: 0;
-		border-collapse: separate;
-
-		> * > tr > * {
-			border-right: 1px solid @ColorWhiteBorder;
-			border-bottom: 1px solid @ColorWhiteBorder;
-			padding: 0;
-
-			&, > div {
-				.boxSizing('border-box');
-			}
-
-			> div {
-				position: relative;
-				width: 100%;
-				line-height: 1.5;
-				padding: @BaseSize / 2;
-				.textOverflow();
-			}
-		}
-	}
 }
-.ud2-table-tbody {
-	> table > tbody > tr:hover > * {
-		background: @ColorBlueBackLight;
-	}
+// 设置盒模型渲染模式
+.ud2-grid, .ud2-grid-cell, .ud2-grid-cell-content {
+	.boxSizing('border-box');
+}
+// 设置表格样式
+.ud2-grid-table {
+	table-layout: fixed;
+	border-spacing: 0;
+	border-collapse: separate;
+}
+// 设置单元格样式
+.ud2-grid-cell {
+	border-right: 1px solid @ColorWhiteBorder;
+	border-bottom: 1px solid @ColorWhiteBorder;
+	padding: 0;
+}
+// 设置单元格内容样式
+.ud2-grid-cell-content {
+	position: relative;
+	width: 0;
+	min-width: 100%;
+	line-height: 1.5;
+	padding: @BaseSize / 2;
+	.textOverflow();
+}
+// 设置行滑入样式
+.ud2-grid-tbody .ud2-grid-row:hover .ud2-grid-cell {
+	background: @ColorBlueBackLight;
 }
 // 用于计算滚动条尺寸的容器样式
-.ud2-table-scroll {
+.ud2-grid-scroll {
 	width: 100px;
 	height: 100px;
 	overflow-y: scroll;
 }
-// 设置滚动条样式
-.ud2-table, .ud2-table-scroll, .ud2-table-tbody {
-	.scrollStyle(5px);
-}
 // 设置表格头部、表格尾部样式
-.ud2-table-thead, .ud2-table-tfoot {
+.ud2-grid-thead, .ud2-grid-tfoot {
 	position: relative;
 	top: 0; left: 0;
 	overflow: hidden;
 	background: @ColorWhiteDeeper;
 
-	> table > tbody > tr > * {
+	.ud2-grid-inner {
+		float: left;
+		padding-right: 20px;
+	}
+
+	.ud2-grid-cell {
 		font-weight: 800;
 	}
 }
 // 设置表格主题样式
-.ud2-table-tbody {
+.ud2-grid-tbody {
 	position: relative;
 	top: 0; left: 0;
 	width: 100%;
@@ -75,10 +75,10 @@
 	overflow: scroll;
 }
 // 设置表格头部边框样式
-.ud2-table-thead {
+.ud2-grid-thead {
 	border-bottom: 1px solid @ColorWhiteBorder;
 }
 // 设置表格尾部边框样式
-.ud2-table-tfoot {
+.ud2-grid-tfoot {
 	border-top: 2px solid @ColorWhiteBorder;
 }

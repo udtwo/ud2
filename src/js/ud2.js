@@ -1513,10 +1513,10 @@ var ud2 = (function (window, $) {
 			style.ico = function (style) {
 				var str;
 				switch (style) {
-					case 1: str = '<i class="ico ico-info"></i>'; break;
-					case 2: str = '<i class="ico ico-ok"></i>'; break;
-					case 3: str = '<i class="ico ico-warning"></i>'; break;
-					case 4: str = '<i class="ico ico-cancel"></i>'; break;
+					case 1: str = '<i class="ico ico-hollow-info"></i>'; break;
+					case 2: str = '<i class="ico ico-hollow-ok"></i>'; break;
+					case 3: str = '<i class="ico ico-hollow-warning"></i>'; break;
+					case 4: str = '<i class="ico ico-hollow-cancel"></i>'; break;
 				}
 				return str;
 			}
@@ -5084,7 +5084,7 @@ var ud2 = (function (window, $) {
 	}(controlGroup('page')));
 	// JS 表格控件集合
 	// * 此控件会 remove 掉原宿主对象
-	var table = (function (group) {
+	var grid = (function (group) {
 
 		// 重写 init 方法
 		// 创建一个 JS 选择控件，此控件重写了原 HTML 的 table 控件
@@ -5104,24 +5104,15 @@ var ud2 = (function (window, $) {
 					// 如果设置此值为 true，则浏览器发生 orientationchange 与 resize 事件时，表格主体区域重新计算
 					recountByResize: false,
 					// 自动运算单元格最小宽度
-					autoMinWidth: ctrl.attr('colwidth-auto') || 26,
+					autoMinWidth: ctrl.attr('colwidth-auto'),
 					// 默认表格列宽度
 					// * 表格整个宽度去掉已确定的部分单元格宽度后，剩余宽度平分
-					colNormalWidth: ctrl.attr('colwidth-normal') || '*',
+					colNormalWidth: ctrl.attr('colwidth-normal'),
 					// 设置全部表格宽度
-					colAllWidth: function () {
-						var aw = ctrl.attr('colwidth');
-						if (type.isString(aw) && aw !== '') {
-							return aw.split(',');
-						}
-						else {
-							return [];
-						}
-					}(),
-					// 表格排版计算方式
-					// fixed 固定计算  scale 比例计算
-					colLayout: ctrl.attr('col-layout') || 'fixed'
+					colAllWidth: ctrl.attr('colwidth')
 				},
+				// 尺寸改变重计算  单元格最小宽度  表格列宽度       表格全部宽度
+				recountByResize, autoMinWidth, colNormalWidth, colAllWidth,
 				// 列宽度验证正则
 				colWidthReg = /([0-9\.]*)\*$/,
 				// 表格外层容器
@@ -5150,6 +5141,9 @@ var ud2 = (function (window, $) {
 
 			// 表格行对象
 			function Row(section) {
+				if (!(this instanceof Row)) { return new Row(section); }
+				if (!section) return;
+
 				this.section = section;
 				this.cells = [];
 
@@ -5163,18 +5157,13 @@ var ud2 = (function (window, $) {
 			};
 			// 表格列对象
 			function Col(section) {
+				if (!(this instanceof Col)) { return new Col(section); }
+				if (!section) return;
+
 				this.section = section;
 				this.cells = [];
-				section.col.push(this);
 
-				// 宽度数据管理
-				if (tableData.colWidth.current === undefined
-					|| tableData.colWidth.current === this.section) {
-					var index = section.col.length - 1;
-					if (tableData.colWidth[index] === undefined) {
-						tableData.colWidth[index] = options.colNormalWidth;
-					}
-				}
+				section.col.push(this);
 			}
 			// 表格列对象原型
 			Col.prototype = {
@@ -5183,25 +5172,88 @@ var ud2 = (function (window, $) {
 				}
 			};
 			// 表格单元格对象
-			function Cell(section, text, className, style, rowspan, colspan, merged, rowIndex, colIndex) {
-				this.section = section;
-				this.text = text;
-				this.className = className;
-				this.style = style;
-				this.rowspan = rowspan;
-				this.colspan = colspan;
-				this.merged = merged || false;
+			// (options)
+			// (section, text)
+			// (section, text, rowIndex, colIndex)
+			// (section, text, rowIndex, colIndex, merged)
+			// (section, text, rowIndex, colIndex, rowspan, colspan)
+			// (section, text, className, style)
+			// (section, text, className, style, rowIndex, colIndex)
+			// (section, text, className, style, rowIndex, colIndex, merged)
+			// (section, text, className, style, rowIndex, colIndex, rowspan, colspan)
+			function Cell() {
+				var args = arguments, argsLen = args.length;
+				if (!(this instanceof Cell)) {
+					return Cell.apply(new Cell, args);
+				}
+				if (argsLen > 1) {
+					var section = args[0], text = args[1], className = '', style = '',
+						rowspan = 1, colspan = 1, merged = false, rowIndex = 0, colIndex = 0;
+
+					if (argsLen >= 4 && type.isNumber(args[2]) && type.isNumber(args[3])) {
+						rowIndex = args[2]; colIndex = args[3];
+						if (argsLen === 5) {
+							merged = args[4];
+							if (merged) {
+								rowspan = 0; colspan = 0;
+							} else {
+								rowspan = 1; colspan = 1;
+							}
+						}
+						if (argsLen === 6) {
+							merged = false; rowspan = args[4]; colspan = args[5];
+						}
+					}
+					else if (argsLen >= 4) {
+						className = args[2]; style = args[3];
+						if (argsLen >= 6) {
+							rowIndex = args[4]; colIndex = args[5];
+							if (argsLen === 7) {
+								merged = args[6];
+								if (merged) {
+									rowspan = 0; colspan = 0;
+								} else {
+									rowspan = 1; colspan = 1;
+								}
+							}
+							if (argsLen === 8) {
+								merged = false; rowspan = args[6]; colspan = args[7];
+							}
+						}
+					}
+
+					return Cell.call(this, {
+						section: section, text: text,
+						className: className, style: style,
+						rowIndex: rowIndex, colIndex: colIndex,
+						rowspan: rowspan, colspan: colspan, merged: merged
+					});
+				}
+				if (!(args.length === 1 && type.isObject(args[0]))) return;
+
+				var opt = args[0];
+				this.section = opt.section || tableData.tbody;
+				this.text = opt.text || '';
+				this.className = opt.className || '';
+				this.style = opt.style || '';
+				this.rowspan = opt.rowspan || 1;
+				this.colspan = opt.colspan || 1;
+				this.rowIndex = opt.rowIndex;
+				this.colIndex = opt.colIndex;
+				this.merged = opt.merged || false;
 
 				this.section.cell.push(this);
-				if (rowIndex !== undefined && colIndex !== undefined) {
-					this.bindRowAndCol(rowIndex, colIndex);
+				if (this.rowIndex !== undefined && this.colIndex !== undefined) {
+					this.bindRowAndCol(this.rowIndex, this.colIndex);
 				}
 			}
 			// 表格单元格对象原型
 			Cell.prototype = {
 				bindRowAndCol: function (rowIndex, colIndex) {
-					this.section.row[rowIndex].addCell(this);
-					this.section.col[colIndex].addCell(this);
+					if (rowIndex) this.rowIndex = rowIndex;
+					if (colIndex) this.colIndex = colIndex;
+					this.section.row[this.rowIndex].addCell(this);
+					this.section.col[this.colIndex].addCell(this);
 				}
 			};
 
@@ -5209,9 +5261,36 @@ var ud2 = (function (window, $) {
 
 			// #region 私有方法
 
+			// 检测传入选项
+			function checkOptions() {
+				// 检测 recountByResize 选项
+				// 当选项不存在时，默认选项为 false
+				recountByResize = !!options.recountByResize || false;
+				// 检测 autoMinWidth 选项
+				// 当选项非数字时，强制转换为数字；如无法转换，则转换为最小值 26
+				autoMinWidth = parseFloat(options.autoMinWidth);
+				if (isNaN(autoMinWidth) || autoMinWidth < 0) autoMinWidth = 26;
+				// 检测 colNormalWidth 选项
+				// 当选项非星号时，强制转换为数字；如无法转换，则转换为星号
+				if (colNormalWidth !== '*') {
+					colNormalWidth = parseFloat(options.colNormalWidth);
+					if (isNaN(colNormalWidth) || colNormalWidth < 0) colNormalWidth = '*';
+				}
+				// 当 colAllWidth 选项非数组时，转换其值为数组
+				colAllWidth = options.colAllWidth;
+				if (!(colAllWidth instanceof Array)) {
+					if (type.isString(colAllWidth) && colAllWidth !== '') {
+						colAllWidth = colAllWidth.split(',');
+					}
+					else {
+						colAllWidth = [];
+					}
+				}
+			}
 			// 获取滚动条尺寸
 			function getScrollSize() {
-				var p = document.createElement('p'), main = tableData.tbody.$current.get(0),
+				var p = document.createElement('p'),
+					main = tableData.tbody.$current.get(0),
 					i, scrollbarWidth;
 				p.className = className + '-scroll';
 				main.appendChild(p);
@@ -5230,20 +5309,25 @@ var ud2 = (function (window, $) {
 									var pe = parseFloat(e[1]);
 									if (!isNaN(pe)) r = pe + r;
 								}
+								return r;
 							}
-							return r;
+							else {
+								return colNormalWidth;
+							}
 						} else {
-							return parseFloat(i);
+							var e = parseFloat(i);
+							if (e < 0) e = colNormalWidth;
+							return e;
 						}
 					}), cwl = cw.length,
 					cl = Math.max(tableData.thead.col.length, tableData.tbody.col.length, tableData.tfoot.col.length);
 
 				if (cl > cwl) {
 					for (var i = cwl; i < cl; i++) {
-						cw[i] = '*';
+						cw[i] = colNormalWidth;
 					}
 				}
-				return cw;
+				tableData.colWidth = cw;
 			}
 			// 分析表格行列
 			function analysisRanks(section) {
@@ -5267,7 +5351,7 @@ var ud2 = (function (window, $) {
 					cs, rs, cn, sy;
 
 				for (var r = 0; r < ranks.row; r++) {
-					for (var c = 0, cby = 0; c < ranks.col; c++, cby++) {
+					for (var c = 0, cby = 0; c < ranks.col; c++, cby++)  {
 						var isRule = false;
 						rule.forEach(function (item) {
 							if (c >= item.start[1] && c <= item.start[1] + item.len[1]
@@ -5278,7 +5362,7 @@ var ud2 = (function (window, $) {
 							}
 						});
 						if (isRule) {
-							new Cell(section, '', '', '', rs, cs, true, r, c);
+							Cell(section, '', '', '', r, c, true);
 						} else {
 							$td = $trs.eq(r).children('td, th').eq(cby);
 							cs = parseInt($td.attr('colspan') || 1);
@@ -5286,13 +5370,13 @@ var ud2 = (function (window, $) {
 							cn = $td.attr('class');
 							sy = $td.attr('style');
 							if (cs > 0 || rs > 0) rule.push({ start: [r, c], len: [rs - 1, cs - 1] });
-							new Cell(section, $td.html(), cn, sy, rs, cs, false, r, c);
+							Cell(section, $td.html(), cn, sy, r, c, rs, cs);
 						}
 					}
 				}
 			}
 			// 分析表格
-			function analysisTable() {
+			function analysisTable() { 
 				var $thead = ctrl.$origin.children('thead'),
 					$tbody = ctrl.$origin.children('tbody'),
 					$tfoot = ctrl.$origin.children('tfoot');
@@ -5317,18 +5401,19 @@ var ud2 = (function (window, $) {
 					return;
 				}
 
-				var $div = $('<div class="' + className + '-' + section.$origin.get(0).nodeName.toLowerCase() + '"><table><tbody /></table></div>'),
+				var cls = className + '-' + section.$origin.get(0).nodeName.toLowerCase(),
+					$div = $('<div class="' + cls + '"><div class="' + className + '-inner"><table class="' + className + '-table"><tbody /></table></div></div>'),
 					$tbody = $div.find('tbody'), $tr, $td,
 					rl = section.row.length, cl = section.col.length, cell, rh, ch;
 
 				for (var r = 0; r < rl ; r++) {
-					$tr = $('<tr />');
+					$tr = $('<tr class="' + className + '-row" />');
 					for (var c = 0; c < cl; c++) {
 						cell = section.cell[cl * r + c];
 						if (cell.merged) continue;
 						rh = cell.rowspan > 1 ? ' rowspan="' + cell.rowspan + '"' : '';
 						ch = cell.colspan > 1 ? ' colspan="' + cell.colspan + '"' : '';
-						$td = $('<td' + rh + ch + '><div>' + cell.text + '</div></td>');
+						$td = $('<td' + rh + ch + ' class="' + className + '-cell"><div class="' + className + '-cell-content">' + cell.text + '</div></td>');
 						$td.addClass(cell.className).attr('style', cell.style);
 						cell.$current = $td;
 						$tr.append($td);
@@ -5354,7 +5439,7 @@ var ud2 = (function (window, $) {
 					return ctrl.public;
 				}
 				else if (args[0] instanceof Array) {
-					tableData.colWidth = handleColWidthArray(args[0]);
+					handleColWidthArray(args[0]);
 					tableWidthResize();
 				}
 				else if (typeof args[0] === 'number' && typeof args[1] === 'number') {
@@ -5385,7 +5470,8 @@ var ud2 = (function (window, $) {
 						cWidth = 0,
 						// 用于保存表格的宽度
 						tableWidth = 0;
-					// 迭代表格
+
+					// 迭代表格宽度数据集合，计算自适应列个数以及每个自适应列的宽度
 					tableData.colWidth.forEach(function (cw) {
 						var e = colWidthReg.exec(cw);
 						if (e) {
@@ -5397,41 +5483,47 @@ var ud2 = (function (window, $) {
 							cWidth += cw;
 						}
 					});
-
-
 					if (xNum > 0) {
 						var // tableBox 父元素宽度
 							pw = $tableBox.parent().width();
 						if (!scrollSize) scrollSize = getScrollSize();
 						pw -= scrollSize;
-						if (pw > cWidth + options.autoMinWidth * xNum) {
-							tableWidth = pw;
+
+						if (pw > cWidth + autoMinWidth * xTimes) {
 							xWidth = (pw - cWidth) / xTimes;
 						}
 						else {
-							tableWidth = cWidth;
-							xWidth = options.autoMinWidth;
+							xWidth = autoMinWidth;
 						}
 					}
-					else {
-						tableWidth = tableData.colWidth.reduce(function (a, b) { return a + b; });
-					}
-					args[0].$current.children('table').width(tableWidth);
+
+					// 设置表格当前宽度
+					tableData.colWidth.forEach(function (w) {
+						var e = colWidthReg.exec(w);
+						if (e) {
+							var n = parseFloat(e[1]);
+							n = isNaN(n) ? 1 : n;
+							tableWidth += n * xWidth;
+						} else {
+							tableWidth += w;
+						}
+					});
+					args[0].$current.find('.' + className + '-table').css('width', tableWidth);
 					
 					// 迭代表格，设置每个单元格宽度
 					for (var r = 0; r < rl; r++) {
 						cells = row[r].cells; cl = cells.length;
 						for (var c = 0; c < cl ; c++) {
+							if (cells[c].merged) continue;
+
 							var width = tableData.getColWidth(c), e = colWidthReg.exec(width);
 							if (e) {
 								var n = parseFloat(e[1]);
 								n = isNaN(n) ? 1 : n;
 								width = xWidth * n;
-								width = width < options.autoMinWidth ? options.autoMinWidth : width;
+								width = width < autoMinWidth ? autoMinWidth : width;
 							}
-
-							if (cells[c].merged) continue;
-
+							
 							if (cells[c].colspan !== 1) {
 								var // 合并单元格个数(不包括自己)
 									cross = cells[c].colspan - 1;
@@ -5443,15 +5535,12 @@ var ud2 = (function (window, $) {
 										var wn = parseFloat(we[1]);
 										wn = isNaN(wn) ? 1 : wn;
 										w = xWidth * wn;
-										w = w < options.autoMinWidth ? options.autoMinWidth : w;
+										w = w < autoMinWidth ? autoMinWidth : w;
 									}
-									width += w - cross;
+									width += w;
 								}
-							} else {
-								width -= 1;
-							}
-
-							cells[c].$current.css('width', width).children().css('width', width);
+							} 
+							cells[c].$current.css('width', width);
 						}
 					}
 				}
@@ -5472,7 +5561,7 @@ var ud2 = (function (window, $) {
 			// 设置浏览器窗口触发 resize 事件时，是否重新计算控件尺寸
 			function setRecountByResize(val) {
 				val = !!val;
-				options.recountByResize = val;
+				recountByResize = val;
 				if (val) {
 					callbacksPageResize.add(resizeEvent);
 				} else {
@@ -5492,12 +5581,12 @@ var ud2 = (function (window, $) {
 			}
 			// 事件绑定
 			function bindEvent() {
-				setRecountByResize(options.recountByResize);
+				setRecountByResize(recountByResize);
 
 				tableData.tbody.$current.scroll(function () {
-					var left = -tableData.tbody.$current.scrollLeft();
-					if (tableData.thead.$current) tableData.thead.$current.css('margin-left', left);
-					if (tableData.tfoot.$current) tableData.tfoot.$current.css('margin-left', left);
+					var left = tableData.tbody.$current.scrollLeft();
+					if (tableData.thead.$current) tableData.thead.$current.scrollLeft(left);
+					if (tableData.tfoot.$current) tableData.tfoot.$current.scrollLeft(left);
 				});
 			}
 
@@ -5509,14 +5598,15 @@ var ud2 = (function (window, $) {
 			(function init() {
 				// 设置初始选项
 				setOptions(options, userOptions);
+				checkOptions();
 				// 转移宿主属性
 				transferStyles(ctrl.$origin, $tableBox);
 				transferAttrs(ctrl.$origin, $tableBox);
 
 				// 分析控件组和控件
-				tableData.colWidth = handleColWidthArray(options.colAllWidth);
 				analysisTable();
 				tableCreate();
+				handleColWidthArray(colAllWidth);
 
 				// 加入表格盒子
 				ctrl.$origin.after($tableBox);
@@ -5538,13 +5628,21 @@ var ud2 = (function (window, $) {
 				setWidth: tableWidthResize,
 				setHeight: tableHeightResize,
 				setRecountByResize: setRecountByResize,
-				recount: resizeEvent
+				recount: resizeEvent,
+				view: {
+					thead: tableData.thead,
+					tbody: tableData.tbody,
+					tfoot: tableData.tfoot
+				},
+				row: Row,
+				col: Col,
+				cell: Cell
 			});
 
 			// #endregion
 		};
 
-	}(controlGroup('table')));
+	}(controlGroup('grid')));
 
 	// JS 文件上传控件集合
 	// * 此控件会 remove 掉原宿主对象

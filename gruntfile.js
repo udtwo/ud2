@@ -74,7 +74,7 @@ module.exports = function (grunt) {
 						'src/less/style/ud2-range.less',
 						'src/less/style/ud2-select.less',
 						'src/less/style/ud2-page.less',
-						'src/less/style/ud2-table.less',
+						'src/less/style/ud2-grid.less',
 
 						'src/less/style/ud2-dialog.less',
 						'src/less/style/ud2-message.less'

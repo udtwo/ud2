@@ -5142,12 +5142,14 @@ var ud2 = (function (window, $) {
 			// 表格行对象
 			function Row(section) {
 				if (!(this instanceof Row)) { return new Row(section); }
-				if (!section) return;
 
-				this.section = section;
+				this.section = section || tableData.tbody;
 				this.cells = [];
+				this.$current = $('<tr class="' + className + '-row" />');
+				this.section.$current.find('tbody').append(this.$current);
 
-				section.row.push(this);
+				// 向节点中加入此对象
+				this.section.row.push(this);
 			}
 			// 表格行对象原型
 			Row.prototype = {
@@ -5158,12 +5160,12 @@ var ud2 = (function (window, $) {
 			// 表格列对象
 			function Col(section) {
 				if (!(this instanceof Col)) { return new Col(section); }
-				if (!section) return;
 
-				this.section = section;
+				this.section = section || tableData.tbody;
 				this.cells = [];
 
-				section.col.push(this);
+				// 向节点中加入此对象
+				this.section.col.push(this);
 			}
 			// 表格列对象原型
 			Col.prototype = {
@@ -5172,90 +5174,70 @@ var ud2 = (function (window, $) {
 				}
 			};
 			// 表格单元格对象
-			// (options)
-			// (section, text)
-			// (section, text, rowIndex, colIndex)
-			// (section, text, rowIndex, colIndex, merged)
-			// (section, text, rowIndex, colIndex, rowspan, colspan)
-			// (section, text, className, style)
-			// (section, text, className, style, rowIndex, colIndex)
-			// (section, text, className, style, rowIndex, colIndex, merged)
-			// (section, text, className, style, rowIndex, colIndex, rowspan, colspan)
-			function Cell() {
-				var args = arguments, argsLen = args.length;
-				if (!(this instanceof Cell)) {
-					return Cell.apply(new Cell, args);
-				}
-				if (argsLen > 1) {
-					var section = args[0], text = args[1], className = '', style = '',
-						rowspan = 1, colspan = 1, merged = false, rowIndex = 0, colIndex = 0;
+			function Cell(options) {
+				// 当调用此构造函数非使用 new 调用时，返回通过 new 调用此函数所生成的对象
+				if (!(this instanceof Cell)) return new Cell(options);
+				if (!options || !type.isObject(options)) options = {};
+				this.section = options.section || tableData.tbody;
+				this.rowIndex = options.rowIndex;
+				this.colIndex = options.colIndex;
 
-					if (argsLen >= 4 && type.isNumber(args[2]) && type.isNumber(args[3])) {
-						rowIndex = args[2]; colIndex = args[3];
-						if (argsLen === 5) {
-							merged = args[4];
-							if (merged) {
-								rowspan = 0; colspan = 0;
-							} else {
-								rowspan = 1; colspan = 1;
-							}
-						}
-						if (argsLen === 6) {
-							merged = false; rowspan = args[4]; colspan = args[5];
-						}
+				// 在行和列集合中检测是否存在此单元格对象，如果存在直接跳出
+				if (this.rowIndex !== undefined && this.colIndex !== undefined
+					&& this.section.row[this.rowIndex] && this.section.row[this.rowIndex].cells[this.colIndex]) return;
+
+				// 添加单元格
+				this.text = options.text || '';
+				this.className = options.className || '';
+				this.style = options.style || '';
+				this.rowspan = options.rowspan || 1;
+				this.colspan = options.colspan || 1;
+				this.merged = options.merged || false;
+				// 是否已填入 Grid 中
+				this.inGrid = false;
+
+				var rh = this.rowspan > 1 ? ' rowspan="' + this.rowspan + '"' : '',
+					ch = this.colspan > 1 ? ' colspan="' + this.colspan + '"' : '',
+					$td = $('<td' + rh + ch + ' class="' + className + '-cell"><div class="'
+						+ className + '-cell-content">' + this.text + '</div></td>');
+				if (this.className) $td.addClass(this.className);
+				if (this.style) $td.attr(style, this.style);
+				this.$current = $td;
+
+				this.SaveToGrid();
+			}
+			// 单元格对象原型
+			Cell.prototype = {
+				SaveToGrid: function () {
+					var args = arguments, argsLen = args.length;
+
+					// 向节点中保存此单元格
+					if (argsLen === 2 && type.isNaturalNumber(args[0]) && type.isNaturalNumber(args[1])) {
+						this.rowIndex = args[0];
+						this.colIndex = args[1];
+						this.SaveToGrid();
 					}
-					else if (argsLen >= 4) {
-						className = args[2]; style = args[3];
-						if (argsLen >= 6) {
-							rowIndex = args[4]; colIndex = args[5];
-							if (argsLen === 7) {
-								merged = args[6];
-								if (merged) {
-									rowspan = 0; colspan = 0;
+					else if (argsLen === 0 && !this.inGrid && this.rowIndex !== undefined && this.colIndex !== undefined) {
+						this.inGrid = true;
+						this.section.cell.push(this);
+						this.section.row[this.rowIndex].addCell(this);
+						this.section.col[this.colIndex].addCell(this);
+						if (!this.merged) {
+							var row = this.section.row[this.rowIndex].$current, cell = row.children('td'), i = this.colIndex - 1;
+							while (true) {
+								if (i > -1) {
+									if (cell.eq(i).length === 0) { i--; }
+									else { cell.eq(i).after(this.$current); break; }
 								} else {
-									rowspan = 1; colspan = 1;
+									row.prepend(this.$current); break;
 								}
 							}
-							if (argsLen === 8) {
-								merged = false; rowspan = args[6]; colspan = args[7];
-							}
+
+							this.section.row[this.rowIndex].$current.append(this.$current);
 						}
 					}
-
-					return Cell.call(this, {
-						section: section, text: text,
-						className: className, style: style,
-						rowIndex: rowIndex, colIndex: colIndex,
-						rowspan: rowspan, colspan: colspan, merged: merged
-					});
-				}
-				if (!(args.length === 1 && type.isObject(args[0]))) return;
-
-				var opt = args[0];
-				this.section = opt.section || tableData.tbody;
-				this.text = opt.text || '';
-				this.className = opt.className || '';
-				this.style = opt.style || '';
-				this.rowspan = opt.rowspan || 1;
-				this.colspan = opt.colspan || 1;
-				this.rowIndex = opt.rowIndex;
-				this.colIndex = opt.colIndex;
-				this.merged = opt.merged || false;
-
-				this.section.cell.push(this);
-				if (this.rowIndex !== undefined && this.colIndex !== undefined) {
-					this.bindRowAndCol(this.rowIndex, this.colIndex);
 				}
 			}
-			// 表格单元格对象原型
-			Cell.prototype = {
-				bindRowAndCol: function (rowIndex, colIndex) {
-					if (rowIndex) this.rowIndex = rowIndex;
-					if (colIndex) this.colIndex = colIndex;
-					this.section.row[this.rowIndex].addCell(this);
-					this.section.col[this.colIndex].addCell(this);
-				}
-			};
 
 			// #endregion
 
@@ -5329,6 +5311,7 @@ var ud2 = (function (window, $) {
 				}
 				tableData.colWidth = cw;
 			}
+
 			// 分析表格行列
 			function analysisRanks(section) {
 				var $rows = section.$origin.children('tr'),
@@ -5344,85 +5327,68 @@ var ud2 = (function (window, $) {
 				return { row: rs, col: cs };
 			}
 			// 分析节点
-			function analysisSection(section) {
-				var $trs = section.$origin.children('tr'), $tr, $tds, $td,
-					ranks = analysisRanks(section), rule = [],
+			function analysisSection(sectionName) {
+				var // table 数据对象
+					tData = tableData[sectionName];
+				// 获取原 jQuery 对象
+				tData.$origin = ctrl.$origin.children(sectionName);
+				// 如果不存在原对象则跳出
+				if (tData.$origin.length === 0) return;
+
+				// 存储新 jQuery 对象
+				tData.$current = $('<div class="' + className + '-' + sectionName + '"><div class="'
+					+ className + '-inner"><table class="'
+					+ className + '-table"><tbody /></table></div></div>');
+				tData.getContent = function () { return tData.$current; };
+
+				// 将对象插入到文档中
+				$tableBox.append(tData.$current);
+
+				var // 表格行对象                        单元格对象
+					$tr = tData.$origin.children('tr'), $td,
+					// 分析表格行列并获取行列信息     规则
+					ranks = analysisRanks(tData), rule = [],
 					// colspan rowspan class style
 					cs, rs, cn, sy;
 
+				// 迭代表格行与列(内循环)
 				for (var r = 0; r < ranks.row; r++) {
-					for (var c = 0, cby = 0; c < ranks.col; c++, cby++)  {
-						var isRule = false;
+					for (var c = 0, cby = 0; c < ranks.col; c++, cby++) {
+						var isMerged = false;
+
+						// 迭代规则
 						rule.forEach(function (item) {
 							if (c >= item.start[1] && c <= item.start[1] + item.len[1]
 								&& r >= item.start[0] && r <= item.start[0] + item.len[0]) {
 								cby--;
-								isRule = true;
+								isMerged = true;
 								return;
 							}
 						});
-						if (isRule) {
-							Cell(section, '', '', '', r, c, true);
+
+						// 生成单元格数据
+						if (isMerged) {
+							new Cell({ section: tData, rowIndex: r, colIndex: c, merged: true });
 						} else {
-							$td = $trs.eq(r).children('td, th').eq(cby);
+							$td = $tr.eq(r).children('td, th').eq(cby);
 							cs = parseInt($td.attr('colspan') || 1);
 							rs = parseInt($td.attr('rowspan') || 1);
 							cn = $td.attr('class');
 							sy = $td.attr('style');
 							if (cs > 0 || rs > 0) rule.push({ start: [r, c], len: [rs - 1, cs - 1] });
-							Cell(section, $td.html(), cn, sy, r, c, rs, cs);
+							new Cell({
+								section: tData, text: $td.html(), className: cn, style: sy,
+								rowIndex: r, colIndex: c, rowspan: rs, colspan: cs
+							});
 						}
 					}
 				}
 			}
 			// 分析表格
-			function analysisTable() { 
-				var $thead = ctrl.$origin.children('thead'),
-					$tbody = ctrl.$origin.children('tbody'),
-					$tfoot = ctrl.$origin.children('tfoot');
-
-				tableData.thead.$origin = $thead;
-				tableData.thead.$origin.parent = tableData.thead;
-				tableData.tbody.$origin = $tbody;
-				tableData.tbody.$origin.parent = tableData.tbody;
-				tableData.tfoot.$origin = $tfoot;
-				tableData.tfoot.$origin.parent = tableData.tfoot;
-
-				if (tableData.thead.$origin.length !== 0) analysisSection(tableData.thead);
-				if (tableData.tbody.$origin.length !== 0) analysisSection(tableData.tbody);
-				if (tableData.tfoot.$origin.length !== 0) analysisSection(tableData.tfoot);
-			}
-			// 表格创建
-			function tableCreate(section) {
-				if (section === undefined) {
-					if (tableData.thead.$origin.length !== 0) $tableBox.append(tableCreate(tableData.thead));
-					if (tableData.tbody.$origin.length !== 0) $tableBox.append(tableCreate(tableData.tbody));
-					if (tableData.tfoot.$origin.length !== 0) $tableBox.append(tableCreate(tableData.tfoot));
-					return;
-				}
-
-				var cls = className + '-' + section.$origin.get(0).nodeName.toLowerCase(),
-					$div = $('<div class="' + cls + '"><div class="' + className + '-inner"><table class="' + className + '-table"><tbody /></table></div></div>'),
-					$tbody = $div.find('tbody'), $tr, $td,
-					rl = section.row.length, cl = section.col.length, cell, rh, ch;
-
-				for (var r = 0; r < rl ; r++) {
-					$tr = $('<tr class="' + className + '-row" />');
-					for (var c = 0; c < cl; c++) {
-						cell = section.cell[cl * r + c];
-						if (cell.merged) continue;
-						rh = cell.rowspan > 1 ? ' rowspan="' + cell.rowspan + '"' : '';
-						ch = cell.colspan > 1 ? ' colspan="' + cell.colspan + '"' : '';
-						$td = $('<td' + rh + ch + ' class="' + className + '-cell"><div class="' + className + '-cell-content">' + cell.text + '</div></td>');
-						$td.addClass(cell.className).attr('style', cell.style);
-						cell.$current = $td;
-						$tr.append($td);
-					}
-					$tbody.append($tr);
-				}
-
-				section.$current = $div;
-				return $div;
+			function analysisTable() {
+				analysisSection('thead');
+				analysisSection('tbody');
+				analysisSection('tfoot');
 			}
 
 			// #endregion
@@ -5570,6 +5536,21 @@ var ud2 = (function (window, $) {
 				return ctrl.public;
 			}
 
+			function addRowData(cells) {
+				if (cells && cells instanceof Array) {
+					var row = new Row(), rowIndex = tableData.tbody.row.indexOf(row);
+					cells.forEach(function (cell, i) { cell.SaveToGrid(rowIndex, i); });
+					resizeEvent();
+				}
+			}
+
+			function removeAllData() {
+				tableData.tbody.row = [];
+				tableData.tbody.cell = [];
+				tableData.tbody.col.forEach(function (col) { col.cells = []; });
+				tableData.tbody.$current.find('tbody').html('');
+			}
+
 			// #endregion
 
 			// #region 事件绑定
@@ -5605,7 +5586,6 @@ var ud2 = (function (window, $) {
 
 				// 分析控件组和控件
 				analysisTable();
-				tableCreate();
 				handleColWidthArray(colAllWidth);
 
 				// 加入表格盒子
@@ -5636,7 +5616,9 @@ var ud2 = (function (window, $) {
 				},
 				row: Row,
 				col: Col,
-				cell: Cell
+				cell: Cell,
+				addRowData: addRowData,
+				removeAllData: removeAllData
 			});
 
 			// #endregion

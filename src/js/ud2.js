@@ -5330,10 +5330,18 @@ var ud2 = (function (window, $) {
 			function analysisSection(sectionName) {
 				var // table 数据对象
 					tData = tableData[sectionName];
+
 				// 获取原 jQuery 对象
 				tData.$origin = ctrl.$origin.children(sectionName);
 				// 如果不存在原对象则跳出
-				if (tData.$origin.length === 0) return;
+				// 如果原对象为 tbody，则向原表格中添加 tbody
+				if (tData.$origin.length === 0) {
+					if (sectionName === 'tbody') {
+						ctrl.$origin.append('<tbody />');
+						analysisSection(sectionName);
+					}
+					return;
+				}
 
 				// 存储新 jQuery 对象
 				tData.$current = $('<div class="' + className + '-' + sectionName + '"><div class="'
@@ -5535,15 +5543,18 @@ var ud2 = (function (window, $) {
 				}
 				return ctrl.public;
 			}
-
+			// 向 tbody 中添加行数据
 			function addRowData(cells) {
 				if (cells && cells instanceof Array) {
 					var row = new Row(), rowIndex = tableData.tbody.row.indexOf(row);
-					cells.forEach(function (cell, i) { cell.SaveToGrid(rowIndex, i); });
+					cells.forEach(function (cell, i) {
+						if (!tableData.tbody.col[i]) new Col();
+						cell.SaveToGrid(rowIndex, i);
+					});
 					resizeEvent();
 				}
 			}
-
+			// 删除 tbody 中全部数据
 			function removeAllData() {
 				tableData.tbody.row = [];
 				tableData.tbody.cell = [];

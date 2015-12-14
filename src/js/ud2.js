@@ -4951,6 +4951,8 @@ var ud2 = (function (window, $) {
 				pageHtml = '<a>首页</a><a>上页</a><a>下页</a><a>尾页</a>',
 				// 页码上拉列表
 				pageSelect,
+				// 是否执行页码回调
+				pageCall = true,
 				// 页码当前值 页码最大值 页码当前页两侧显示数量
 				now, max, show,
 				// 回调
@@ -4985,61 +4987,59 @@ var ud2 = (function (window, $) {
 				event($num).setTap(function () {
 					var pageNum = this.attr(className + '-num');
 					pageNum = parseInt(pageNum);
-					if (pageNum !== now) {
-						changePage(pageNum);
-					}
+					btnChange(pageNum);
 				});
 			}
 			// 创建列表
 			function listCreate() {
 				// 移除列表
 				listRemove();
-
-				pageSelect.setChange($.noop);
-				linksCreate();
-				pageSelect.appendTo($page);	
+				// 生成新页码
 				for (var i = 1; i <= max ; i++) {
 					var selected = i == now ? true : false;
 					pageSelect.option(i, i, false, selected);
 				}
-
-				// 添加列表改变事件
-				pageSelect.setChange(function (val) { changePage(val, 1); });
 			}
 			// 移除列表
 			function listRemove() {
 				var list = pageSelect.option.list, listLen = list.length;
 				for (var i = 0; i < listLen; i++) list[0].remove();
 			}
-			// 改变页码
-			function changePage(pageNow, pageSelected) {
-				now = pageNow;
-				if (now > max) now = max;
-				if (now < 1) now = 1;
-				linksCreate();
+			// 按钮触发改变时的事件方法
+			function btnChange(pageNow) {
+				if (pageNow > max) pageNow = max;
+				if (pageNow < 1) pageNow = 1;
 
-				if (!pageSelected) {
-					pageSelect.selectByValue(now);
-					pageSelect.moveToSelected();
-				} else {
-					callbacks.change.call(ctrl.public, now);
-				}
+				pageCall = false;
+				pageSelect.selectByValue(pageNow);
+				pageSelect.moveToSelected();
+				pageCall = true;
+
+				pageChange(pageNow);
 			}
+			// 页码发生改变时的事件方法
+			function pageChange(pageNow) {
+				if (pageNow === now) return;
+				now = pageNow;
+				linksCreate();
+				callbacks.change.call(ctrl.public, now);
+			}
+			 
 			// 首页
 			function pageHome() {
-				changePage(1);
+				btnChange(1);
 			}
 			// 尾页
 			function pageEnd() {
-				changePage(max);
+				btnChange(max);
 			}
 			// 上一页
 			function pagePrev() {
-				changePage(now - 1);
+				btnChange(now - 1);
 			}
 			// 下一页
 			function pageNext() {
-				changePage(now + 1);
+				btnChange(now + 1);
 			}
 
 			// #endregion
@@ -5061,7 +5061,8 @@ var ud2 = (function (window, $) {
 					now = parseInt(args[0]);
 					if (now < 1) now = 1;
 					if (now > max) now = max;
-					listCreate();
+					linksCreate();
+					pageSelect.selectByValue(now);
 					pageSelect.moveToSelected();
 					return ctrl.public;
 				}
@@ -5080,6 +5081,7 @@ var ud2 = (function (window, $) {
 					if (max < 1) max = 1;
 					if (now > max) now = max;
 					listCreate();
+					linksCreate();
 					pageSelect.moveToSelected();
 					return ctrl.public;
 				}
@@ -5098,6 +5100,11 @@ var ud2 = (function (window, $) {
 				event($pageBtns.eq(1)).setTap(pagePrev);
 				event($pageBtns.eq(2)).setTap(pageNext);
 				event($pageBtns.eq(3)).setTap(pageEnd);
+
+				// 添加列表改变事件
+				pageSelect.setChange(function (val) {
+					if (pageCall) pageChange(parseInt(val));
+				});
 			}
 
 			// #endregion
@@ -5117,11 +5124,12 @@ var ud2 = (function (window, $) {
 
 				// 创建列表和页码
 				pageSelect = ud2.select.create({ 'direction': 'up' }, ctrl.public.name + '-list');
+				pageSelect.appendTo($page);
 				listCreate();
-				
+				linksCreate();
+
 				// 事件绑定
-				bindEvent();
-				
+				bindEvent();		
 			}());
 
 			// #endregion
@@ -5256,7 +5264,7 @@ var ud2 = (function (window, $) {
 				var rh = this.rowspan > 1 ? ' rowspan="' + this.rowspan + '"' : '',
 					ch = this.colspan > 1 ? ' colspan="' + this.colspan + '"' : '',
 					$td = $('<td' + rh + ch + ' class="' + className + '-cell"><div class="'
-						+ className + '-cell-content">' + this.text + '</div></td>');
+						+ className + '-cell-content" title="' + this.text + '">' + this.text + '</div></td>');
 				if (this.className) $td.addClass(this.className);
 				if (this.style) $td.attr(style, this.style);
 				this.$current = $td;

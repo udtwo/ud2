@@ -4771,6 +4771,15 @@ var ud2 = (function (window, $) {
 
 			// #region 公共方法
 
+			// 获取控件值
+			function val() {
+				if ($calendarInput.val() !== '') {
+					convertDate($calendarInput.val());
+					dateValue.selectReset();
+					dateValue.view();
+				}
+				return $calendarInput.val();
+			}
 			// 开启控件
 			function open() {
 				if (!isOpen) {
@@ -4792,7 +4801,7 @@ var ud2 = (function (window, $) {
 					$calendar.removeClass(className + '-on');
 					$calendarPower.removeClass(prefixLibName + 'ctrl-power-on');
 
-					if (!noUpdate) {
+					if (!noUpdate && $calendarInput.val() !== '') {
 						convertDate($calendarInput.val());
 						dateValue.selectReset();
 						dateValue.view();
@@ -4881,6 +4890,7 @@ var ud2 = (function (window, $) {
 			// #region 返回
 
 			return extendObjects(ctrl.public, {
+				val: val,
 				open: open,
 				close: close,
 				toggle: toggle,
@@ -4982,16 +4992,28 @@ var ud2 = (function (window, $) {
 			}
 			// 创建列表
 			function listCreate() {
-				pageSelect = ud2.select.create({ 'direction': 'up' }, ctrl.public.name + '-list');
-				pageSelect.appendTo($page);
+				// 移除列表
+				listRemove();
+
+				pageSelect.setChange($.noop);
+				linksCreate();
+				pageSelect.appendTo($page);	
 				for (var i = 1; i <= max ; i++) {
 					var selected = i == now ? true : false;
 					pageSelect.option(i, i, false, selected);
 				}
+
+				// 添加列表改变事件
+				pageSelect.setChange(function (val) { changePage(val, 1); });
 			}
-			// 页面发生改变
-			function changePage(pageNum, pageSelected) {
-				now = pageNum;
+			// 移除列表
+			function listRemove() {
+				var list = pageSelect.option.list, listLen = list.length;
+				for (var i = 0; i < listLen; i++) list[0].remove();
+			}
+			// 改变页码
+			function changePage(pageNow, pageSelected) {
+				now = pageNow;
 				if (now > max) now = max;
 				if (now < 1) now = 1;
 				linksCreate();
@@ -5029,6 +5051,42 @@ var ud2 = (function (window, $) {
 			// fn[function]: 回调函数
 			// return[number]: 当前事件对象，方便链式调用
 			function setChange(fn) { callbacks.change = fn; return ctrl.public; }
+			// 获取或设置当前页码
+			// () 获取当前页码
+			// (value) 设置当前页码
+			// - value[number]: 当前页码
+			function pageNow() {
+				var args = arguments, argsLen = args.length;
+				if (argsLen === 1 && type.isNaturalNumber(args[0])) {
+					now = parseInt(args[0]);
+					if (now < 1) now = 1;
+					if (now > max) now = max;
+					listCreate();
+					pageSelect.moveToSelected();
+					return ctrl.public;
+				}
+				else {
+					return now;
+				}
+			}
+			// 获取或设置最大页码
+			// () 获取最大页码
+			// (value) 设置最大页码
+			// - value[number]: 最大页码
+			function pageMax() {
+				var args = arguments, argsLen = args.length;
+				if (argsLen === 1 && type.isNaturalNumber(args[0])) {
+					max = parseInt(args[0]);
+					if (max < 1) max = 1;
+					if (now > max) now = max;
+					listCreate();
+					pageSelect.moveToSelected();
+					return ctrl.public;
+				}
+				else {
+					return max;
+				}
+			}
 
 			// #endregion
 
@@ -5040,10 +5098,6 @@ var ud2 = (function (window, $) {
 				event($pageBtns.eq(1)).setTap(pagePrev);
 				event($pageBtns.eq(2)).setTap(pageNext);
 				event($pageBtns.eq(3)).setTap(pageEnd);
-
-				pageSelect.setChange(function (val) {
-					changePage(val, 1);
-				});
 			}
 
 			// #endregion
@@ -5057,13 +5111,14 @@ var ud2 = (function (window, $) {
 				// 获取旧控件属性
 				detectOptions();
 
+				// 页码样式
 				$page.addClass(className + ' ctrl-group').html(pageHtml);
 				$pageBtns = $page.find('a').addClass('btn btn-solid');
 
-				// 创建页码
-				linksCreate();
-				// 创建列表
+				// 创建列表和页码
+				pageSelect = ud2.select.create({ 'direction': 'up' }, ctrl.public.name + '-list');
 				listCreate();
+				
 				// 事件绑定
 				bindEvent();
 				
@@ -5074,7 +5129,9 @@ var ud2 = (function (window, $) {
 			// #region 返回
 
 			return extendObjects(ctrl.public, {
-				setChange: setChange
+				setChange: setChange,
+				now: pageNow,
+				max: pageMax
 			});
 
 			// #endregion 

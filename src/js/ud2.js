@@ -5253,6 +5253,7 @@ var ud2 = (function (window, $) {
 
 				// 添加单元格
 				this.text = options.text || '';
+				this.summary = options.summary || '';
 				this.className = options.className || '';
 				this.style = options.style || '';
 				this.rowspan = options.rowspan || 1;
@@ -5264,7 +5265,7 @@ var ud2 = (function (window, $) {
 				var rh = this.rowspan > 1 ? ' rowspan="' + this.rowspan + '"' : '',
 					ch = this.colspan > 1 ? ' colspan="' + this.colspan + '"' : '',
 					$td = $('<td' + rh + ch + ' class="' + className + '-cell"><div class="'
-						+ className + '-cell-content" title="' + this.text + '">' + this.text + '</div></td>');
+						+ className + '-cell-content" title="' + this.summary + '">' + this.text + '</div></td>');
 				if (this.className) $td.addClass(this.className);
 				if (this.style) $td.attr(style, this.style);
 				this.$current = $td;
@@ -5421,8 +5422,8 @@ var ud2 = (function (window, $) {
 					$tr = tData.$origin.children('tr'), $td,
 					// 分析表格行列并获取行列信息     规则
 					ranks = analysisRanks(tData), rule = [],
-					// colspan rowspan class style
-					cs, rs, cn, sy;
+					// colspan rowspan class style summary
+					cs, rs, cn, sy, sm;
 
 				// 迭代表格行与列(内循环)
 				for (var r = 0; r < ranks.row; r++) {
@@ -5448,10 +5449,11 @@ var ud2 = (function (window, $) {
 							rs = parseInt($td.attr('rowspan') || 1);
 							cn = $td.attr('class');
 							sy = $td.attr('style');
+							sm = $td.attr('title');
 							if (cs > 0 || rs > 0) rule.push({ start: [r, c], len: [rs - 1, cs - 1] });
 							new Cell({
 								section: tData, text: $td.html(), className: cn, style: sy,
-								rowIndex: r, colIndex: c, rowspan: rs, colspan: cs
+								rowIndex: r, colIndex: c, rowspan: rs, colspan: cs, summary: sm
 							});
 						}
 					}

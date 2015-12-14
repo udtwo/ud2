@@ -4404,8 +4404,6 @@ var ud2 = (function (window, $) {
 					// 获取原控件日期数据
 					date: ctrl.attr('value', 1) || ctrl.attr('value') || ''
 				},
-				// 本地日期
-				localDate = new Date(),
 				// 日期值数据对象
 				dateValue = {
 					// 补位运算
@@ -4438,12 +4436,13 @@ var ud2 = (function (window, $) {
 							y = parseInt(y);
 							M = parseInt(M) - 1;
 							d = parseInt(d);
-							if (this.time.getFullYear() !== y
+							if (this.time === null 
+								|| this.time.getFullYear() !== y
 								|| this.time.getMonth() !== M
 								|| this.time.getDate() !== d) {
 								this.time = new Date(y, M, d);
 								this.view();
-								callbacks.change.call(ctrl.public, this.toString());
+								callbacks.change.call(ctrl.public, val());
 							}
 						}
 					},
@@ -4453,11 +4452,11 @@ var ud2 = (function (window, $) {
 					},
 					// 控件时间值
 					// 默认为系统时间
-					time: localDate,
+					time: null,
 					// 系统当前时间
-					now: localDate,
+					now: new Date(),
 					// 选择时间
-					select: localDate,
+					select: new Date(),
 					// 重置选择时间
 					selectReset: function () {
 						this.select = new Date(this.time.getFullYear(), this.time.getMonth(), this.time.getDate());
@@ -4649,7 +4648,7 @@ var ud2 = (function (window, $) {
 									&& dateValue.now.getDate() === (i - j)
 									? className + '-today ' : ''),
 								// 显示选择日期
-								(dateValue.select.getFullYear() === dateValue.time.getFullYear()
+								(dateValue.time && dateValue.select.getFullYear() === dateValue.time.getFullYear()
 									&& dateValue.select.getMonth() === dateValue.time.getMonth()
 									&& dateValue.time.getDate() === (i - j)
 									? className + '-now ' : ''),
@@ -4670,6 +4669,7 @@ var ud2 = (function (window, $) {
 					dateValue.setDateValue(dateValue.select.getFullYear(),
 						dateValue.select.getMonth() + 1, this.attr(className + '-date'));
 					dateValue.view();
+					$calendarInput.blur();
 					close(true);
 				});
 			}
@@ -4810,6 +4810,11 @@ var ud2 = (function (window, $) {
 					$calendar.removeClass(className + '-on');
 					$calendarPower.removeClass(prefixLibName + 'ctrl-power-on');
 
+					if ($calendarInput.val() === '' && dateValue.time !== null) {
+						dateValue.time = null;
+						callbacks.change.call(ctrl.public, '');
+					}
+
 					if (!noUpdate && $calendarInput.val() !== '') {
 						convertDate($calendarInput.val());
 						dateValue.selectReset();
@@ -4817,7 +4822,7 @@ var ud2 = (function (window, $) {
 					}
 
 					dateHtmlCreate();
-					callbacks.open.call(ctrl.public);
+					callbacks.close.call(ctrl.public);
 				}
 				return ctrl.public;
 			}

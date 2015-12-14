@@ -29,5 +29,13 @@
 	<input type="text" ud2="calendar" value="5/12/2015" class="lg" style="width: 200px;" />
 	<hr class="hr-dotted hr-grey" />
 
+	<script>
+		$(function () {
+			ud2.calendar[0].setChange(function (val) {
+				ud2.message(val, ud2.style.info);
+			});
+		})
+	</script>
+
 </body>
 </html>

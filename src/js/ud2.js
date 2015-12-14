@@ -4771,14 +4771,23 @@ var ud2 = (function (window, $) {
 
 			// #region 公共方法
 
-			// 获取控件值
+			// 获取或设置控件值
+			// () 获取控件值
+			// (value) 设置控件值
 			function val() {
+				var args = arguments, argsLen = args.length;
+				if (argsLen === 1) $calendarInput.val(args[0]);
 				if ($calendarInput.val() !== '') {
 					convertDate($calendarInput.val());
 					dateValue.selectReset();
 					dateValue.view();
 				}
-				return $calendarInput.val();
+
+				if (argsLen === 1) {
+					return ctrl.public;
+				} else {
+					return $calendarInput.val();
+				}
 			}
 			// 开启控件
 			function open() {

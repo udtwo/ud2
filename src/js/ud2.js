@@ -33,10 +33,16 @@ var ud2 = (function (window, $) {
 			var // 支持情况对象
 				support = {},
 				// 创建一个空的 div 元素
-				div = document.createElement('div');
+				div = document.createElement('div'),
+				// 获取 userAgent
+				u = window.navigator.userAgent;
 
 			// 判断是否为 safari 浏览器
 			support.safari = /constructor/i.test(window.HTMLElement);
+			// 判断是否为移动终端
+			support.mobile = !!u.match(/mobile|mobi|mini/i);
+			// 判断是否为 android 平台
+			support.android = u.indexOf('Android') > -1;
 			// 判断是否支持 Touch 触摸事件
 			support.touch = ('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch;
 			// 判断是否支持 Pointer 事件
@@ -650,7 +656,7 @@ var ud2 = (function (window, $) {
 		}
 		// 临时遮罩阻止 touch 穿透行为
 		function temporaryMask() {
-			if (!support.safari) return;
+			if (!support.mobile) return;
 			var $mask = $div.clone().css({
 				'position': 'fixed',
 				'top': 0, 'right': 0, 'left': 0, 'bottom': 0,

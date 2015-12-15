@@ -121,6 +121,25 @@
 		background: fadeout(@ColorRed, 20%);
 	}
 }
+// 设置控件重命名样式
+.ud2-file-full-rename {
+	position: relative;
+
+	input {
+		padding-right: 1em;
+	}
+
+	&::before {
+		content: '\eb3c';
+		display: block;
+		position: absolute;
+		right: 0;
+		top: 1px;
+		font-family: 'ud2';
+		font-size: 1em;
+		color: @ColorWhiteBackDark;
+	}
+}
 // 设置控件的富文件添加按钮样式
 .ud2-file-full-add {
 	background: @ColorWhiteDeepest;

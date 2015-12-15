@@ -5763,6 +5763,8 @@ var ud2 = (function (window, $) {
 						else rename = true;
 						return rename;
 					}()),
+					// 如果启用文件重命名则设置重命名的长度
+					fileRenameLength: parseInt(ctrl.attr('rename-length')) || 60,
 					// 文件过滤方案
 					// 默认值为 all
 					fileFilter: (function () {
@@ -5952,7 +5954,7 @@ var ud2 = (function (window, $) {
 					var // 显示图片容器
 						$box = $(
 							'<div class="' + className + '-full-figure">'
-							+ '<div class="' + className + '-full-img"><img ondragstart="return false;" /></div><div>' + (options.fileRename ? '<input type="text" value="' + file.name + '" maxlength="40" />' : file.name) + '</div>'
+							+ '<div class="' + className + '-full-img"><img ondragstart="return false;" /></div>' + (options.fileRename ? '<div class="' + className + '-full-rename"><input type="text" value="' + file.name.substring(0, options.fileRenameLength) + '" maxlength="' + options.fileRenameLength + '" /></div>' : '<div>' + file.name + '</div>')
 							+ '<div class="' + className + '-full-close"></div><div class="' + className + '-full-progress"></div></div>'
 						),
 						// 输入框

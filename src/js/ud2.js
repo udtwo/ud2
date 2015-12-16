@@ -4563,15 +4563,18 @@ var ud2 = (function (window, $) {
 				}
 				else {
 					// 可转换日期
-
 					var date = new Date(text);
 					if (!isNaN(date)) {
 						dateValue.setDateValue(date.getFullYear(), date.getMonth() + 1, date.getDate());
 					} else {
 						options.format = 'yyyy/MM/dd';
-						dateValue.setDateValue(dateValue.time.getFullYear().toString(),
-							(dateValue.time.getMonth() + 1).toString(),
-							dateValue.time.getDate().toString());
+						if (dateValue.time !== null) {
+							dateValue.setDateValue(dateValue.time.getFullYear().toString(),
+								(dateValue.time.getMonth() + 1).toString(),
+								dateValue.time.getDate().toString());
+						} else {
+							$calendarInput.val('');
+						}
 					}
 				}
 			}
@@ -4823,8 +4826,10 @@ var ud2 = (function (window, $) {
 
 					if (!noUpdate && $calendarInput.val() !== '') {
 						convertDate($calendarInput.val());
-						dateValue.selectReset();
-						dateValue.view();
+						if ($calendarInput.val() !== '') {
+							dateValue.selectReset();
+							dateValue.view();
+						}
 					}
 
 					dateHtmlCreate();

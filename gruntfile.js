@@ -1,6 +1,11 @@
 ﻿/// <binding BeforeBuild='project-publish' ProjectOpened='project-open' />
 "use strict";
 
+var // 清理发布文件夹
+	cleanDirection = [
+		'dist/', 'vendor/'
+	];
+
 module.exports = function (grunt) {
 	grunt.initConfig({
 		// 读取PACKAGE包
@@ -8,7 +13,7 @@ module.exports = function (grunt) {
 		// 清空文件夹
 		clean: {
 			'dist': {
-				src: ['dist/', 'vendor/']
+				src: cleanDirection
 			}
 		},
 		// 压缩JS文件

@@ -62,27 +62,27 @@ module.exports = function (grunt) {
 				},
 				files: {
 					'dist/css/ud2.css': [
-						'src/less/style/reset.less',
-						'src/less/style/base.less',
-						'src/less/style/ico.less',
-						'src/less/style/form.less',
-						'src/less/style/scroll.less',
-						'src/less/style/table.less',
-						'src/less/style/ctrl.less',
+						'src/less/style/base/reset.less',
+						'src/less/style/base/elements.less',
+						'src/less/style/base/ico.less',
+						'src/less/style/base/form.less' //,
+						// 'src/less/style/scroll.less',
+						// 'src/less/style/table.less',
+						// 'src/less/style/ctrl.less',
 
-						'src/less/style/panel-signal.less',
+						// 'src/less/style/panel-signal.less',
 
-						'src/less/style/ud2-address.less',
-						'src/less/style/ud2-calendar.less',
-						'src/less/style/ud2-file.less',
-						'src/less/style/ud2-number.less',
-						'src/less/style/ud2-range.less',
-						'src/less/style/ud2-select.less',
-						'src/less/style/ud2-page.less',
-						'src/less/style/ud2-grid.less',
+						// 'src/less/style/ud2-address.less',
+						// 'src/less/style/ud2-calendar.less',
+						// 'src/less/style/ud2-file.less',
+						// 'src/less/style/ud2-number.less',
+						// 'src/less/style/ud2-range.less',
+						// 'src/less/style/ud2-select.less',
+						// 'src/less/style/ud2-page.less',
+						// 'src/less/style/ud2-grid.less',
 
-						'src/less/style/ud2-dialog.less',
-						'src/less/style/ud2-message.less'
+						// 'src/less/style/ud2-dialog.less',
+						// 'src/less/style/ud2-message.less'
 					]
 				}
 			}

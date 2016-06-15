@@ -1,0 +1,79 @@
+﻿/**
+ * reset.less
+ * 浏览器样式重置
+ */
+
+// 防止横竖屏切换等操作时浏览器对字体调整
+html {
+	-moz-text-size-adjust: none;
+	-ms-text-size-adjust: none;
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
+}
+// 让 body 背景默认为白色
+body {
+	background: #FFF;
+}
+// 用于清除部分标签的默认边距样式
+body, blockquote, h1, h2, h3, h4, h5, h6, dl, dd, p, pre, input, button, ul, li {
+	margin: 0; padding: 0;
+}
+// 清除 address，var 的斜体样式
+address, var {
+	font-style: normal;
+}
+// 清除 table 单元格间距，以及合并所有边框
+table {
+	// 默认合并所有边框
+	border-collapse: collapse;
+	// 默认清除全部单元格间距
+	border-spacing: 0;
+}
+// 清除 li 的默认列表样式
+li {
+	list-style: none;
+}
+// 清除 a 的默认样式
+a {
+	text-decoration: none;
+
+	// 部分浏览器 a 标签内的图像会有默认的边框，清除此边框
+	img {
+		border: 0;
+	}
+}
+// 清除交互控件的默认系统样式
+:not(:root) {
+	// 清除点击浏览器中的链接或 JavaScript 的可点击的元素时，覆盖显示的高亮颜色
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+	// 按住触摸目标时候，禁止系统默认菜单
+	-webkit-touch-callout: none;
+	// 清除轮廓样式
+	outline: none;
+}
+// 清除 Firefox 浏览器的默认 ::-moz-focus-inner 的样式，以消除此浏览器与其他浏览器的视觉差异
+button, input {
+	// 清除 ::-moz-focus-inner 的样式
+	&::-moz-focus-inner {
+		border: 0;
+		padding: 0;
+	}
+}
+// 设置默认 input 的 placeholder 属性的文本颜色
+::-webkit-input-placeholder {
+	color: rgba(0, 0, 0, .3);
+}
+::-moz-placeholder {
+	color: rgba(0, 0, 0, .3);
+}
+:-moz-placeholder {
+	color: rgba(0, 0, 0, .3);
+}
+:-ms-input-placeholder {
+	color: rgba(0, 0, 0, .3);
+}
+// 清除 IE 浏览器的输入框右侧按钮(清除文本、查看密码)
+::-ms-clear, ::-ms-reveal {
+	display: none;
+}
+

@@ -2,6 +2,10 @@
 	"name": "ud2",
 	"description": "UD2 library",
 	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "http://udtwo.com/"
+	},
 	"authors": [ "Peak", "Toad" ],
 	"keywords": [ "js", "css", "ud2" ],
 	"ignore": [

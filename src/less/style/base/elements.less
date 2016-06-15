@@ -1,0 +1,371 @@
+﻿/**
+ * base.less
+ * 标签的默认样式
+ */
+
+// 导入必要的文件
+@import "../../common/import.less";
+
+/**
+ * 标准样式
+ */
+// 字体样式
+.font() {
+	font: @BaseSize @Font;
+	line-height: @LineHeight;
+}
+// 为特定标签定义默认的字体类型、大小和行距
+html, button, input, textarea {
+	.font();
+}
+// 为 body 和 a 标签设置默认颜色
+body, a {
+	color: @ColorText;
+}
+// 为文本类标签定义默认的正文的外边据、行高
+h1, h2, h3, h4, h5, h6, p, hr {
+	margin: .25em 0;
+	line-height: @LineHeight;
+}
+// 为h1标签设置字体大小
+h1 {
+	font-size: @H1FontSize;
+}
+// 为h2标签设置字体大小
+h2 {
+	font-size: @H2FontSize;
+}
+// 为h3标签设置字体大小
+h3 {
+	font-size: @H3FontSize;
+}
+// 为h4标签设置字体大小
+h4 {
+	font-size: @H4FontSize;
+}
+// 为h5标签设置字体大小
+h5 {
+	font-size: @H5FontSize;
+}
+// 为h6标签设置字体大小
+h6 {
+	font-size: @H6FontSize;
+}
+// h1-h6标签内部的small标签的样式
+h1, h2, h3, h4, h5, h6 {
+	> small {
+		opacity: @OpacityNoImport;
+	}
+}
+
+// 为abbr标签设置内部标签样式
+// 用一条点状下划线来标识当前标签存在提示内容，鼠标滑入时显示提示内容
+// 提示内容通常设置在abbr标签的title属性中
+abbr {
+	border-bottom: 1px dotted @ColorDarkBorder;
+	cursor: help;
+
+	&:hover {
+		opacity: @OpacityHover;
+	}
+}
+// 为ins插入、del删除标签设置内部样式
+// 为所有带有.ins的元素设置插入的内部样式
+// 为所有带有.del的元素设置删除的内部样式
+ins, del {
+	// 为带有cite属性的元素设置cite属性的显示方式
+	&[cite]::after {
+		display: inline-block;
+		content: attr(cite);
+		font-size: smaller;
+		opacity: @OpacityNoImport;
+		margin-left: .25em;
+	}
+}
+
+// 为所有代码相关标签设置等宽字体显示
+kbd, pre, var, code, samp {
+	font-family: @FontCode;
+}
+// 为kbd标签设置内部样式
+kbd {
+	display: inline-block;
+	margin: 0 .25em;
+	padding: .125em .5em;
+	background: @ColorDark;
+	color: @ColorWhite;
+	border-radius: @BorderRadius;
+}
+// 为pre标签设置内部样式
+pre {
+	padding: .5em;
+	background: @ColorWhiteBackLight;
+	border-radius: @BorderRadius;
+	-o-tab-size: 3;
+	tab-size: 3;
+}
+// 为var标签设置内部样式
+var {
+	color: @ColorGreen;
+	font-weight: 800;
+}
+// 为samp标签设置内部样式
+samp {
+	padding: 0 .25em;
+	color: @ColorGreen;
+	background: @ColorGreenBackLight;
+}
+// 为mark标签设置内部样式
+// 为所有带有.mark的元素设置标记的内部样式
+mark {
+	margin: 0 .25em;
+	padding: 0 .25em;
+	background: @ColorYellow;
+}
+// 为blockquote标签设置内部样式
+// 用一条左方向折线来装饰当前标签
+// 此标签内容应该被语义标签包裹，例如段落标签P
+blockquote {
+	padding: .25em .25em .25em .5em;
+	border-left: @BaseSize / 3 solid @ColorWhiteBorder;
+	// blockquote标签内部的cite标签设置样式
+	> cite {
+		opacity: @OpacityNoImport;
+		font-style: normal;
+		// 为cite标签加破折号(其unicode为%u2014)
+		&:before {
+			content: '\2014\2014\20';
+		}
+	}
+	// blockquote内部如再次出现blockquote标签，且标签不是第一个元素，则设置一个上外边距
+	> blockquote:not(:first-child) {
+		margin-top: .5em;
+	}
+	// blockquote内部如再次出现blockquote标签，且标签不是最后一个元素，则设置一个下外边距
+	> blockquote:not(:last-child) {
+		margin-bottom: .5em;
+	}
+}
+
+// 为 dl 标签以及内部的 dt，dd 标签设置内部样式
+dl {
+	// 设置 dl 标签内部的dt标签默认样式
+	> dt {
+		font-weight: 800;
+	}
+	// 如果 dt 标签不是 dl 标签中第一个同类子元素，则为其设置上外边距提高距离
+	> dt:not(:first-of-type) {
+		margin-top: .5em;
+	}
+}
+
+// 为hr标签设置内部样式
+// HACK: 点状线在部分旧版浏览器中会显示成虚线
+hr, .hr {
+	display: block;
+	height: 0;
+	padding: 0;
+	border: 0;
+	border-bottom: 1px solid @ColorWhiteBorder;
+}
+// 点状水平线
+.hr-dotted {
+	border-bottom-style: dotted;
+}
+// 虚线状水平线
+.hr-dashed {
+	border-bottom-style: dashed;
+}
+// 蓝色水平线
+.hr-blue {
+	border-bottom-color: @ColorBlue;
+}
+// 橙色水平线
+.hr-orange {
+	border-bottom-color: @ColorOrange;
+}
+// 黄色水平线
+.hr-yellow {
+	border-bottom-color: @ColorYellow;
+}
+// 绿色水平线
+.hr-green {
+	border-bottom-color: @ColorGreen;
+}
+// 红色水平线
+.hr-red {
+	border-bottom-color: @ColorRed;
+}
+// 天蓝色水平线
+.hr-skyblue {
+	border-bottom-color: @ColorSkyBlue;
+}
+// 紫色水平线
+.hr-violet {
+	border-bottom-color: @ColorViolet;
+}
+// 深色水平线
+.hr-dark {
+	border-bottom-color: @ColorDark;
+}
+// 2倍高水平线
+&.hr-x2 {
+	border-bottom-width: 2px;
+}
+// 3倍高水平线
+&.hr-x3 {
+	border-bottom-width: 3px;
+}
+
+// placeholder 默认颜色
+input::-webkit-input-placeholder {
+	color: @ColorNotes;
+}
+input:-moz-placeholder {
+	color: @ColorNotes;
+}
+input::-moz-placeholder {
+	color: @ColorNotes;
+}
+input:-ms-input-placeholder {
+	color: @ColorNotes;
+}
+
+
+/**
+ * 功能样式
+ */
+// 为所有标签设置文本的左对齐
+// 此样式不适用于 inline 元素
+.text-left {
+	text-align: left;
+}
+// 为所有标签设置文本的居中对齐
+// 此样式不适用于 inline 元素
+.text-center {
+	text-align: center;
+}
+// 为所有标签设置文本的右对齐
+// 此样式不适用于 inline 元素
+.text-right {
+	text-align: right;
+}
+// 为所有带有.ins的元素设置装饰线
+.line-under {
+	text-decoration: underline;
+}
+// 为所有带有.del的元素设置删除线
+.line-through {
+	text-decoration: line-through;
+}
+// 为big类设置字体增大样式
+.big {
+	font-size: larger;
+}
+// 为small类设置字体缩小样式
+.small {
+	font-size: smaller;
+}
+// 为所有标签设置文本强制不换行
+.nowrap {
+	white-space: nowrap;
+}
+// 为所有标签设置文本强制换行，当文本达到容易的右边缘且长单词等并未完全显示在一行则换行到下行显示
+.allwrap {
+	-ms-word-break: break-all;
+	word-break: break-all;
+}
+// 信息颜色
+.c-info {
+	color: @ColorBlue;
+}
+// 成功颜色
+.c-success {
+	color: @ColorGreen;
+}
+// 警告颜色
+.c-warning {
+	color: @ColorOrange;
+}
+// 危险颜色
+.c-danger {
+	color: @ColorRed;
+}
+
+
+/**
+ * ICO图标
+ */
+// 签入图标字体
+@font-face {
+	font-family: 'ud2';
+	src: url('../ico/ud2.eot');
+	src: url('../ico/ud2.eot?#iefix') format('embedded-opentype'), 
+		url('../ico/ud2.woff') format('woff'), 
+		url('../ico/ud2.ttf') format('truetype'), 
+		url('../ico/ud2.svg') format('svg');
+	font-style: normal;
+	font-weight: normal;
+}
+// 设置i标签为嵌入图标标签
+// 设置部分控件默认嵌入图标
+.ico,
+.panel-signal-ico {
+	display: inline-block;
+	font-family: 'ud2';
+	font-size: 1.142857142857em;
+	speak: none;
+	font-variant: normal;
+	text-transform: none;
+	font-style: normal;
+	line-height: 1;
+	vertical-align: -.125em;
+	// 为浏览器设置抗锯齿
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	.transition('transform .6s, color .3s');
+}
+// 图标二分之一旋转
+.ico-rotate-half {
+	.transform('rotate(.5turn)');
+}
+// 图标四分之一旋转
+.ico-rotate-qtr {
+	.transform('rotate(.25turn)');
+}
+// 图标HOVER旋转
+.ico-hover-rotate {
+	&:hover {
+		.transform('rotate(.5turn) scale(1.2)');
+	}
+}
+
+
+/**
+ * 动画
+ */
+// 旋转动画
+@-moz-keyframes fx-rotate {
+	0% {
+		-moz-transform: rotate(0);
+	}
+	100% {
+		-moz-transform: rotate(1turn);
+	}
+}
+@-webkit-keyframes fx-rotate {
+	0% {
+		-webkit-transform: rotate(0);
+	}
+	100% {
+		-webkit-transform: rotate(1turn);
+	}
+}
+@keyframes fx-rotate {
+	0% {
+		transform: rotate(0);
+	}
+	100% {
+		transform: rotate(1turn);
+	}
+}

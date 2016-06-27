@@ -1,0 +1,16 @@
+﻿blockquote
+~IE7不支持 内部cite标签的破折号效果
+~IE6不支持 除以上外，内部blockquote子元素从第二个开始有上外边距
+
+dl dt dd
+!IE7、IE8不支持 对于dl中的dt不是第一个同类子元素时有.5em的上外边距
+~IE6不支持 以上样式
+
+h1 h2 h3 h4 h5 h6
+~IE6不支持 内部small子元素样式
+
+hr
+~IE6、IE7 hr在此两款浏览器下有默认的上边距14px和下边距14px无法清除，暂不考虑用float:left加margin-bottom:-14px来清除边距
+
+pre
+!大部分浏览器对tab-size并不支持

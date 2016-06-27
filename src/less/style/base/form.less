@@ -9,6 +9,198 @@
 /**
  * 公用样式
  */
+// 表单元素公用样式
+.btn, .textbox, .addon {
+	.ctrl();
+	padding: @CtrlPaddingTB @CtrlPaddingLR;
+	line-height: @CtrlLineHeight;
+	
+	// 为按钮取消默认的系统样式
+	.appearance();
+	// 为按钮添加一个过渡动画
+	.transition('border-color .3s, background .3s, color .3s, box-shadow .3s');
+	// 当按钮存在禁用、只读属性时显示无法交互样式
+	&[disabled], &[readonly] {
+		cursor: default;
+		opacity: @OpacityNoImport;
+	}
+}
+
+/**
+ * 按钮样式
+ */
+// 按钮默认样式
+.btn {
+	background: @ColorWhiteDeeper;
+	border-color: @ColorWhiteBorder;
+	cursor: pointer;
+	.userSelect();
+
+	// 设置按钮被 hover 的外观变化
+	&:not([disabled]):hover, 
+	&:not([disabled]):focus {
+		border-color: @ColorWhiteBackDark;
+	}
+	// 设置按钮被 active 的外观变化
+	&:not([disabled]):active {
+		background: @ColorWhiteDeepest;
+	}
+}
+// 实心按钮
+.btn-solid {
+	background: @ColorWhite;
+}
+// 方形按钮
+.btn-square {
+	border-radius: 0;
+}
+// 圆按钮
+.btn-round {
+	border-radius: @CtrlHeight / 2;
+
+	&.sm {
+		border-radius: (@CtrlHeight - @CtrlSizeGradient) / 2
+	}
+
+	&.lg {
+		border-radius: (@CtrlHeight + @CtrlSizeGradient) / 2
+	}
+}
+// 按钮颜色函数
+.btn-color(@Text, @TextDark, @Border, @Back) {
+	color: @Text;
+	background: @Back;
+	border-color: @Border;
+	// 设置按钮被 hover 的外观变化
+	&:not([disabled]):hover, 
+	&:not([disabled]):focus {
+		border-color: @Text;
+	}
+	// 设置按钮被 active 的外观变化
+	&:not([disabled]):active {
+		color: @TextDark;
+		background: darken(@Back, 10%);
+	}
+}
+// 按钮实心颜色函数
+.btn-fullcolor(@Back, @Hover, @Active) {
+	color: @ColorWhite;
+	border-color: @Back;
+	background: @Back;
+	// 设置按钮被 hover 的外观变化
+	&:not([disabled]):hover,
+	&:not([disabled]):focus {
+		border-color: @Hover;
+		background: @Hover;
+	}
+	// 设置按钮被 active 的外观变化
+	&:not([disabled]):active {
+		color: @ColorWhite;
+		border-color: @Active;
+		background: @Active;
+	}
+}
+// 红色按钮控件颜色样式
+.btn.c-red, .btn.danger {
+	.btn-color(@ColorRed, @ColorRedDeepest, @ColorRedBorder, @ColorRedBackLight);
+}
+// 橙色按钮控件颜色样式
+.btn.c-orange, .btn.warning {
+	.btn-color(@ColorOrange, @ColorOrangeDeepest, @ColorOrangeBorder, @ColorOrangeBackLight);
+}
+// 绿色按钮控件颜色样式
+.btn.c-green, .btn.success {
+	.btn-color(@ColorGreen, @ColorGreenDeepest, @ColorGreenBorder, @ColorGreenBackLight);
+}
+// 蓝色按钮控件颜色样式
+.btn.c-blue, .btn.info {
+	.btn-color(@ColorBlue, @ColorBlueDeepest, @ColorBlueBorder, @ColorBlueBackLight);
+}
+// 黄色按钮控件颜色样式
+.btn.c-yellow {
+	.btn-color(@ColorYellow, @ColorYellowDeepest, @ColorYellowBorder, @ColorYellowBackLight);
+}
+// 天蓝色按钮控件颜色样式
+.btn.c-teal {
+	.btn-color(@ColorTeal, @ColorTealDeepest, @ColorTealBorder, @ColorTealBackLight);
+}
+// 紫蓝色按钮控件颜色样式
+.btn.c-violet {
+	.btn-color(@ColorViolet, @ColorVioletDeepest, @ColorVioletBorder, @ColorVioletBackLight);
+}
+// 紫色按钮控件颜色样式
+.btn.c-purple {
+	.btn-color(@ColorPurple, @ColorPurpleDeepest, @ColorPurpleBorder, @ColorPurpleBackLight);
+}
+// 粉色按钮控件颜色样式
+.btn.c-pink {
+	.btn-color(@ColorPink, @ColorPinkDeepest, @ColorPinkBorder, @ColorPinkBackLight);
+}
+// 棕色按钮控件颜色样式
+.btn.c-brown {
+	.btn-color(@ColorBrown, @ColorBrownDeepest, @ColorBrownBorder, @ColorBrownBackLight);
+}
+// 灰色按钮控件颜色样式
+.btn.c-grey {
+	.btn-color(@ColorGrey, @ColorGreyDeepest, @ColorGreyBorder, @ColorGreyBackLight);
+}
+// 深色按钮控件颜色样式
+.btn.c-dark {
+	.btn-color(@ColorDark, @ColorDarkDeepest, @ColorDarkBorder, @ColorDarkBackLight);
+}
+// 红色实心按钮控件颜色样式
+.btn.btn-solid.c-red {
+	.btn-fullcolor(@ColorRed, @ColorRedDeeper, @ColorRedDeepest);
+}
+// 橙色实心按钮控件颜色样式
+.btn.btn-solid.c-orange {
+	.btn-fullcolor(@ColorOrange, @ColorOrangeDeeper, @ColorOrangeDeepest);
+}
+// 绿色实心按钮控件颜色样式
+.btn.btn-solid.c-green {
+	.btn-fullcolor(@ColorGreen, @ColorGreenDeeper, @ColorGreenDeepest);
+}
+// 蓝色实心按钮控件颜色样式
+.btn.btn-solid.c-blue {
+	.btn-fullcolor(@ColorBlue, @ColorBlueDeeper, @ColorBlueDeepest);
+}
+// 黄色实心按钮控件颜色样式
+.btn.btn-solid.c-yellow {
+	.btn-fullcolor(@ColorYellow, @ColorYellowDeeper, @ColorYellowDeepest);
+}
+// 天蓝色实心按钮控件颜色样式
+.btn.btn-solid.c-teal {
+	.btn-fullcolor(@ColorTeal, @ColorTealDeeper, @ColorTealDeepest);
+}
+// 紫蓝色实心按钮控件颜色样式
+.btn.btn-solid.c-violet {
+	.btn-fullcolor(@ColorViolet, @ColorVioletDeeper, @ColorVioletDeepest);
+}
+// 紫色实心按钮控件颜色样式
+.btn.btn-solid.c-purple {
+	.btn-fullcolor(@ColorPurple, @ColorPurpleDeeper, @ColorPurpleDeepest);
+}
+// 粉色实心按钮控件颜色样式
+.btn.btn-solid.c-pink {
+	.btn-fullcolor(@ColorPink, @ColorPinkDeeper, @ColorPinkDeepest);
+}
+// 棕色实心按钮控件颜色样式
+.btn.btn-solid.c-brown {
+	.btn-fullcolor(@ColorBrown, @ColorBrownDeeper, @ColorBrownDeepest);
+}
+// 灰色实心按钮控件颜色样式
+.btn.btn-solid.c-grey {
+	.btn-fullcolor(@ColorGrey, @ColorGreyDeeper, @ColorGreyDeepest);
+}
+// 深色实心按钮控件颜色样式
+.btn.btn-solid.c-dark {
+	.btn-fullcolor(@ColorDark, @ColorDarkDeeper, @ColorDarkDeepest);
+}
+
+
+/**
+ * 公用样式
+ 
 // 表单控件的公用样式
 .btn, .txtbox, .addon {
 	display: inline-block; // 把此元素设置成 inline-block，目的是当 .btn 设置在非按钮类元素上时能把显示形式调整为内联块级样式
@@ -45,149 +237,11 @@
 	}
 }
 
-/**
- * 按钮控件样式
- */
-// 按钮颜色函数
-.btn-color(@Text, @TextDark, @Border, @BorderDark, @Back, @BackDark) {
-	color: @Text;
-	background: @Back;
-	border-color: @Border;
-	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):hover, 
-	&:not([disabled]):focus {
-		border-color: @BorderDark;
-	}
-	// 设置按钮被 active 的外观变化
-	&:not([disabled]):active {
-		color: @TextDark;
-		background: @BackDark;
-	}
-}
-// 按钮实心颜色函数
-.btn-fullcolor(@Now, @Hover, @Active) {
-	color: @ColorWhite;
-	border-color: @Now;
-	background: @Now;
-	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):hover,
-	&:not([disabled]):focus {
-		border-color: @Hover;
-		background: @Hover;
-	}
-	// 设置按钮被 active 的外观变化
-	&:not([disabled]):active {
-		color: @ColorWhite;
-		border-color: @Active;
-		background: @Active;
-	}
-}
-// 按钮控件默认样式
-.btn {
-	background: @ColorWhiteDeeper;
-	border-color: @ColorWhiteBorder;
-	cursor: pointer;
-	.userSelect();
-
-	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):hover, 
-	&:not([disabled]):focus {
-		border-color: @ColorWhiteBackDark;
-	}
-	// 设置按钮被 active 的外观变化
-	&:not([disabled]):active {
-		background: @ColorWhiteDeepest;
-	}
-}
-// 蓝色按钮控件颜色样式
-.btn-blue, .btn.info, .ctrl-group.info > .btn {
-	.btn-color(@ColorBlue, @ColorBlueDeepest, @ColorBlueBorder, @ColorBlue, @ColorBlueBackLight, @ColorBlueBorder);
-}
-// 绿色按钮控件颜色样式
-.btn-green, .btn.success, .ctrl-group.success > .btn {
-	.btn-color(@ColorGreen, @ColorGreenDeepest, @ColorGreenBorder, @ColorGreen, @ColorGreenBackLight, @ColorGreenBorder);
-}
-// 橙色按钮控件颜色样式
-.btn-orange, .btn.warning, .ctrl-group.warning > .btn {
-	.btn-color(@ColorOrange, @ColorOrangeDeepest, @ColorOrangeBorder, @ColorOrange, @ColorOrangeBackLight, @ColorOrangeBorder);
-}
-// 红色按钮控件颜色样式
-.btn-red, .btn.danger, .ctrl-group.danger > .btn {
-	.btn-color(@ColorRed, @ColorRedDeepest, @ColorRedBorder, @ColorRed, @ColorRedBackLight, @ColorRedBorder);
-}
-// 天蓝色按钮控件颜色样式
-.btn-skyblue {
-	.btn-color(@ColorSkyBlue, @ColorSkyBlueDeepest, @ColorSkyBlueBorder, @ColorSkyBlue, @ColorSkyBlueBackLight, @ColorSkyBlueBorder);
-}
-// 紫色按钮控件颜色样式
-.btn-violet {
-	.btn-color(@ColorViolet, @ColorVioletDeepest, @ColorVioletBorder, @ColorViolet, @ColorVioletBackLight, @ColorVioletBorder);
-}
-// 黄色按钮控件颜色样式
-.btn-yellow {
-	.btn-color(@ColorYellow, @ColorYellowDeepest, @ColorYellowBorder, @ColorYellow, @ColorYellowBackLight, @ColorYellowBorder);
-}
-// 深色按钮控件颜色样式
-.btn-dark {
-	.btn-color(@ColorDark, @ColorDarkDeepest, @ColorDarkBorder, @ColorDark, @ColorDarkBackLight, @ColorDarkBorder);
-}
-// 实心颜色按钮白色样式
-.btn.btn-solid {
-	background: @ColorWhite;
-}
-// 实心颜色按钮蓝色样式
-.btn-blue.btn-solid {
-	.btn-fullcolor(@ColorBlue, @ColorBlueDeeper, @ColorBlueDeepest);
-}
-// 实心颜色按钮绿色样式
-.btn-green.btn-solid {
-	.btn-fullcolor(@ColorGreen, @ColorGreenDeeper, @ColorGreenDeepest);
-}
-// 实心颜色按钮橙色样式
-.btn-orange.btn-solid {
-	.btn-fullcolor(@ColorOrange, @ColorOrangeDeeper, @ColorOrangeDeepest);
-}
-// 实心颜色按钮红色样式
-.btn-red.btn-solid {
-	.btn-fullcolor(@ColorRed, @ColorRedDeeper, @ColorRedDeepest);
-}
-// 实心颜色按钮红色样式
-.btn-skyblue.btn-solid {
-	.btn-fullcolor(@ColorSkyBlue, @ColorSkyBlueDeeper, @ColorSkyBlueDeepest);
-}
-// 实心颜色按钮红色样式
-.btn-violet.btn-solid {
-	.btn-fullcolor(@ColorViolet, @ColorVioletDeeper, @ColorVioletDeepest);
-}
-// 实心颜色按钮红色样式
-.btn-yellow.btn-solid {
-	.btn-fullcolor(@ColorYellow, @ColorYellowDeeper, @ColorYellowDeepest);
-}
-// 实心颜色按钮红色样式
-.btn-dark.btn-solid {
-	.btn-fullcolor(@ColorDark, @ColorDarkDeeper, @ColorDarkDeepest);
-}
-// 方形按钮
-.btn-square {
-	border-radius: 0;
-}
-// 圆按钮
-.btn-round {
-	border-radius: @CtrlHeight / 2;
-
-	&.sm {
-		border-radius: (@CtrlHeight - @CtrlSizeGradient) / 2
-	}
-
-	&.lg {
-		border-radius: (@CtrlHeight + @CtrlSizeGradient) / 2
-	}
-}
 
 /**
  * 文本输入控件样式
- */
-/* 文本输入控件、多行文本输入控件 */
+ 
+/* 文本输入控件、多行文本输入控件 
 // 文本输入控件颜色函数
 .txtbox-color(@Color, @ColorDeepest, @Background) {
 	color: @Color;
@@ -279,7 +333,7 @@ textarea.txtbox {
 
 /**
  * 修饰控件样式
- */
+ 
 // 修饰控件颜色函数
 .addon-color(@Text, @Background, @Border){
 	color: @Text;
@@ -310,7 +364,7 @@ textarea.txtbox {
 
 /**
  * 组合控件样式
- */
+ 
 // 为所有带有.ctrl-group的元素设置组合控件样式
 // 一个组合控件是由多个控件组合而成
 .ctrl-group {
@@ -374,7 +428,7 @@ textarea.txtbox {
 
 /**
  * 选框样式
- */
+ 
 // 单选与多选的默认样式
 .check, .radio {
 	display: inline-block;
@@ -416,3 +470,4 @@ textarea.txtbox {
 	border-radius: 9px;
 	background-position: -20px 18px;
 }
+	*/

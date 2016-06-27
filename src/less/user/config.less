@@ -4,38 +4,40 @@
  */
 
 /* 基础变量 */
-// 默认系数大小为 14px(1rem)
-@BaseSize: 14px;
-// 默认小尺寸
-@BaseSmall: 12px;
-// 默认大尺寸
-@BaseLarge: 16px;
-// 默认行距大小 28px(2rem)
+// 默认系数大小为10px
+@BaseSize: 10px;
+// 默认字体大小为14px
+@BaseFontSize: (1.4 * @BaseSize);
+// 默认小尺寸为12px
+@BaseSmall: (1.2 * @BaseSize);
+// 默认大尺寸为16px
+@BaseLarge: (1.6 * @BaseSize);
+// 默认行距大小为2倍字体大小
 @LineHeight: 2;
 
-// 默认时H1字体大小为 34px
-@H1FontSize: 34px;
-// 默认时H2字体大小为 28px
-@H2FontSize: 28px;
-// 默认时H3字体大小为 22px
-@H3FontSize: 22px;
-// 默认时H4字体大小为 18px
-@H4FontSize: 18px;
-// 默认时H5字体大小为 14px
-@H5FontSize: @BaseSize;
-// 默认时H6字体大小为 12px
+// 默认时H1字体大小为34px
+@H1FontSize: (3.4 * @BaseSize);
+// 默认时H2字体大小为28px
+@H2FontSize: (2.8 * @BaseSize);
+// 默认时H3字体大小为22px
+@H3FontSize: (2.2 * @BaseSize);
+// 默认时H4字体大小为18px
+@H4FontSize: (1.8 * @BaseSize);
+// 默认时H5字体大小为14px
+@H5FontSize: @BaseFontSize;
+// 默认时H6字体大小为12px
 @H6FontSize: @BaseSmall;
 
-// 默认控件圆角 3px
-@BorderRadius: 3px;
+// 默认控件圆角为3px
+@BorderRadius: (.3 * @BaseSize);
 
 // 默认字体
 @Font: 'Tahoma', 'Microsoft YaHei', 'Segoe', 'Helvetica', sans-serif;
 // 代码字体
 @FontCode: Menlo, Monaco, Consolas, 'Courier New', monospace, sans-serif; 
 // 最大ZINDEX
-@MaxZIndex: 999999;
-// hover 状态时的不透明度
+@MaxZIndex: 1000000;
+// hover状态时的不透明度
 @OpacityHover: .7;
 // 非重要文本的不透明度
 @OpacityNoImport: .5;
@@ -43,17 +45,17 @@
 
 /* 控件变量 */
 // 控件默认宽度
-@CtrlWidth: @BaseSize * 12.5;
+@CtrlWidth: (15 * @BaseSize);
 // 控件默认高度
-@CtrlHeight: 34px;
+@CtrlHeight: (3.4 * @BaseSize);
 // 控件上下方向内边距
-@CtrlPaddingTB: 5px;
+@CtrlPaddingTB: (.4 * @BaseSize);
 // 控件左右方向内边距
-@CtrlPaddingLR: @BaseSize / 3 * 2;
+@CtrlPaddingLR: @BaseSize;
 // 控件默认行高
-@CtrlLineHeight: 22px;
-// 控件尺寸梯度 小尺寸 -1 大尺寸 +1
-@CtrlSizeGradient: 2px;
+@CtrlLineHeight: (2.4 * @BaseSize);
+// 控件尺寸梯度 小尺寸 -2 大尺寸 +2
+@CtrlSizeGradient: (.2 * @BaseSize);
 
 
 /* 颜色变量 */
@@ -82,37 +84,13 @@
 @ColorDarkBackLight: #B5B5B5;
 @ColorDarkBackDark: #5B5B5B;
 
-// 天蓝色方案
-@ColorSkyBlue: #319DB5;
-@ColorSkyBlueDeeper: #2C8CA1;
-@ColorSkyBlueDeepest: #267A8D;
-@ColorSkyBlueBorder: #B1DEE8;
-@ColorSkyBlueBackLight: #EAFAFD;
-@ColorSkyBlueBackDark: #51B0C5;
-
-// 蓝色方案
-@ColorBlue: #3F99D5;
-@ColorBlueDeeper: #3785B9;
-@ColorBlueDeepest: #3075A3;
-@ColorBlueBorder: #B1D4EB;
-@ColorBlueBackLight: #EDF7FF;
-@ColorBlueBackDark: #509ACB; 
-
-// 紫色方案
-@ColorViolet: #7D6FCC;
-@ColorVioletDeeper: #6E62B5;
-@ColorVioletDeepest: #61569F;
-@ColorVioletBorder: #E1D0F4;
-@ColorVioletBackLight: #F5ECFF;
-@ColorVioletBackDark: #9388D4;
-
-// 绿色方案
-@ColorGreen: #18A689;
-@ColorGreenDeeper: #159077;
-@ColorGreenDeepest: #127E69;
-@ColorGreenBorder: #C5EADD;
-@ColorGreenBackLight: #ECF6EC;
-@ColorGreenBackDark: #18A689;
+// 灰色方案
+@ColorGrey: #707377;
+@ColorGreyDeeper: #636569;
+@ColorGreyDeepest: #4F5153;
+@ColorGreyBorder: #B1B1B1;
+@ColorGreyBackLight: #CACACA;
+@ColorGreyBackDark: #898989;
 
 // 红色方案
 @ColorRed: #D35B5B;
@@ -122,7 +100,7 @@
 @ColorRedBackLight: #FBECEB;
 @ColorRedBackDark: #D46666;
 
-// 橙色
+// 橙色方案
 @ColorOrange: #F9942F;
 @ColorOrangeDeeper: #F68513;
 @ColorOrangeDeepest: #E07407;
@@ -130,10 +108,66 @@
 @ColorOrangeBackLight: #FFEEDC;
 @ColorOrangeBackDark: #F2A057;
 
-// 黄色
+// 黄色方案
 @ColorYellow: #FFB538;
 @ColorYellowDeeper: #F9A81D;
 @ColorYellowDeepest: #EC9A0E;
 @ColorYellowBorder: #FFE1AF;
 @ColorYellowBackLight: #FEF2DD;
 @ColorYellowBackDark: #F6B546;
+
+// 绿色方案
+@ColorGreen: #18A689;
+@ColorGreenDeeper: #159077;
+@ColorGreenDeepest: #127E69;
+@ColorGreenBorder: #C5EADD;
+@ColorGreenBackLight: #ECF6EC;
+@ColorGreenBackDark: #18A689;
+
+// 天蓝色方案
+@ColorTeal: #319DB5;
+@ColorTealDeeper: #2C8CA1;
+@ColorTealDeepest: #267A8D;
+@ColorTealBorder: #B1DEE8;
+@ColorTealBackLight: #EAFAFD;
+@ColorTealBackDark: #51B0C5;
+
+// 蓝色方案
+@ColorBlue: #3F99D5;
+@ColorBlueDeeper: #3785B9;
+@ColorBlueDeepest: #3075A3;
+@ColorBlueBorder: #B1D4EB;
+@ColorBlueBackLight: #EDF7FF;
+@ColorBlueBackDark: #509ACB; 
+
+// 紫蓝色方案
+@ColorViolet: #7D6FCC;
+@ColorVioletDeeper: #6E62B5;
+@ColorVioletDeepest: #61569F;
+@ColorVioletBorder: #E1D0F4;
+@ColorVioletBackLight: #F5ECFF;
+@ColorVioletBackDark: #9388D4;
+
+// 紫色方案
+@ColorPurple: #CC6FC6;
+@ColorPurpleDeeper: #B45EAF;
+@ColorPurpleDeepest: #904B8C;
+@ColorPurpleBorder: #F4D0E6;
+@ColorPurpleBackLight: #FFE9F7;
+@ColorPurpleBackDark: #D286CD;
+
+// 粉色方案
+@ColorPink: #E156A2;
+@ColorPinkDeeper: #D93991;
+@ColorPinkDeepest: #BC2F7B;
+@ColorPinkBorder: #F6C7E0;
+@ColorPinkBackLight: #FCE7F3;
+@ColorPinkBackDark: #DF77B4;
+
+// 棕色方案
+@ColorBrown: #CB8B4F;
+@ColorBrownDeeper: #C47D3A;
+@ColorBrownDeepest: #B16D2C;
+@ColorBrownBorder: #E9D3BF;
+@ColorBrownBackLight: #FAEDE1;
+@ColorBrownBackDark: #CD9667;

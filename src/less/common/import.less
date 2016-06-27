@@ -1,7 +1,35 @@
 ﻿/**
  * import.less
- * 管理导入文件包
+ * 管理导入文件包及公用样式
  */
 
 @import "../user/config.less";
 @import "../common/function.less";
+
+// 控件基础样式
+.ctrl() {
+	display: inline-block; // 把此元素设置成 inline-block，目的是当 .btn 设置在非按钮类元素上时能把显示形式调整为内联块级样式
+	height: @CtrlHeight; 
+	border: 1px solid @ColorWhiteBorder;
+	border-radius: @BorderRadius;
+	background: @ColorWhite;
+	vertical-align: middle;
+	// 所有控件默认按照 border-box 的方式计算
+	.boxSizing('border-box');
+	// 默认过渡效果
+	.transition('background .3s, border-color .3s');
+	
+	// 小尺寸
+	&.sm {
+		font-size: @BaseFontSize - @CtrlSizeGradient;
+		height: @CtrlHeight - @CtrlSizeGradient * 2;
+		line-height: @CtrlLineHeight - @CtrlSizeGradient * 2;
+	}
+
+	// 大尺寸
+	&.lg {
+		font-size: @BaseFontSize + @CtrlSizeGradient;
+		height: @CtrlHeight + @CtrlSizeGradient * 2;
+		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
+	}
+}

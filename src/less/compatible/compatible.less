@@ -1,0 +1,30 @@
+﻿/**
+ * compatible.less
+ * 用于旧版浏览器兼容的样式
+ */
+
+// 导入必要的文件
+@import "../common/import.less";
+
+// 解决blockquote的兼容问题
+blockquote {
+	// 解决IE6-IE8不支持opacity属性
+	cite {
+		filter: e(%('alpha(opacity=%a)', @OpacityNoImport * 100)); 
+	}
+	// 解决IE6在嵌套blockquote时padding-left发生错位的问题
+	// 解决IE6-IE7不支持内联元素的filter问题
+	&, cite {
+		*zoom: 1;
+	}
+}
+
+// 解决h1, h2, h3, h4, h5, h6的兼容问题
+h1, h2, h3, h4, h5, h6 {
+	// 解决IE6-IE8不支持opacity属性
+	small {
+		filter: e(%('alpha(opacity=%a)', @OpacityNoImport * 100)); 
+		// 解决IE6-IE7不支持内联元素的filter问题
+		*zoom: 1;
+	}
+}

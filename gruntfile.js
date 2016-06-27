@@ -23,12 +23,10 @@ module.exports = function (grunt) {
 					// 是否混淆变量名 true:混淆
 					mangle: true,
 					// 是否删除注释 false:删除全部
-					preserveComments: false,
+					preserveComments: 'some',
 					// 头注释
 					banner: '/*! <%= pkg.name %> - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n',
-					// 结尾注释
-					footer: '\n/* lasted： <%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> */'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n'
 				},
 				files: {
 					'dist/js/ud2.js': [
@@ -36,16 +34,15 @@ module.exports = function (grunt) {
 					]
 				}
 			},
-			'script-ud2-oldbrowser': {
+			'script-ud2-compatible': {
 				options: {
 					mangle: true,
-					preserveComments: false,
-					banner: '/*! <%= pkg.name %>(oldbrowser) - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n',
-					footer: '\n/* lasted： <%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> */'
+					preserveComments: 'some',
+					banner: '/*! <%= pkg.name %>(compatible) - v<%= pkg.version %>'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n'
 				},
 				files: {
-					'dist/js/ud2.oldbrowser.js': 'src/js/ud2.oldbrowser.js'
+					'dist/js/ud2.compatible.js': 'src/js/ud2.compatible.js'
 				}
 			}
 		},
@@ -57,8 +54,7 @@ module.exports = function (grunt) {
 					compress: true,
 					// 头注释
 					banner: '/*! <%= pkg.name %>.css - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n',
-					footer: '\n/* lasted： <%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> */'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */'
 				},
 				files: {
 					'dist/css/ud2.css': [
@@ -83,6 +79,20 @@ module.exports = function (grunt) {
 
 						// 'src/less/style/ud2-dialog.less',
 						// 'src/less/style/ud2-message.less'
+					]
+				}
+			},
+			'css-ud2-compatible': {
+				options: {
+					// 是否压缩 true:是
+					compress: true,
+					// 头注释
+					banner: '/*! <%= pkg.name %>-compatible.css - v<%= pkg.version %>'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */'
+				},
+				files: {
+					'dist/css/ud2.compatible.css': [
+						'src/less/compatible/compatible.less'
 					]
 				}
 			}
@@ -119,13 +129,13 @@ module.exports = function (grunt) {
 			},
 			'watch-ud2-oldbrowser': {
 				// 监测的文件
-				files: ['src/js/ud2.oldbrowser.js'],
+				files: ['src/js/ud2.compatible.js'],
 				// 执行任务
-				tasks: ['uglify:script-ud2-oldbrowser']
+				tasks: ['uglify:script-ud2-compatible']
 			},
 			'watch-less-ud2': {
 				// 监测的文件
-				files: ['src/**'],
+				files: ['src/less/**'],
 				tasks: ['less']
 			}
 		}

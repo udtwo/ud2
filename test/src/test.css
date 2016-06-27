@@ -1,6 +1,7 @@
 ﻿fieldset {
 	border: 1px solid #ddd;
 	background: #f5f5f5;
+	padding: 5px 10px;
 }
 
 fieldset legend {
@@ -8,4 +9,8 @@ fieldset legend {
 	font-weight: 800;
 	padding: 0 5px 0 10px;
 	letter-spacing: 5px;
+}
+
+fieldset .pre {
+	white-space: pre-line;
 }

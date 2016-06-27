@@ -11,14 +11,14 @@
  */
 // 字体样式
 .font() {
-	font: @BaseSize @Font;
+	font: @BaseFontSize @Font;
 	line-height: @LineHeight;
 }
 // 为特定标签定义默认的字体类型、大小和行距
 html, button, input, textarea {
 	.font();
 }
-// 为 body 和 a 标签设置默认颜色
+// 为body和a标签设置默认颜色
 body, a {
 	color: @ColorText;
 }
@@ -58,10 +58,8 @@ h1, h2, h3, h4, h5, h6 {
 	}
 }
 
-// 为abbr标签设置内部标签样式
-// 用一条点状下划线来标识当前标签存在提示内容，鼠标滑入时显示提示内容
-// 提示内容通常设置在abbr标签的title属性中
-abbr {
+// 缩写样式
+abbr, .abbr {
 	border-bottom: 1px dotted @ColorDarkBorder;
 	cursor: help;
 
@@ -69,166 +67,180 @@ abbr {
 		opacity: @OpacityHover;
 	}
 }
-// 为ins插入、del删除标签设置内部样式
-// 为所有带有.ins的元素设置插入的内部样式
-// 为所有带有.del的元素设置删除的内部样式
-ins, del {
-	// 为带有cite属性的元素设置cite属性的显示方式
-	&[cite]::after {
-		display: inline-block;
-		content: attr(cite);
-		font-size: smaller;
-		opacity: @OpacityNoImport;
-		margin-left: .25em;
-	}
-}
-
-// 为所有代码相关标签设置等宽字体显示
-kbd, pre, var, code, samp {
-	font-family: @FontCode;
-}
-// 为kbd标签设置内部样式
-kbd {
-	display: inline-block;
-	margin: 0 .25em;
-	padding: .125em .5em;
-	background: @ColorDark;
-	color: @ColorWhite;
-	border-radius: @BorderRadius;
-}
-// 为pre标签设置内部样式
-pre {
-	padding: .5em;
-	background: @ColorWhiteBackLight;
-	border-radius: @BorderRadius;
-	-o-tab-size: 3;
-	tab-size: 3;
-}
-// 为var标签设置内部样式
-var {
-	color: @ColorGreen;
-	font-weight: 800;
-}
-// 为samp标签设置内部样式
-samp {
-	padding: 0 .25em;
-	color: @ColorGreen;
-	background: @ColorGreenBackLight;
-}
-// 为mark标签设置内部样式
-// 为所有带有.mark的元素设置标记的内部样式
-mark {
-	margin: 0 .25em;
-	padding: 0 .25em;
-	background: @ColorYellow;
-}
-// 为blockquote标签设置内部样式
-// 用一条左方向折线来装饰当前标签
-// 此标签内容应该被语义标签包裹，例如段落标签P
-blockquote {
-	padding: .25em .25em .25em .5em;
+// 块引用样式
+// 内部cite(引用标签)有独立样式
+blockquote, .blockquote {
+	padding: .25em;
+	padding-left: .5em;
 	border-left: @BaseSize / 3 solid @ColorWhiteBorder;
+
 	// blockquote标签内部的cite标签设置样式
-	> cite {
-		opacity: @OpacityNoImport;
-		font-style: normal;
+	cite, .cite {
+		display: block;
+		text-align: right;
 		// 为cite标签加破折号(其unicode为%u2014)
 		&:before {
 			content: '\2014\2014\20';
 		}
 	}
-	// blockquote内部如再次出现blockquote标签，且标签不是第一个元素，则设置一个上外边距
-	> blockquote:not(:first-child) {
+	// blockquote的内部再次出现blockquote标签时，对其设置上外边距
+	> blockquote {
 		margin-top: .5em;
 	}
-	// blockquote内部如再次出现blockquote标签，且标签不是最后一个元素，则设置一个下外边距
-	> blockquote:not(:last-child) {
-		margin-bottom: .5em;
+	// 对第一个blockquote不设置其上边距
+	> blockquote:first-child {
+		margin-top: 0;
 	}
 }
-
-// 为 dl 标签以及内部的 dt，dd 标签设置内部样式
+// 文献引用样式
+cite, .cite {
+	font-style: italic;
+	font-size: smaller;
+	opacity: @OpacityNoImport;
+}
+// 定义列表样式
 dl {
 	// 设置 dl 标签内部的dt标签默认样式
-	> dt {
+	dt {
 		font-weight: 800;
 	}
 	// 如果 dt 标签不是 dl 标签中第一个同类子元素，则为其设置上外边距提高距离
-	> dt:not(:first-of-type) {
+	dt:not(:first-of-type) {
 		margin-top: .5em;
 	}
 }
-
-// 为hr标签设置内部样式
-// HACK: 点状线在部分旧版浏览器中会显示成虚线
-hr, .hr {
+// 插入、删除公用样式
+.ins, .del {
+	display:inline;
+}
+// 插入样式
+.ins {
+	text-decoration: underline;
+}
+// 删除样式
+.del {
+	text-decoration: line-through;
+}
+// 代码相关标签公用样式
+kbd, pre, var, code, samp, .kbd, .pre, .samp {
+	font-family: @FontCode;
+}
+// 计算机相关标签公用样式
+kbd, .kbd, var, .var, samp, .samp {
+	display: inline-block;
+}
+// 键盘文本样式
+kbd, .kbd {
+	margin: 0 .25em;
+	padding: .05em .5em;
+	background: @ColorDark;
+	color: @ColorWhite;
+	border-radius: @BorderRadius;
+}
+// 预格式化样式
+pre, .pre {
 	display: block;
-	height: 0;
+	padding: .5em;
+	background: @ColorWhiteBackLight;
+	border-radius: @BorderRadius;
+	white-space: pre;
+	-o-tab-size: 3;
+	tab-size: 3;
+}
+// 计算机变量样式
+var, .var {
+	color: @ColorGreen;
+	font-weight: 800;
+}
+// 计算机输出样式
+samp, .samp {
+	padding: 0 .25em;
+	color: @ColorGreen;
+	background: @ColorGreenBackLight;
+}
+// 重要标记样式
+mark, .mark {
+	display: inline;
+	margin: 0 .25em;
+	padding: 0 .25em;
+	background: @ColorYellow;
+}
+
+// 水平线样式
+.hr {
+	display: block;
 	padding: 0;
 	border: 0;
-	border-bottom: 1px solid @ColorWhiteBorder;
+	height: 0;
+	border-top: 1px solid @ColorWhiteBorder;
 }
 // 点状水平线
 .hr-dotted {
-	border-bottom-style: dotted;
+	border-top-style: dotted;
 }
 // 虚线状水平线
 .hr-dashed {
-	border-bottom-style: dashed;
-}
-// 蓝色水平线
-.hr-blue {
-	border-bottom-color: @ColorBlue;
-}
-// 橙色水平线
-.hr-orange {
-	border-bottom-color: @ColorOrange;
-}
-// 黄色水平线
-.hr-yellow {
-	border-bottom-color: @ColorYellow;
-}
-// 绿色水平线
-.hr-green {
-	border-bottom-color: @ColorGreen;
+	border-top-style: dashed;
 }
 // 红色水平线
-.hr-red {
-	border-bottom-color: @ColorRed;
+.hr.c-red {
+	border-top-color: @ColorRed;
+}
+// 橙色水平线
+.hr.c-orange {
+	border-top-color: @ColorOrange;
+}
+// 黄色水平线
+.hr.c-yellow {
+	border-top-color: @ColorYellow;
+}
+// 绿色水平线
+.hr.c-green {
+	border-top-color: @ColorGreen;
 }
 // 天蓝色水平线
-.hr-skyblue {
-	border-bottom-color: @ColorSkyBlue;
+.hr.c-teal {
+	border-top-color: @ColorTeal;
+}
+// 蓝色水平线
+.hr.c-blue {
+	border-top-color: @ColorBlue;
+}
+// 紫蓝色水平线
+.hr.c-violet {
+	border-top-color: @ColorViolet;
 }
 // 紫色水平线
-.hr-violet {
-	border-bottom-color: @ColorViolet;
+.hr.c-purple {
+	border-top-color: @ColorPurple;
+}
+// 粉色水平线
+.hr.c-pink {
+	border-top-color: @ColorPink;
+}
+// 棕色水平线
+.hr.c-brown {
+	border-top-color: @ColorBrown;
+}
+// 白色水平线
+.hr.c-white {
+	border-top-color: @ColorWhite;
 }
 // 深色水平线
-.hr-dark {
-	border-bottom-color: @ColorDark;
+.hr.c-dark {
+	border-top-color: @ColorDark;
+}
+// 灰色水平线
+.hr.c-grey {
+	border-top-color: @ColorGrey;
 }
 // 2倍高水平线
-&.hr-x2 {
-	border-bottom-width: 2px;
+.hr-x2 {
+	border-top-width: 2px;
 }
 // 3倍高水平线
-&.hr-x3 {
-	border-bottom-width: 3px;
-}
-
-// placeholder 默认颜色
-input::-webkit-input-placeholder {
-	color: @ColorNotes;
-}
-input:-moz-placeholder {
-	color: @ColorNotes;
-}
-input::-moz-placeholder {
-	color: @ColorNotes;
-}
-input:-ms-input-placeholder {
-	color: @ColorNotes;
+.hr-x3 {
+	border-top-width: 3px;
 }
 
 
@@ -237,60 +249,85 @@ input:-ms-input-placeholder {
  */
 // 为所有标签设置文本的左对齐
 // 此样式不适用于 inline 元素
-.text-left {
+.align-left {
 	text-align: left;
 }
 // 为所有标签设置文本的居中对齐
 // 此样式不适用于 inline 元素
-.text-center {
+.align-center {
 	text-align: center;
 }
 // 为所有标签设置文本的右对齐
 // 此样式不适用于 inline 元素
-.text-right {
+.align-right {
 	text-align: right;
-}
-// 为所有带有.ins的元素设置装饰线
-.line-under {
-	text-decoration: underline;
-}
-// 为所有带有.del的元素设置删除线
-.line-through {
-	text-decoration: line-through;
-}
-// 为big类设置字体增大样式
-.big {
-	font-size: larger;
-}
-// 为small类设置字体缩小样式
-.small {
-	font-size: smaller;
 }
 // 为所有标签设置文本强制不换行
 .nowrap {
 	white-space: nowrap;
+	-ms-word-break: normal;
+	word-break: normal;
 }
 // 为所有标签设置文本强制换行，当文本达到容易的右边缘且长单词等并未完全显示在一行则换行到下行显示
 .allwrap {
+	white-space: normal;
 	-ms-word-break: break-all;
 	word-break: break-all;
 }
-// 信息颜色
-.c-info {
+// 信息(蓝色)前景色
+.fc-info, .fc-blue {
 	color: @ColorBlue;
 }
-// 成功颜色
-.c-success {
+// 成功(绿色)前景色
+.fc-success, .fc-green {
 	color: @ColorGreen;
 }
-// 警告颜色
-.c-warning {
+// 警告(橙色)前景色
+.fc-warning, .fc-orange {
 	color: @ColorOrange;
 }
-// 危险颜色
-.c-danger {
+// 危险(红色)前景色
+.fc-danger, .fc-red {
 	color: @ColorRed;
 }
+// 黄前景色
+.fc-yellow {
+	color: @ColorYellow;
+}
+// 天蓝前景色
+.fc-teal {
+	color: @ColorTeal;
+}
+// 紫蓝前景色
+.fc-violet {
+	color: @ColorViolet;
+}
+// 紫前景色
+.fc-purple {
+	color: @ColorPurple;
+}
+// 粉前景色
+.fc-pink {
+	color: @ColorPink;
+}
+// 棕前景色
+.fc-brown {
+	color: @ColorBrown;
+}
+// 白前景色
+.fc-white {
+	color: @ColorWhite;
+}
+// 深前景色
+.fc-dark {
+	color: @ColorDark;
+}
+// 灰前景色
+.fc-grey {
+	color: @ColorGrey;
+}
+
+// -------------------------------------------------------------------------------
 
 
 /**
@@ -322,7 +359,7 @@ input:-ms-input-placeholder {
 	vertical-align: -.125em;
 	// 为浏览器设置抗锯齿
 	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
+	/*-moz-osx-font-smoothing: grayscale;*/
 	.transition('transform .6s, color .3s');
 }
 // 图标二分之一旋转
@@ -368,4 +405,22 @@ input:-ms-input-placeholder {
 	100% {
 		transform: rotate(1turn);
 	}
+}
+
+
+/**
+ * 其他
+ */
+// placeholder 默认颜色
+input::-webkit-input-placeholder {
+	color: @ColorNotes;
+}
+input:-moz-placeholder {
+	color: @ColorNotes;
+}
+input::-moz-placeholder {
+	color: @ColorNotes;
+}
+input:-ms-input-placeholder {
+	color: @ColorNotes;
 }

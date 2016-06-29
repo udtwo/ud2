@@ -18,9 +18,9 @@
 	// 为按钮取消默认的系统样式
 	.appearance();
 	// 为按钮添加一个过渡动画
-	.transition('border-color .3s, background .3s, color .3s, box-shadow .3s');
+	.transition('width .3s, height .3s, border-color .3s, background .3s, color .3s, box-shadow .3s');
 	// 当按钮存在禁用、只读属性时显示无法交互样式
-	&[disabled], &[readonly] {
+	&[disabled], &[readonly], &.disabled {
 		cursor: default;
 		opacity: @OpacityNoImport;
 	}
@@ -34,15 +34,16 @@
 	background: @ColorWhiteDeeper;
 	border-color: @ColorWhiteBorder;
 	cursor: pointer;
+	text-align: center;
 	.userSelect();
 
 	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):hover, 
-	&:not([disabled]):focus {
+	&:not([disabled]):not(.disabled):hover, 
+	&:not([disabled]):not(.disabled):focus {
 		border-color: @ColorWhiteBackDark;
 	}
 	// 设置按钮被 active 的外观变化
-	&:not([disabled]):active {
+	&:not([disabled]):not(.disabled):active {
 		background: @ColorWhiteDeepest;
 	}
 }
@@ -66,18 +67,33 @@
 		border-radius: (@CtrlHeight + @CtrlSizeGradient) / 2
 	}
 }
+// 图标圆按钮
+.btn-icoround {
+	width: @CtrlHeight;
+	padding-left: 0;
+	padding-right: 0;
+	border-radius: 50%;
+
+	&.sm {
+		width: @CtrlHeight - @CtrlSizeGradient;
+	}
+
+	&.lg {
+		width: @CtrlHeight + @CtrlSizeGradient;
+	}
+}
 // 按钮颜色函数
 .btn-color(@Text, @TextDark, @Border, @Back) {
 	color: @Text;
 	background: @Back;
 	border-color: @Border;
 	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):hover, 
-	&:not([disabled]):focus {
+	&:not([disabled]):not(.disabled):hover, 
+	&:not([disabled]):not(.disabled):focus {
 		border-color: @Text;
 	}
 	// 设置按钮被 active 的外观变化
-	&:not([disabled]):active {
+	&:not([disabled]):not(.disabled):active {
 		color: @TextDark;
 		background: darken(@Back, 10%);
 	}
@@ -88,283 +104,298 @@
 	border-color: @Back;
 	background: @Back;
 	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):hover,
-	&:not([disabled]):focus {
+	&:not([disabled]):not(.disabled):hover,
+	&:not([disabled]):not(.disabled):focus {
 		border-color: @Hover;
 		background: @Hover;
 	}
 	// 设置按钮被 active 的外观变化
-	&:not([disabled]):active {
+	&:not([disabled]):not(.disabled):active {
 		color: @ColorWhite;
 		border-color: @Active;
 		background: @Active;
 	}
 }
-// 红色按钮控件颜色样式
+// 红色按钮颜色样式
 .btn.c-red, .btn.danger {
 	.btn-color(@ColorRed, @ColorRedDeepest, @ColorRedBorder, @ColorRedBackLight);
 }
-// 橙色按钮控件颜色样式
+// 橙色按钮颜色样式
 .btn.c-orange, .btn.warning {
 	.btn-color(@ColorOrange, @ColorOrangeDeepest, @ColorOrangeBorder, @ColorOrangeBackLight);
 }
-// 绿色按钮控件颜色样式
+// 绿色按钮颜色样式
 .btn.c-green, .btn.success {
 	.btn-color(@ColorGreen, @ColorGreenDeepest, @ColorGreenBorder, @ColorGreenBackLight);
 }
-// 蓝色按钮控件颜色样式
+// 蓝色按钮颜色样式
 .btn.c-blue, .btn.info {
 	.btn-color(@ColorBlue, @ColorBlueDeepest, @ColorBlueBorder, @ColorBlueBackLight);
 }
-// 黄色按钮控件颜色样式
+// 黄色按钮颜色样式
 .btn.c-yellow {
 	.btn-color(@ColorYellow, @ColorYellowDeepest, @ColorYellowBorder, @ColorYellowBackLight);
 }
-// 天蓝色按钮控件颜色样式
+// 天蓝色按钮颜色样式
 .btn.c-teal {
 	.btn-color(@ColorTeal, @ColorTealDeepest, @ColorTealBorder, @ColorTealBackLight);
 }
-// 紫蓝色按钮控件颜色样式
+// 紫蓝色按钮颜色样式
 .btn.c-violet {
 	.btn-color(@ColorViolet, @ColorVioletDeepest, @ColorVioletBorder, @ColorVioletBackLight);
 }
-// 紫色按钮控件颜色样式
+// 紫色按钮颜色样式
 .btn.c-purple {
 	.btn-color(@ColorPurple, @ColorPurpleDeepest, @ColorPurpleBorder, @ColorPurpleBackLight);
 }
-// 粉色按钮控件颜色样式
+// 粉色按钮颜色样式
 .btn.c-pink {
 	.btn-color(@ColorPink, @ColorPinkDeepest, @ColorPinkBorder, @ColorPinkBackLight);
 }
-// 棕色按钮控件颜色样式
+// 棕色按钮颜色样式
 .btn.c-brown {
 	.btn-color(@ColorBrown, @ColorBrownDeepest, @ColorBrownBorder, @ColorBrownBackLight);
 }
-// 灰色按钮控件颜色样式
+// 灰色按钮颜色样式
 .btn.c-grey {
 	.btn-color(@ColorGrey, @ColorGreyDeepest, @ColorGreyBorder, @ColorGreyBackLight);
 }
-// 深色按钮控件颜色样式
+// 深色按钮颜色样式
 .btn.c-dark {
 	.btn-color(@ColorDark, @ColorDarkDeepest, @ColorDarkBorder, @ColorDarkBackLight);
 }
-// 红色实心按钮控件颜色样式
+// 红色实心按钮颜色样式
 .btn.btn-solid.c-red {
 	.btn-fullcolor(@ColorRed, @ColorRedDeeper, @ColorRedDeepest);
 }
-// 橙色实心按钮控件颜色样式
+// 橙色实心按钮颜色样式
 .btn.btn-solid.c-orange {
 	.btn-fullcolor(@ColorOrange, @ColorOrangeDeeper, @ColorOrangeDeepest);
 }
-// 绿色实心按钮控件颜色样式
+// 绿色实心按钮颜色样式
 .btn.btn-solid.c-green {
 	.btn-fullcolor(@ColorGreen, @ColorGreenDeeper, @ColorGreenDeepest);
 }
-// 蓝色实心按钮控件颜色样式
+// 蓝色实心按钮颜色样式
 .btn.btn-solid.c-blue {
 	.btn-fullcolor(@ColorBlue, @ColorBlueDeeper, @ColorBlueDeepest);
 }
-// 黄色实心按钮控件颜色样式
+// 黄色实心按钮颜色样式
 .btn.btn-solid.c-yellow {
 	.btn-fullcolor(@ColorYellow, @ColorYellowDeeper, @ColorYellowDeepest);
 }
-// 天蓝色实心按钮控件颜色样式
+// 天蓝色实心按钮颜色样式
 .btn.btn-solid.c-teal {
 	.btn-fullcolor(@ColorTeal, @ColorTealDeeper, @ColorTealDeepest);
 }
-// 紫蓝色实心按钮控件颜色样式
+// 紫蓝色实心按钮颜色样式
 .btn.btn-solid.c-violet {
 	.btn-fullcolor(@ColorViolet, @ColorVioletDeeper, @ColorVioletDeepest);
 }
-// 紫色实心按钮控件颜色样式
+// 紫色实心按钮颜色样式
 .btn.btn-solid.c-purple {
 	.btn-fullcolor(@ColorPurple, @ColorPurpleDeeper, @ColorPurpleDeepest);
 }
-// 粉色实心按钮控件颜色样式
+// 粉色实心按钮颜色样式
 .btn.btn-solid.c-pink {
 	.btn-fullcolor(@ColorPink, @ColorPinkDeeper, @ColorPinkDeepest);
 }
-// 棕色实心按钮控件颜色样式
+// 棕色实心按钮颜色样式
 .btn.btn-solid.c-brown {
 	.btn-fullcolor(@ColorBrown, @ColorBrownDeeper, @ColorBrownDeepest);
 }
-// 灰色实心按钮控件颜色样式
+// 灰色实心按钮颜色样式
 .btn.btn-solid.c-grey {
 	.btn-fullcolor(@ColorGrey, @ColorGreyDeeper, @ColorGreyDeepest);
 }
-// 深色实心按钮控件颜色样式
+// 深色实心按钮颜色样式
 .btn.btn-solid.c-dark {
 	.btn-fullcolor(@ColorDark, @ColorDarkDeeper, @ColorDarkDeepest);
 }
 
 
 /**
- * 公用样式
- 
-// 表单控件的公用样式
-.btn, .txtbox, .addon {
-	display: inline-block; // 把此元素设置成 inline-block，目的是当 .btn 设置在非按钮类元素上时能把显示形式调整为内联块级样式
-	height: @CtrlHeight; // 默认控件高度
-	padding: @CtrlPaddingTB @CtrlPaddingLR;
-	line-height: @CtrlLineHeight;
-	border: 1px solid @ColorWhiteBorder;
-	border-radius: @BorderRadius;
-	background: @ColorWhite;
-	vertical-align: middle;
-	.boxSizing('border-box'); // 所有控件默认按照 border-box 的方式计算
-	// 为按钮取消默认的系统样式
-	.appearance();
-	// 为按钮添加一个过渡动画
-	.transition('border-color .3s, background .3s, color .3s, box-shadow .3s');
-	// 当按钮存在禁用、只读属性时显示无法交互样式
-	&[disabled], &[readonly] {
-		cursor: not-allowed;
-		opacity: @OpacityNoImport;
-	}
-
-	// 小尺寸
-	&.sm {
-		font-size: @BaseSize - @CtrlSizeGradient;
-		height: @CtrlHeight - @CtrlSizeGradient * 2;
-		line-height: @CtrlLineHeight - @CtrlSizeGradient * 2;
-	}
-
-	// 大尺寸
-	&.lg {
-		font-size: @BaseSize + @CtrlSizeGradient;
-		height: @CtrlHeight + @CtrlSizeGradient * 2;
-		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
-	}
+ * 修饰样式
+ */
+// 修饰默认样式
+.addon {
+	font-style: normal;
+	background: @ColorWhiteDeeper;
 }
-
-
-/**
- * 文本输入控件样式
- 
-/* 文本输入控件、多行文本输入控件 
-// 文本输入控件颜色函数
-.txtbox-color(@Color, @ColorDeepest, @Background) {
-	color: @Color;
-	border-color: @Color;
-
-	&:not([disabled]):not([readonly]):hover {
-		border-color: @Color;
-		background: @Background;
-	}
-
-	&:not([disabled]):not([readonly]):focus {
-		border-color: @ColorDeepest;
-		box-shadow: inset 0 0 3px @Color;
-		background: @Background;
-	}
-}
-// 控件组内的文本输入控件颜色函数
-.txtbox-ctrl-group-color(@Text, @Background, @Border, @BorderChange){
-	color: @Text;
-	border-color: @Border;
-	// 设置输入框被 hover 的外观变化
-	&:not([disabled]):not([readonly]):hover {
-		border-color: @BorderChange;
-	}
-
-	// 设置输入框被 focus 的外观变化
-	&:not([disabled]):not([readonly]):focus {
-		background: @Background;
-		border-color: @BorderChange;
-	}
-}
-// 文本输入控件默认样式
-.txtbox {
-	width: 100%;
-	cursor: text;
-	.userSelect('text');
-
-	// 设置输入框被 hover 的外观变化
-	&:not([disabled]):not([readonly]):hover {
-		border-color: @ColorWhiteBackDark;
-	}
-
-	// 设置输入框被 focus 的外观变化
-	&:not([disabled]):not([readonly]):focus {
-		background: @ColorWhiteDeeper;
-		border-color: @ColorWhiteBackDark;
-	}
-}
-// 设置多行文本输入控件默认样式
-textarea.txtbox {
-	resize: none;
-
-	&, &.sm, &.lg {
-		height: 8em;
-	}
-}
-// 信息状态文本输入控件样式
-.txtbox.info {
-	.txtbox-color(@ColorBlue, @ColorBlueDeeper, @ColorBlueBackLight);
-}
-// 成功状态文本输入控件样式
-.txtbox.success {
-	.txtbox-color(@ColorGreen, @ColorGreenDeeper, @ColorGreenBackLight);
-}
-// 警告状态文本输入控件样式
-.txtbox.warning {
-	.txtbox-color(@ColorOrange, @ColorOrangeDeeper, @ColorOrangeBackLight);
-}
-// 危险状态文本输入控件样式
-.txtbox.danger {
-	.txtbox-color(@ColorRed, @ColorRedDeeper, @ColorRedBackLight);
-}
-// 控件组信息状态文本输入控件样式
-.ctrl-group.info > .txtbox {
-	.txtbox-ctrl-group-color(@ColorBlue, @ColorBlueBackLight, @ColorBlueBorder, @ColorBlueBackDark);
-}
-// 控件组成功状态文本输入控件样式
-.ctrl-group.success > .txtbox {
-	.txtbox-ctrl-group-color(@ColorGreen, @ColorGreenBackLight, @ColorGreenBorder, @ColorGreenBackDark);
-}
-// 控件组警告状态文本输入控件样式
-.ctrl-group.warning > .txtbox {
-	.txtbox-ctrl-group-color(@ColorOrange, @ColorOrangeBackLight, @ColorOrangeBorder, @ColorOrangeBackDark);
-}
-// 控件组危险状态文本输入控件样式
-.ctrl-group.danger > .txtbox {
-	.txtbox-ctrl-group-color(@ColorRed, @ColorRedBackLight, @ColorRedBorder, @ColorRedBackDark);
-}
-
-/**
- * 修饰控件样式
- 
-// 修饰控件颜色函数
+// 修饰颜色函数
 .addon-color(@Text, @Background, @Border){
 	color: @Text;
 	background: @Background;
 	border-color: @Border;
 }
-// 修饰控件默认样式
-.addon {
-	font-style: normal;
-	background: @ColorWhiteDeeper;
-}
-// 蓝色修饰控件样式
+// 蓝色修饰样式
 .addon.info, .ctrl-group.info > .addon {
 	.addon-color(@ColorBlue, @ColorBlueBackLight, @ColorBlueBorder);
 }
-// 绿色修饰控件样式
+// 绿色修饰样式
 .addon.success, .ctrl-group.success > .addon {
 	.addon-color(@ColorGreen, @ColorGreenBackLight, @ColorGreenBorder);
 }
-// 橙色修饰控件样式
+// 橙色修饰样式
 .addon.warning, .ctrl-group.warning > .addon {
 	.addon-color(@ColorOrange, @ColorOrangeBackLight, @ColorOrangeBorder);
 }
-// 红色修饰控件样式
+// 红色修饰样式
 .addon.danger, .ctrl-group.danger > .addon {
 	.addon-color(@ColorRed, @ColorRedBackLight, @ColorRedBorder);
 }
 
+
+/**
+ * 输入框样式
+ */
+// 输入框默认样式
+.textbox {
+	width: 100%;
+	cursor: text;
+	.userSelect('text');
+
+	// 设置输入框被hover的外观变化
+	&:not([disabled]):not(.disabled):not([readonly]):hover {
+		border-color: @ColorWhiteBackDark;
+	}
+
+	// 设置输入框被focus的外观变化
+	&:not([disabled]):not(.disabled):not([readonly]):focus {
+		background: @ColorWhiteDeeper;
+		border-color: @ColorWhiteBackDark;
+	}
+}
+// 设置多行输入框默认样式
+textarea.textbox {
+	resize: none;
+
+	& {
+		height: 6em;
+	}
+
+	&.sm {
+		height: 5em;
+	}
+
+	&.lg {
+		height: 7em;
+	}
+}
+// 输入框颜色函数
+.textbox-color(@Color, @ColorDeepest, @Background) {
+	color: @Color;
+	border-color: @Color;
+
+	&:not([disabled]):not(.disabled):not([readonly]):hover {
+		border-color: @Color;
+		background: @Background;
+	}
+
+	&:not([disabled]):not(.disabled):not([readonly]):focus {
+		border-color: @ColorDeepest;
+		box-shadow: inset 0 0 3px @Color;
+		background: @Background;
+	}
+}
+// 控件组内的输入框颜色函数
+.textbox-ctrl-group-color(@Text, @Background, @Border, @BorderChange){
+	color: @Text;
+	border-color: @Border;
+	// 设置输入框被hover的外观变化
+	&:not([disabled]):not(.disabled):not([readonly]):hover {
+		border-color: @BorderChange;
+	}
+
+	// 设置输入框被focus的外观变化
+	&:not([disabled]):not(.disabled):not([readonly]):focus {
+		background: @Background;
+		border-color: @BorderChange;
+	}
+}
+// 信息状态输入框样式
+.textbox.info {
+	.textbox-color(@ColorBlue, @ColorBlueDeeper, @ColorBlueBackLight);
+}
+// 成功状态输入框样式
+.textbox.success {
+	.textbox-color(@ColorGreen, @ColorGreenDeeper, @ColorGreenBackLight);
+}
+// 警告状态输入框样式
+.textbox.warning {
+	.textbox-color(@ColorOrange, @ColorOrangeDeeper, @ColorOrangeBackLight);
+}
+// 危险状态输入框样式
+.textbox.danger {
+	.textbox-color(@ColorRed, @ColorRedDeeper, @ColorRedBackLight);
+}
+// 控件组信息状态输入框样式
+.ctrl-group.info > .textbox {
+	.textbox-ctrl-group-color(@ColorBlue, @ColorBlueBackLight, @ColorBlueBorder, @ColorBlueBackDark);
+}
+// 控件组成功状态输入框样式
+.ctrl-group.success > .textbox {
+	.textbox-ctrl-group-color(@ColorGreen, @ColorGreenBackLight, @ColorGreenBorder, @ColorGreenBackDark);
+}
+// 控件组警告状态输入框样式
+.ctrl-group.warning > .textbox {
+	.textbox-ctrl-group-color(@ColorOrange, @ColorOrangeBackLight, @ColorOrangeBorder, @ColorOrangeBackDark);
+}
+// 控件组危险状态输入框样式
+.ctrl-group.danger > .textbox {
+	.textbox-ctrl-group-color(@ColorRed, @ColorRedBackLight, @ColorRedBorder, @ColorRedBackDark);
+}
+
+
+/**
+ * 选框样式
+ */
+// 单选与多选的默认样式
+.check, .radio {
+	display: inline-block;
+	width: 18px; height: 18px;
+	border: 1px solid @ColorWhiteBackDark;
+	background-repeat: no-repeat;
+	background-image: url('data:image/svg+xml;base64,77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgdmlld0JveD0iMCAwIDM2IDE4IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzNiAxODsiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4NCgkuc3Qwe2ZpbGw6I0ZGRkZGRjt9DQo8L3N0eWxlPg0KPHBhdGggY2xhc3M9InN0MCIgZD0iTTE0LjQsNi45YzAsMC4yLTAuMSwwLjMtMC4yLDAuNWwtNS44LDUuOGMtMC4xLDAuMS0wLjMsMC4yLTAuNSwwLjJzLTAuMy0wLjEtMC41LTAuMkw0LjEsOS44DQoJQzQsOS43LDMuOSw5LjYsMy45LDkuNFM0LDksNC4xLDguOUw1LjEsOGMwLjEtMC4xLDAuMy0wLjIsMC41LTAuMkM1LjcsNy44LDUuOCw3LjksNiw4bDIsMmw0LjQtNC40YzAuMS0wLjEsMC4zLTAuMiwwLjUtMC4yDQoJczAuMywwLjEsMC41LDAuMmwwLjksMC45QzE0LjMsNi42LDE0LjQsNi44LDE0LjQsNi45eiIvPg0KPGNpcmNsZSBjbGFzcz0ic3QwIiBjeD0iMjciIGN5PSI5IiByPSIzIi8+DQo8L3N2Zz4NCg==');
+	background-size: 36px 18px;
+	vertical-align: text-top;
+	cursor: pointer;
+	.boxSizing('border-box');
+	.transition('border-color .3s, border-width .3s, background .3s');
+	.appearance();
+	
+	// 滑动样式
+	&:not(:disabled):hover {
+		border-width: 2px;
+		border-color: @ColorBlue;
+	}
+	// 选中样式
+	&:checked {
+		border-width: 2px;
+		border-color: @ColorBlue;
+		background-color: @ColorBlue;
+		background-position-y: -2px;
+	}
+	// 禁用样式
+	&:disabled, &.disabled {
+		cursor: default;
+		opacity: @OpacityNoImport;
+	}
+}
+// 单选样式
+.check {
+	background-position: -2px 18px;
+}
+// 多选样式
+.radio {
+	border-radius: 9px;
+	background-position: -20px 18px;
+}
+
+
 /**
  * 组合控件样式
- 
+ */
 // 为所有带有.ctrl-group的元素设置组合控件样式
 // 一个组合控件是由多个控件组合而成
 .ctrl-group {
@@ -391,7 +422,7 @@ textarea.txtbox {
 		width: @CtrlWidth;
 	}
 	// 为文本输入控件设置样式
-	> .txtbox {
+	> .textbox {
 		width: @CtrlWidth;
 		// 当不是为一个子元素时，所有文本输入控件宽度缩小
 		&:not(:only-of-type) {
@@ -426,48 +457,3 @@ textarea.txtbox {
 	}
 }
 
-/**
- * 选框样式
- 
-// 单选与多选的默认样式
-.check, .radio {
-	display: inline-block;
-	width: 18px; height: 18px;
-	border: 1px solid @ColorWhiteBackDark;
-	background-repeat: no-repeat;
-	background-image: url('data:image/svg+xml;base64,77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgdmlld0JveD0iMCAwIDM2IDE4IiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzNiAxODsiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4NCgkuc3Qwe2ZpbGw6I0ZGRkZGRjt9DQo8L3N0eWxlPg0KPHBhdGggY2xhc3M9InN0MCIgZD0iTTE0LjQsNi45YzAsMC4yLTAuMSwwLjMtMC4yLDAuNWwtNS44LDUuOGMtMC4xLDAuMS0wLjMsMC4yLTAuNSwwLjJzLTAuMy0wLjEtMC41LTAuMkw0LjEsOS44DQoJQzQsOS43LDMuOSw5LjYsMy45LDkuNFM0LDksNC4xLDguOUw1LjEsOGMwLjEtMC4xLDAuMy0wLjIsMC41LTAuMkM1LjcsNy44LDUuOCw3LjksNiw4bDIsMmw0LjQtNC40YzAuMS0wLjEsMC4zLTAuMiwwLjUtMC4yDQoJczAuMywwLjEsMC41LDAuMmwwLjksMC45QzE0LjMsNi42LDE0LjQsNi44LDE0LjQsNi45eiIvPg0KPGNpcmNsZSBjbGFzcz0ic3QwIiBjeD0iMjciIGN5PSI5IiByPSIzIi8+DQo8L3N2Zz4NCg==');
-	background-size: 36px 18px;
-	vertical-align: text-top;
-	cursor: pointer;
-	.boxSizing('border-box');
-	.transition('border-color .3s, border-width .3s, background .3s');
-	.appearance();
-	
-	// 滑动样式
-	&:not(:disabled):hover {
-		border-width: 2px;
-		border-color: @ColorBlue;
-	}
-	// 选中样式
-	&:checked {
-		border-width: 2px;
-		border-color: @ColorBlue;
-		background-color: @ColorBlue;
-		background-position-y: -2px;
-	}
-	// 禁用样式
-	&:disabled {
-		cursor: not-allowed;
-		opacity: @OpacityNoImport;
-	}
-}
-// 单选样式
-.check {
-	background-position: -2px 18px;
-}
-// 多选样式
-.radio {
-	border-radius: 9px;
-	background-position: -20px 18px;
-}
-	*/

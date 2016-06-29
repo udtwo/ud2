@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="../../dist/css/ud2.css" rel="stylesheet" />
+	<link href="../src/test.css" rel="stylesheet" />
+	<script src="../../vendor/js/jquery.js"></script>
+	<script src="../../dist/js/ud2.js"></script>
+</head>
+<body>
+
+	<h3>输入框样式</h3>
+
+	<fieldset>
+		<legend>样式</legend>
+		<div>
+			<h5>默认文本输入框样式</h5>
+			<p>
+				<input class="textbox" type="text" placeholder="默认文本输入框" />
+			</p>
+
+			<hr class="hr" />
+
+			<h5>带有色彩样式的输入框样式</h5>
+			<p>
+				<input class="textbox info" style="width: 200px;" type="text" placeholder="信息文本输入框" />
+				<input class="textbox warning" style="width: 200px;" type="text" placeholder="默认文本输入框" />
+				<input class="textbox success" style="width: 200px;" type="text" placeholder="默认文本输入框" />
+				<input class="textbox danger" style="width: 200px;" type="text" placeholder="默认文本输入框" />
+				<span class="textbox" style="width: 200px;">span标签模拟输入框外观</span>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>只读和禁用输入框</h5>
+			<p>
+				<input type="text" class="textbox" style="width: 200px;" disabled="disabled" placeholder="禁用文本输入框" />
+				<input type="text" class="textbox" style="width: 200px;" readonly="readonly" placeholder="只读文本输入框" />
+				<input type="text" class="textbox info" style="width: 200px;" disabled="disabled" placeholder="禁用文本输入框" />
+				<input type="text" class="textbox info" style="width: 200px;" readonly="readonly" placeholder="只读文本输入框" />
+			</p>
+
+			<hr class="hr" />
+
+			<h5>尺寸方案</h5>
+			<p>
+				<input type="text" class="textbox sm" placeholder="较小的文本输入框" />
+				<hr class="hr hr-dotted" />
+				<input type="text" class="textbox" placeholder="正常的文本输入框" />
+				<hr class="hr hr-dotted" />
+				<input type="text" class="textbox lg" placeholder="较大的文本输入框" />
+			</p>
+
+			<hr class="hr" />
+
+			<h5>默认多行文本输入框</h5>
+			<p>
+				<textarea class="textbox" placeholder="默认的多行文本输入框"></textarea>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>带有色彩样式的多行文本输入框样式</h5>
+			<p>
+				<textarea class="textbox info" style="width: 200px;" placeholder="默认的多行文本输入框"></textarea>
+				<textarea class="textbox warning" style="width: 200px;" placeholder="默认的多行文本输入框"></textarea>
+				<textarea class="textbox success" style="width: 200px;" placeholder="默认的多行文本输入框"></textarea>
+				<textarea class="textbox danger" style="width: 200px;" placeholder="默认的多行文本输入框"></textarea>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>只读和禁用的多行文本输入框</h5>
+			<p>
+				<textarea class="textbox" style="width: 200px;" disabled="disabled" placeholder="禁用多行文本输入框"></textarea>
+				<textarea class="textbox" style="width: 200px;" readonly="readonly" placeholder="只读多行文本输入框"></textarea>
+				<textarea class="textbox warning" style="width: 200px;" disabled="disabled" placeholder="禁用多行文本输入框"></textarea>
+				<textarea class="textbox warning" style="width: 200px;" readonly="readonly" placeholder="只读多行文本输入框"></textarea>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>尺寸方案</h5>
+			<p>
+				<textarea class="textbox sm" placeholder="较小的文本输入框"></textarea>
+				<hr class="hr hr-dotted" />
+				<textarea class="textbox" placeholder="正常的文本输入框"></textarea>
+				<hr class="hr hr-dotted" />
+				<textarea class="textbox lg" placeholder="较大的文本输入框"></textarea>
+			</p>
+
+		</div>
+	</fieldset>
+
+	<fieldset>
+		<legend>用法</legend>
+		<div class="pre">&lt;h5&gt;默认文本输入框样式&lt;/h5&gt;
+			&lt;p&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input class="textbox" type="text" placeholder="默认文本输入框" /&gt;
+			&lt;/p&gt;
+			<hr class="hr" />&lt;h5&gt;带有色彩样式的输入框样式&lt;/h5&gt;
+			&lt;p&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input class="textbox info" style="width: 200px;" type="text" placeholder="信息文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input class="textbox warning" style="width: 200px;" type="text" placeholder="默认文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input class="textbox success" style="width: 200px;" type="text" placeholder="默认文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input class="textbox danger" style="width: 200px;" type="text" placeholder="默认文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;span class="textbox" style="width: 200px;"&gt;span标签模拟输入框外观&lt;/span&gt;
+			&lt;/p&gt;
+			<hr class="hr" />&lt;h5&gt;只读和禁用输入框&lt;/h5&gt;
+			&lt;p&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="text" class="textbox" style="width: 200px;" disabled="disabled" placeholder="禁用文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="text" class="textbox" style="width: 200px;" readonly="readonly" placeholder="只读文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="text" class="textbox info" style="width: 200px;" disabled="disabled" placeholder="禁用文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="text" class="textbox info" style="width: 200px;" readonly="readonly" placeholder="只读文本输入框" /&gt;
+			&lt;/p&gt;
+			<hr class="hr" />&lt;h5&gt;尺寸方案&lt;/h5&gt;
+			&lt;p&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="text" class="textbox sm" placeholder="较小的文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;hr class="hr hr-dotted" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="text" class="textbox" placeholder="正常的文本输入框" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;hr class="hr hr-dotted" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;input type="text" class="textbox lg" placeholder="较大的文本输入框" /&gt;
+			&lt;/p&gt;
+			<hr class="hr" />&lt;h5&gt;默认多行文本输入框&lt;/h5&gt;
+			&lt;p&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox" placeholder="默认的多行文本输入框"&gt;&lt;/textarea&gt;
+			&lt;/p&gt;
+			<hr class="hr" />&lt;h5&gt;带有色彩样式的多行文本输入框样式&lt;/h5&gt;
+			&lt;p&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox info" style="width: 200px;" placeholder="默认的多行文本输入框"&gt;&lt;/textarea&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox warning" style="width: 200px;" placeholder="默认的多行文本输入框"&gt;&lt;/textarea&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox success" style="width: 200px;" placeholder="默认的多行文本输入框"&gt;&lt;/textarea&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox danger" style="width: 200px;" placeholder="默认的多行文本输入框"&gt;&lt;/textarea&gt;
+			&lt;/p&gt;
+			<hr class="hr" />&lt;h5&gt;只读和禁用的多行文本输入框&lt;/h5&gt;
+			&lt;p&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox" style="width: 200px;" disabled="disabled" placeholder="禁用多行文本输入框"&gt;&lt;/textarea&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox" style="width: 200px;" readonly="readonly" placeholder="只读多行文本输入框"&gt;&lt;/textarea&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox warning" style="width: 200px;" disabled="disabled" placeholder="禁用多行文本输入框"&gt;&lt;/textarea&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox warning" style="width: 200px;" readonly="readonly" placeholder="只读多行文本输入框"&gt;&lt;/textarea&gt;
+			&lt;/p&gt;
+			<hr class="hr" />&lt;h5&gt;尺寸方案&lt;/h5&gt;
+			&lt;p&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox sm" placeholder="较小的文本输入框"&gt;&lt;/textarea&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;hr class="hr hr-dotted" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox" placeholder="正常的文本输入框"&gt;&lt;/textarea&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;hr class="hr hr-dotted" /&gt;
+			&nbsp;&nbsp;&nbsp;&nbsp;&lt;textarea class="textbox lg" placeholder="较大的文本输入框"&gt;&lt;/textarea&gt;
+			&lt;/p&gt;
+		</div>
+	</fieldset>
+
+</body>
+</html>

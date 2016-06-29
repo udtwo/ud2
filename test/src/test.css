@@ -14,3 +14,7 @@ fieldset legend {
 fieldset .pre {
 	white-space: pre-line;
 }
+
+fieldset .hr {
+	margin: .5em 0;
+}

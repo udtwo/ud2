@@ -1,4 +1,4 @@
-﻿/// <binding BeforeBuild='project-publish' ProjectOpened='project-open' />
+﻿/// <binding ProjectOpened='project-open' />
 "use strict";
 
 var // 清理发布文件夹
@@ -26,7 +26,7 @@ module.exports = function (grunt) {
 					preserveComments: 'some',
 					// 头注释
 					banner: '/*! <%= pkg.name %> - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com)\n */\n'
 				},
 				files: {
 					'dist/js/ud2.js': [
@@ -39,7 +39,7 @@ module.exports = function (grunt) {
 					mangle: true,
 					preserveComments: 'some',
 					banner: '/*! <%= pkg.name %>(compatible) - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */\n'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com)\n */\n'
 				},
 				files: {
 					'dist/js/ud2.compatible.js': 'src/js/ud2.compatible.js'
@@ -54,13 +54,14 @@ module.exports = function (grunt) {
 					compress: true,
 					// 头注释
 					banner: '/*! <%= pkg.name %>.css - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com)\n */\n'
 				},
 				files: {
 					'dist/css/ud2.css': [
 						'src/less/style/base/reset.less',
 						'src/less/style/base/elements.less',
 						'src/less/style/base/ico.less',
+						'src/less/style/base/loading.less',
 						'src/less/style/base/form.less' //,
 						// 'src/less/style/scroll.less',
 						// 'src/less/style/table.less',

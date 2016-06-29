@@ -327,73 +327,34 @@ mark, .mark {
 	color: @ColorGrey;
 }
 
-// -------------------------------------------------------------------------------
-
 
 /**
- * ICO图标
+ * 帧动画
  */
-// 签入图标字体
-@font-face {
-	font-family: 'ud2';
-	src: url('../ico/ud2.eot');
-	src: url('../ico/ud2.eot?#iefix') format('embedded-opentype'), 
-		url('../ico/ud2.woff') format('woff'), 
-		url('../ico/ud2.ttf') format('truetype'), 
-		url('../ico/ud2.svg') format('svg');
-	font-style: normal;
-	font-weight: normal;
-}
-// 设置i标签为嵌入图标标签
-// 设置部分控件默认嵌入图标
-.ico,
-.panel-signal-ico {
-	display: inline-block;
-	font-family: 'ud2';
-	font-size: 1.142857142857em;
-	speak: none;
-	font-variant: normal;
-	text-transform: none;
-	font-style: normal;
-	line-height: 1;
-	vertical-align: -.125em;
-	// 为浏览器设置抗锯齿
-	-webkit-font-smoothing: antialiased;
-	/*-moz-osx-font-smoothing: grayscale;*/
-	.transition('transform .6s, color .3s');
-}
-// 图标二分之一旋转
-.ico-rotate-half {
-	.transform('rotate(.5turn)');
-}
-// 图标四分之一旋转
-.ico-rotate-qtr {
-	.transform('rotate(.25turn)');
-}
-// 图标HOVER旋转
-.ico-hover-rotate {
-	&:hover {
-		.transform('rotate(.5turn) scale(1.2)');
-	}
-}
-
-
-/**
- * 动画
- */
-// 旋转动画
+// 顺时针旋转动画
 @-moz-keyframes fx-rotate {
 	0% {
 		-moz-transform: rotate(0);
 	}
+
 	100% {
 		-moz-transform: rotate(1turn);
+	}
+}
+@-o-keyframes fx-rotate {
+	0% {
+		-o-transform: rotate(0);
+	}
+
+	100% {
+		-o-transform: rotate(1turn);
 	}
 }
 @-webkit-keyframes fx-rotate {
 	0% {
 		-webkit-transform: rotate(0);
 	}
+
 	100% {
 		-webkit-transform: rotate(1turn);
 	}
@@ -402,10 +363,51 @@ mark, .mark {
 	0% {
 		transform: rotate(0);
 	}
+
 	100% {
 		transform: rotate(1turn);
 	}
 }
+// 逆时针旋转动画
+@-moz-keyframes fx-rotate-reverse {
+	0% {
+		-moz-transform: rotate(0);
+	}
+
+	100% {
+		-moz-transform: rotate(-1turn);
+	}
+}
+@-o-keyframes fx-rotate-reverse {
+	0% {
+		-o-transform: rotate(0);
+	}
+
+	100% {
+		-o-transform: rotate(-1turn);
+	}
+}
+@-webkit-keyframes fx-rotate-reverse {
+	0% {
+		-webkit-transform: rotate(0);
+	}
+
+	100% {
+		-webkit-transform: rotate(-1turn);
+	}
+}
+@keyframes fx-rotate-reverse {
+	0% {
+		transform: rotate(0);
+	}
+
+	100% {
+		transform: rotate(-1turn);
+	}
+}
+
+
+// -------------------------------------------------------------------------------
 
 
 /**
@@ -424,3 +426,4 @@ input::-moz-placeholder {
 input:-ms-input-placeholder {
 	color: @ColorNotes;
 }
+

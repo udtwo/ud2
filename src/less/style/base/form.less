@@ -35,6 +35,7 @@
 	border-color: @ColorWhiteBorder;
 	cursor: pointer;
 	text-align: center;
+	white-space: nowrap;
 	.userSelect();
 
 	// 设置按钮被 hover 的外观变化
@@ -117,19 +118,19 @@
 	}
 }
 // 红色按钮颜色样式
-.btn.c-red, .btn.danger {
+.btn.c-red, .btn.danger, .group.danger > .btn {
 	.btn-color(@ColorRed, @ColorRedDeepest, @ColorRedBorder, @ColorRedBackLight);
 }
 // 橙色按钮颜色样式
-.btn.c-orange, .btn.warning {
+.btn.c-orange, .btn.warning, .group.warning > .btn {
 	.btn-color(@ColorOrange, @ColorOrangeDeepest, @ColorOrangeBorder, @ColorOrangeBackLight);
 }
 // 绿色按钮颜色样式
-.btn.c-green, .btn.success {
+.btn.c-green, .btn.success, .group.success > .btn {
 	.btn-color(@ColorGreen, @ColorGreenDeepest, @ColorGreenBorder, @ColorGreenBackLight);
 }
 // 蓝色按钮颜色样式
-.btn.c-blue, .btn.info {
+.btn.c-blue, .btn.info, .group.info > .btn {
 	.btn-color(@ColorBlue, @ColorBlueDeepest, @ColorBlueBorder, @ColorBlueBackLight);
 }
 // 黄色按钮颜色样式
@@ -221,6 +222,8 @@
 .addon {
 	font-style: normal;
 	background: @ColorWhiteDeeper;
+	white-space: nowrap;
+	text-align: center;
 }
 // 修饰颜色函数
 .addon-color(@Text, @Background, @Border){
@@ -229,19 +232,19 @@
 	border-color: @Border;
 }
 // 蓝色修饰样式
-.addon.info, .ctrl-group.info > .addon {
+.addon.info, .group.info > .addon {
 	.addon-color(@ColorBlue, @ColorBlueBackLight, @ColorBlueBorder);
 }
 // 绿色修饰样式
-.addon.success, .ctrl-group.success > .addon {
+.addon.success, .group.success > .addon {
 	.addon-color(@ColorGreen, @ColorGreenBackLight, @ColorGreenBorder);
 }
 // 橙色修饰样式
-.addon.warning, .ctrl-group.warning > .addon {
+.addon.warning, .group.warning > .addon {
 	.addon-color(@ColorOrange, @ColorOrangeBackLight, @ColorOrangeBorder);
 }
 // 红色修饰样式
-.addon.danger, .ctrl-group.danger > .addon {
+.addon.danger, .group.danger > .addon {
 	.addon-color(@ColorRed, @ColorRedBackLight, @ColorRedBorder);
 }
 
@@ -299,7 +302,7 @@ textarea.textbox {
 	}
 }
 // 控件组内的输入框颜色函数
-.textbox-ctrl-group-color(@Text, @Background, @Border, @BorderChange){
+.textbox-group-color(@Text, @Background, @Border, @BorderChange){
 	color: @Text;
 	border-color: @Border;
 	// 设置输入框被hover的外观变化
@@ -330,20 +333,20 @@ textarea.textbox {
 	.textbox-color(@ColorRed, @ColorRedDeeper, @ColorRedBackLight);
 }
 // 控件组信息状态输入框样式
-.ctrl-group.info > .textbox {
-	.textbox-ctrl-group-color(@ColorBlue, @ColorBlueBackLight, @ColorBlueBorder, @ColorBlueBackDark);
+.group.info > .textbox {
+	.textbox-group-color(@ColorBlue, @ColorBlueBackLight, @ColorBlueBorder, @ColorBlueBackDark);
 }
 // 控件组成功状态输入框样式
-.ctrl-group.success > .textbox {
-	.textbox-ctrl-group-color(@ColorGreen, @ColorGreenBackLight, @ColorGreenBorder, @ColorGreenBackDark);
+.group.success > .textbox {
+	.textbox-group-color(@ColorGreen, @ColorGreenBackLight, @ColorGreenBorder, @ColorGreenBackDark);
 }
 // 控件组警告状态输入框样式
-.ctrl-group.warning > .textbox {
-	.textbox-ctrl-group-color(@ColorOrange, @ColorOrangeBackLight, @ColorOrangeBorder, @ColorOrangeBackDark);
+.group.warning > .textbox {
+	.textbox-group-color(@ColorOrange, @ColorOrangeBackLight, @ColorOrangeBorder, @ColorOrangeBackDark);
 }
 // 控件组危险状态输入框样式
-.ctrl-group.danger > .textbox {
-	.textbox-ctrl-group-color(@ColorRed, @ColorRedBackLight, @ColorRedBorder, @ColorRedBackDark);
+.group.danger > .textbox {
+	.textbox-group-color(@ColorRed, @ColorRedBackLight, @ColorRedBorder, @ColorRedBackDark);
 }
 
 
@@ -396,18 +399,88 @@ textarea.textbox {
 /**
  * 组合控件样式
  */
-// 为所有带有.ctrl-group的元素设置组合控件样式
-// 一个组合控件是由多个控件组合而成
-.ctrl-group {
-	display: inline-block;
-	font-size: 0 !important; // 强制让所有文本信息字号为0
-	vertical-align: middle;
-	white-space: nowrap;
-	// 为所有组合控件的可支持控件设置样式
+// 控件组合样式
+.group {
+	display: -moz-inline-box;
+	display: -webkit-inline-box;
+	display: -ms-inline-flexbox;
+	display: inline-flex;
+	-ms-flex-direction: row;
+	flex-direction: row;
+	-ms-flex-wrap: nowrap;
+	flex-wrap: nowrap;
+	width: 100%;
+
+	// 内部控件的基础样式
 	> * {
 		position: relative;
 		z-index: 1;
-		font-size: @BaseSize;
+		font-size: @BaseFontSize;
+
+		&:not(:first-child) {
+			margin-left: -1px;
+		}
+
+		&:hover, &:focus, &.on {
+			z-index: 2;
+		}
+	}
+	// 内部弹性控件强制取消弹性
+	> .noflex, > * {
+		-ms-flex: 0 0 auto;
+		flex: 0 0 auto;
+	}
+	// 内部弹性控件
+	> .flex, > .textbox {
+		-ms-flex: 1 1 auto;
+		flex: 1 1 auto;
+	}
+	
+	// 取消多个控件组合时除第一个控件外的左侧圆角
+	> :not(:first-child) {
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+	// 取消多个控件组合时除最后一个控件外的右侧圆角
+	> :not(:last-child) {
+		border-top-right-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+	// 控件的小尺寸方案
+	&.sm > * {
+		font-size: @BaseFontSize - @CtrlSizeGradient;
+		height: @CtrlHeight - @CtrlSizeGradient * 2;
+		line-height: @CtrlLineHeight - @CtrlSizeGradient * 2;
+	}
+	// 控件的大尺寸方案
+	&.lg > * {
+		font-size: @BaseFontSize + @CtrlSizeGradient;
+		height: @CtrlHeight + @CtrlSizeGradient * 2;
+		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
+	}
+}
+// 评分控件组合样式
+.group-justified {
+	> * {
+		-ms-flex: 1 1 auto;
+		flex: 1 1 auto;
+	}
+}
+
+/*
+.group {
+	display: inline-block;
+	width: 100%;
+	font-size: 0 !important; // 强制让所有文本信息字号为0
+	vertical-align: middle;
+
+	white-space: nowrap;
+	// 为所有组合控件的可支持控件设置样式
+
+	> * {
+		position: relative;
+		z-index: 1;
+		font-size: @BaseFontSize;
 
 		&:not(:first-child) {
 			margin-left: -1px;
@@ -419,14 +492,14 @@ textarea.textbox {
 	}
 
 	> [class^='ud2-'] {
-		width: @CtrlWidth;
+		width: 50%;
 	}
 	// 为文本输入控件设置样式
 	> .textbox {
-		width: @CtrlWidth;
+		width: 50%;
 		// 当不是为一个子元素时，所有文本输入控件宽度缩小
 		&:not(:only-of-type) {
-			width: @CtrlWidth / 2;
+			width: 50%;
 		}
 		// 当文本控件被focus时，z轴变大
 		&:focus {
@@ -445,15 +518,15 @@ textarea.textbox {
 	}
 	// 控件的小尺寸方案
 	&.sm > * {
-		font-size: @BaseSize - @CtrlSizeGradient;
+		font-size: @BaseFontSize - @CtrlSizeGradient;
 		height: @CtrlHeight - @CtrlSizeGradient * 2;
 		line-height: @CtrlLineHeight - @CtrlSizeGradient * 2;
 	}
 	// 控件的大尺寸方案
 	&.lg > * {
-		font-size: @BaseSize + @CtrlSizeGradient;
+		font-size: @BaseFontSize + @CtrlSizeGradient;
 		height: @CtrlHeight + @CtrlSizeGradient * 2;
 		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
 	}
 }
-
+*/

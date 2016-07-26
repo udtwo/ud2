@@ -1,5 +1,4 @@
-﻿/// <binding ProjectOpened='project-open' />
-"use strict";
+﻿"use strict";
 
 var // 清理发布文件夹
 	cleanDirection = [
@@ -23,7 +22,7 @@ module.exports = function (grunt) {
 					// 是否混淆变量名 true:混淆
 					mangle: true,
 					// 是否删除注释 false:删除全部
-					preserveComments: 'some',
+					preserveComments: false,
 					// 头注释
 					banner: '/*! <%= pkg.name %> - v<%= pkg.version %>'
 						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com)\n */\n'
@@ -62,7 +61,12 @@ module.exports = function (grunt) {
 						'src/less/style/base/elements.less',
 						'src/less/style/base/ico.less',
 						'src/less/style/base/loading.less',
-						'src/less/style/base/form.less' //,
+						'src/less/style/base/form.less',
+
+						'src/less/style/control/common.less',
+						'src/less/style/control/ud2-number.less'
+
+						//,
 						// 'src/less/style/scroll.less',
 						// 'src/less/style/table.less',
 						// 'src/less/style/ctrl.less',

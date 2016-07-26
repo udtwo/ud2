@@ -33,3 +33,19 @@
 		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
 	}
 }
+
+// JS控件基础样式
+.ctrl-js() {
+	.ctrl();
+	position: relative;
+	z-index: 1;
+	width: 100%;
+
+	.userSelect();
+
+	> [type="checkbox"] {
+		position: absolute;
+		top: 0; left: -20000px;
+		z-index: -1;
+	}
+}

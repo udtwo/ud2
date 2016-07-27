@@ -396,7 +396,7 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
-	// #region ud2 事件
+	// #region ud2 库事件
 	
 	var event = function (elements, userOptions) {
 
@@ -658,9 +658,11 @@ var ud2 = (function (window, $) {
 				// 查询集合中触点的个数，如果不存在触点，则绑定move，up事件
 				if (getPointersLength() === 0) {
 					// 绑定move事件
-					$dom.bind(eventsName[1], pointerMove);
+					$dom.on(eventsName[1], pointerMove);
 					// 绑定up事件
-					$dom.bind(eventsName[2], pointerUp);
+					$dom.on(eventsName[2], pointerUp);
+					// 绑定cancel事件
+					$dom.on(eventsName[3], pointerUp);
 				}
 
 				// 如果列表中不存在此触点或此点已被删除，则进行以下操作		
@@ -707,8 +709,9 @@ var ud2 = (function (window, $) {
 				pointers[pid].del = true;
 
 				if (getPointersLength() === 0) {
-					$dom.unbind(eventsName[1], pointerMove);
-					$dom.unbind(eventsName[2], pointerUp);
+					$dom.off(eventsName[1], pointerMove);
+					$dom.off(eventsName[2], pointerUp);
+					$dom.off(eventsName[3], pointerUp);
 				}
 
 			}
@@ -727,14 +730,14 @@ var ud2 = (function (window, $) {
 				for (; i < pLen; i++) if (parents.eq(i).attr(prefixLibName + 'scroll-runing') === '1') { isParentsScrolling = true; break; }
 
 				// 执行down回调
-				callbacks.down.call(origin, id);
+				callbacks.down.call(origin, event);
 			}
 			// 移动处理
 			// id[number]: 触点ID
 			function moveHandler(event, id) {
 				var move = pointers[id].getMoveLength();
 				event.preventDefault();
-				callbacks.pan.call(origin, move, id);
+				callbacks.pan.call(origin, move, event);
 			}
 			// 弹起处理
 			// id[number]: 触点ID
@@ -768,10 +771,10 @@ var ud2 = (function (window, $) {
 							// 存在一个按压时间，且时间小于options.tapMaxTime
 							if (interval < options.tapMaxTime) {
 								temporaryMask();
-								callbacks.tap.call(origin);
+								callbacks.tap.call(origin, event);
 							}
 							else {
-								callbacks.press.call(origin);
+								callbacks.press.call(origin, event);
 							}
 						}
 					}
@@ -782,11 +785,11 @@ var ud2 = (function (window, $) {
 						&& interval < options.swipeMaxTime) {
 						if (move.x < 0) {
 							event.preventDefault();
-							callbacks.swipeLeft.call(origin);
+							callbacks.swipeLeft.call(origin, event);
 						}
 						else {
 							event.preventDefault();
-							callbacks.swipeRight.call(origin);
+							callbacks.swipeRight.call(origin, event);
 						}
 					}
 					// 当移动距离超过options.pointerValidLength且y方向移动距离大于x方向且时间小于options.swipeMaxTime
@@ -795,17 +798,17 @@ var ud2 = (function (window, $) {
 						&& interval < options.swipeMaxTime) {
 						if (move.y < 0) {
 							event.preventDefault();
-							callbacks.swipeTop.call(origin);
+							callbacks.swipeTop.call(origin, event);
 						}
 						else {
 							event.preventDefault();
-							callbacks.swipeBottom.call(origin);
+							callbacks.swipeBottom.call(origin, event);
 						}
 					}
 				}
 
 				// 执行up回调
-				callbacks.up.call(origin, id);
+				callbacks.up.call(origin, event);
 
 				// 清除无效触点
 				removeInvalidPointers();

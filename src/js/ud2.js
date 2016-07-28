@@ -400,6 +400,8 @@ var ud2 = (function (window, $) {
 	
 	var event = function (elements, userOptions) {
 
+		// #region 私有字段
+
 		var // 事件对象
 			eventObj = {},
 			// 默认项
@@ -434,58 +436,75 @@ var ud2 = (function (window, $) {
 				// 抬起
 				up: fnNoop
 			},
-			// 最后一次触点弹起
-			lastUpEvent = null,
 			// 事件对象集合
 			events = [];
+
+		// #endregion
 
 		// #region 事件回调方法
 
 		// 设置拖动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
-		// - fn(move[moveObj]) 
-		//   move: 此回调函数拥有一个参数move，用来时时返回鼠标按下后移动的距离
+		// - fn(move, eventObj) 
+		//   eventObj[eventObj]: 事件event对象
+		//   move[object]: 移动偏移量 { x, y }
 		// return[event]: 当前事件对象，方便链式调用
 		function setPan(fn) { callbacks.pan = fn; return eventObj; }
 		// 设置短按回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
+		// - fn(eventObj)
+		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
 		function setTap(fn) { callbacks.tap = fn; return eventObj; }
 		// 设置长按回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
+		// - fn(eventObj)
+		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
 		function setPress(fn) { callbacks.press = fn; return eventObj; }
 		// 设置快速左滑动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
+		// - fn(eventObj)
+		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
 		function setSwipeLeft(fn) { callbacks.swipeLeft = fn; return eventObj; }
 		// 设置快速右滑动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
+		// - fn(eventObj)
+		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
 		function setSwipeRight(fn) { callbacks.swipeRight = fn; return eventObj; }
 		// 设置快速上滑动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
+		// - fn(eventObj)
+		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
 		function setSwipeTop(fn) { callbacks.swipeTop = fn; return eventObj; }
 		// 设置快速下滑动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
+		// - fn(eventObj)
+		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
 		function setSwipeBottom(fn) { callbacks.swipeBottom = fn; return eventObj; }
 		// 设置触点按下时的回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
+		// - fn(eventObj)
+		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
 		function setDown(fn) { callbacks.down = fn; return eventObj; }
 		// 设置触点抬起时的回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
+		// - fn(eventObj)
+		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
 		function setUp(fn) { callbacks.up = fn; return eventObj; }
 
@@ -562,10 +581,16 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
-
 		// #region 事件处理对象
 
+		// 创建一个触点
+		// 用来存储触点相关数据
+		// id[string]: 系统触点ID
+		// event[eventObject]: 系统触点数据对象
 		function event(origin) {
+
+			// #region 私有字段
+
 			var // 事件名称
 				eventsName = [
 					POINTER_DOWN,         // 0
@@ -590,7 +615,9 @@ var ud2 = (function (window, $) {
 				// 当前事件绑定状态
 				bindingState = false;
 
+			// #endregion
 
+			// #region 私有方法
 
 			// 设置第一个触点信息
 			// id[number]: 触点ID
@@ -641,8 +668,11 @@ var ud2 = (function (window, $) {
 				timer = window.setTimeout(function () { $mask.remove(); }, 500);
 			}
 
+			// #endregion
 
-			// pointerdown 事件触发函数
+			// #region 事件回调及处理
+
+			// pointerDown事件触发函数
 			// event[eventObject]: 事件对象
 			function pointerDown(event) {
 				if (options.stopPropagation) event.stopPropagation();
@@ -673,7 +703,7 @@ var ud2 = (function (window, $) {
 					downHandler(event, pid);
 				}
 			}
-			// pointermove 事件触发函数
+			// pointerMove事件触发函数
 			// event[eventObject]: 事件对象
 			function pointerMove(event) {
 				if (options.stopPropagation) event.stopPropagation();
@@ -691,7 +721,7 @@ var ud2 = (function (window, $) {
 				// 执行moveHandler回调
 				moveHandler(event, pid);
 			}
-			// pointerup 事件触发函数
+			// pointerUp事件触发函数
 			// event[eventObject]: 事件对象
 			function pointerUp(event) {
 				if (options.stopPropagation) event.stopPropagation();
@@ -715,11 +745,139 @@ var ud2 = (function (window, $) {
 				}
 
 			}
+			// eventStart事件触发函数
+			// event[eventObject]: 事件对象
+			function eventStart(event) {
+				if (options.stopPropagation) event.stopPropagation();
 
-			function touchStart(event) {
+				var // 事件类型
+					type = event.type,
+					// 获取浏览器event对象
+					o = event.originalEvent,
+					// 有改变的触控点集合
+					touches;
+					
+				if (type === 'touchstart') {
+					touches = o.changedTouches;
 
+					// 当触点集合长度为0，则添加move、end、cancel事件监听
+					if (getPointersLength() === 0) {
+						origin.on(eventsName[5], touchMove);
+						origin.on(eventsName[6], touchEnd);
+						origin.on(eventsName[7], touchEnd);
+					}
+
+					// 设置第一个触点信息
+					setFirstPointerInfo(touches[0].identifier);
+
+					// 迭代所有有改变的触控点集合
+					for (var i = 0, j = touches.length; i < j; i++) {
+						// 如果列表中不存在此触控点或此点已被删除，则进行以下操作	
+						if (!pointers[touches[i].identifier] || pointers[touches[i].identifier].del) {
+							// 建立一个新触控点
+							pointers[touches[i].identifier] = pointer(touches[i].identifier, touches[i]);
+						}
+
+						// 执行downHandler回调
+						downHandler(event, touches[i].identifier);
+					}
+				}
+				else {
+					// 设置第一个触点
+					setFirstPointerInfo(0);
+					// 建立一个新触点
+					pointers[0] = pointer(0, o);
+					// 执行downHandler回调
+					downHandler(event, 0);
+
+					// 绑定move事件
+					$dom.on(eventsName[9], mouseMove);
+					// 绑定up事件
+					$dom.on(eventsName[10], mouseUp);
+				}
 			}
+			// touchMove事件触发函数
+			// event[eventObject]: 事件对象
+			function touchMove(event) {
+				if (options.stopPropagation) event.stopPropagation();
+				// 阻止浏览器事件
+				event.preventDefault();
 
+				var // 获取浏览器event对象
+					o = event.originalEvent,
+					// 有改变的触控点集合
+					touches = o.changedTouches;
+
+				// 迭代所有有改变的触控点集合
+				for (var i = 0, j = touches.length; i < j; i++) {
+					// 如果列表中不存在此触控点或此点已被删除，则进行以下操作	
+					if (pointers[touches[i].identifier]) {
+						// 更新触控点信息
+						pointers[touches[i].identifier].setMove(touches[i]);
+					}
+
+					// 执行 moveHandler 回调
+					moveHandler(event, touches[i].identifier);
+				}
+			}
+			// touchEnd事件触发函数
+			// event[eventObject]: 事件对象
+			function touchEnd(event) {
+				if (options.stopPropagation) event.stopPropagation();
+
+				var // 获取浏览器event对象
+					o = event.originalEvent,
+					// 有改变的触控点集合
+					touches = o.changedTouches;
+
+				// 迭代全部触点
+				for (var i = 0, j = touches.length; i < j; i++) {
+					// 执行 upHandler 回调
+					upHandler(event, touches[i].identifier);
+					// 删除触点
+					pointers[touches[i].identifier].del = true;
+				}
+
+				// 当触点集合为0时移除move、end、cancel事件监听
+				if (getPointersLength() === 0) {
+					origin.off(eventsName[5], touchMove);
+					origin.off(eventsName[6], touchEnd);
+					origin.off(eventsName[7], touchEnd);
+				}
+			}
+			// mouseMove事件触发函数
+			// event[eventObject]: 事件对象
+			function mouseMove(event) {
+				if (options.stopPropagation) event.stopPropagation();
+
+				// 停止冒泡
+				event.stopPropagation();
+
+				var // 获取浏览器event对象
+					o = event.originalEvent;
+
+				if (!pointers[0]) return;
+				pointers[0].setMove(o);
+
+				// 执行moveHandler回调
+				moveHandler(event, 0);
+			}
+			// mouseUp事件触发函数
+			// event[eventObject]: 事件对象
+			function mouseUp(event) {
+				if (options.stopPropagation) event.stopPropagation();
+
+				if (!pointers[0]) return;
+				// 执行upHandler回调
+				upHandler(event, 0);
+				// 删除触点(避免意外删除)
+				if (pointers[0] !== undefined && pointers[0].del === false) pointers[0].del = true;
+
+				// 解绑move事件
+				$dom.off(eventsName[9], mouseMove);
+				// 解绑up事件
+				$dom.off(eventsName[10], mouseUp);
+			}
 
 			// 按下处理
 			// id[number]: 触点ID
@@ -751,12 +909,6 @@ var ud2 = (function (window, $) {
 					// 获取触点移动绝对长度
 					absMove = { x: Math.abs(move.x), y: Math.abs(move.y) };
 
-				// 此处用于判断是否touchend结束后而自动引发的mousedown，如是自动引发则此次mousedown不生效
-				if (lastUpEvent) if (getTime() - lastUpEvent.time < 500
-					&& lastUpEvent.type === 'touchend'
-					&& event.type === 'mouseup') { return; }
-				// 记录最后一个弹起点
-				lastUpEvent = { time: getTime(), type: event.type };
 
 				// 如果抬起的是第一次按压的触点
 				if (first.id === id) { interval = new Date() - first.time; first.id = null; first.time = null; }
@@ -814,7 +966,9 @@ var ud2 = (function (window, $) {
 				removeInvalidPointers();
 			}
 
+			// #endregion
 
+			// #region 事件绑定与解绑
 
 			// 事件绑定处理方法
 			// isBind[bool]: 绑定事件(true)与解绑事件(false)
@@ -825,8 +979,7 @@ var ud2 = (function (window, $) {
 						origin.on(eventsName[0], pointerDown);
 					}
 					else {
-						origin.on(eventsName[4], touchStart);
-						origin.on(eventsName[8], mouseDown);
+						origin.on(eventsName[4] + ' ' + eventsName[8], eventStart);
 					}
 
 					origin.css({
@@ -843,8 +996,7 @@ var ud2 = (function (window, $) {
 					if (pointer) {
 						origin.off(eventsName[0], pointerDown);
 					} else {
-						origin.off(eventsName[4], touchStart);
-						origin.off(eventsName[8], mouseDown);
+						origin.off(eventsName[4] + ' ' + eventsName[8], eventStart);
 					}
 
 					origin.css({
@@ -874,25 +1026,37 @@ var ud2 = (function (window, $) {
 				}
 			}
 
+			// #endregion
 
+			// #region 初始化 
 
 			// 初始化
 			(function init() {
 				eventBind();
 			}());
 
+			// #endregion
+
+			// #region 返回
 
 			// 返回
-			return extendObjects(eventObj, {
-				setPan: setPan,
-				setTap: setTap,
-				setPress: setPress,
-				setSwipeLeft: setSwipeLeft,
-				setSwipeRight: setSwipeRight,
-				setSwipeTop: setSwipeTop,
-				setSwipeBottom: setSwipeBottom,
-				setDown: setDown,
-				setUp: setUp
+			return {
+				bind: eventBind,
+				unbind: eventUnbind
+			};
+
+			// #endregion
+		}
+		// 事件绑定
+		function on() {
+			events.forEach(function () {
+				arguments[0].bind();
+			});
+		}
+		// 事件解绑
+		function off() {
+			events.forEach(function () {
+				arguments[0].unbind();
 			});
 		}
 
@@ -903,7 +1067,7 @@ var ud2 = (function (window, $) {
 		// 初始化
 		(function init() {
 			convertToJQ(elements).each(function (i, origin) {
-				event($(origin));
+				events.push(event($(origin)));
 			});
 		}());
 
@@ -912,7 +1076,7 @@ var ud2 = (function (window, $) {
 		// #region 返回
 
 		// 返回
-		return {
+		return extendObjects(eventObj, {
 			setPan: setPan,
 			setTap: setTap,
 			setPress: setPress,
@@ -920,11 +1084,12 @@ var ud2 = (function (window, $) {
 			setSwipeRight: setSwipeRight,
 			setSwipeTop: setSwipeTop,
 			setSwipeBottom: setSwipeBottom,
-			setUp: setUp,
-			setDown: setDown
-		};
+			setDown: setDown,
+			setUp: setUp
+		});
 
 		// #endregion
+
 	};
 
 	// #endregion

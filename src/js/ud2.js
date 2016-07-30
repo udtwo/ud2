@@ -581,7 +581,7 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
-		// #region 事件处理对象
+		// #region 事件处理对象与相关方法
 
 		// 创建一个触点
 		// 用来存储触点相关数据
@@ -1046,6 +1046,7 @@ var ud2 = (function (window, $) {
 			};
 
 			// #endregion
+
 		}
 		// 事件绑定
 		function on() {
@@ -1096,12 +1097,27 @@ var ud2 = (function (window, $) {
 
 	// #region ud2 库公用控件
 
+	// ud2库样式对象
+	var style = (function () {
+		var // 样式对象
+				styles = {},
+				// 样式名称集合
+				stylesName = ['normal', 'info', 'success', 'warning', 'danger'],
+				// 迭代变量
+				i = 0, len = stylesName.length;
+		for (; i < len; i++) styles[stylesName[i]] = { name: stylesName[i], no: i };
+		return styles;
+	}());
+
 	// ud2库公开对象
 	// 此对象默认会成为window的属性
 	var ud2 = (function () {
 		var // 库公共对象
 			ud2 = {
+				// 公开库事件
 				event: event,
+				// 公开库基础样式
+				style: style,
 				// 初始化全部未初始化的控件
 				// 在页面初始化完成后，会自动调用此方法
 				controlCreate: function () {
@@ -1119,13 +1135,19 @@ var ud2 = (function (window, $) {
 							var // 通过控件类型名称获取控件对象名称
 								controlName = getControlNameByName(item),
 								// 获取此空间是否被创建
-								isCreated = $this.attr(prefixLibName + item + '-ready');
+								isCreated = $this.attr(prefixLibName + item + '-ready'),
+								// 控件ID
+								id = $this.attr('ud2-id') || null;
 
-							if (!isCreated) ud2[controlName].create($this);
+							if (!isCreated) {
+								if (id) ud2[controlName].create(id, $this);
+								else ud2[controlName].create($this);
+							}
 						});
 					});
 				}
 			};
+
 		return ud2;
 	}());
 
@@ -1170,7 +1192,9 @@ var ud2 = (function (window, $) {
 						insertContext(jq, function ($) {
 							$.last().after(control.current);
 						});
-					}
+					},
+					// 获取或设置控件样式
+					style: styleHandler
 				},
 				// 原生jQuery对象
 				origin: null,
@@ -1208,8 +1232,9 @@ var ud2 = (function (window, $) {
 				},
 				// 转移原标签的style、class属性到新控件的根标签
 				// options[object]: 自定义选项
-				// - transfer[jQuery]: 原标签jQuery对象
-				// - accept[jQuery]: 新控件根标签jQuery对象
+				// - {} 自定义选项 
+				//   transfer[jQuery]: 原标签jQuery对象
+				//   accept[jQuery]: 新控件根标签jQuery对象
 				transferStyles: function (options) {
 					transfer(options, function ($transfer, $accept) {
 						// 把转移者的style属性和class属性全部转移给接收者
@@ -1224,9 +1249,10 @@ var ud2 = (function (window, $) {
 				},
 				// 转移原标签的自定义属性到新控件的相应标签中
 				// options[object]: 自定义选项
-				// - transfer[jQuery]: 原标签jQuery对象
-				// - accept[jQuery]: 新控件根标签jQuery对象
-				// - attrReg[string]: 自定义转移的属性名(组)
+				// - {} 自定义选项 
+				//   transfer[jQuery]: 原标签jQuery对象
+				//   accept[jQuery]: 新控件根标签jQuery对象
+				//   attrReg[string]: 自定义转移的属性名(组)
 				transferAttrs: function (options) {
 					transfer(options, function ($transfer, $accept, attrReg) {
 						var // 原对象
@@ -1251,14 +1277,19 @@ var ud2 = (function (window, $) {
 							}
 						}
 					});
-				}
+				},
+				// 控件默认样式
+				style: style.normal,
+				// 控件自动关闭执行的方法
+				autoClose: fnNoop
 			};
 
 		// 处理转移方法的参数
 		// options[object]: 自定义选项
-		// - transfer[jQuery]: 原标签jQuery对象
-		// - accept[jQuery]: 新控件根标签jQuery对象
-		// - attrReg[string]: 自定义转移的属性名(组)
+		// - {} 自定义选项 
+		//   transfer[jQuery]: 原标签jQuery对象
+		//   accept[jQuery]: 新控件根标签jQuery对象
+		//   attrReg[string]: 自定义转移的属性名(组)
 		// callbacks: 回调方法，执行具体转移的过程
 		function transfer(options, callbacks) {
 			options = options || {};
@@ -1272,10 +1303,42 @@ var ud2 = (function (window, $) {
 		// jq[jQuery, string]: 控件摆放的相关元素
 		// callbacks[function]: 回调方法，执行具体上下文过程
 		function insertContext(jq, callbacks) {
-			jq = convertToJQ(jq),
+			jq = convertToJQ(jq);
 			callbacks = callbacks || fnNoop;
 			callbacks(jq);
 		}
+		// 自动关闭方法
+		// target[jQuery, string]: 事件目标
+		function autoClose(target) {
+			var $parents, i, len;
+			target = convertToJQ(target);
+			$parents = target.parents();
+			if (target.get(0) === control.current.get(0)) return;
+			for (i = 0, len = $parents.length; i < len; i++) if ($parents.eq(i).get(0) === control.current.get(0)) return;
+			control.autoClose();
+		}
+		// 获取或设置控件样式
+		// () 获取控件样式
+		// - return[ud2.style.*]: 返回控件样式对象
+		// (s) 设置控件样式
+		// - s[ud2.style.*]: 控件样式对象
+		// - return[control]: 返回当前控件对象
+		function styleHandler(s) {
+			if (s !== void 0) {
+				for (var i in style) {
+					control.style === style[i] && control.current.removeClass(style[i].name);
+				}
+				control.style = s;
+				control.current.addClass(s.name);
+				return control.public;
+			}
+			else {
+				return control.style;
+			}
+		}
+
+		// 自动关闭回调
+		callbacks.ctrlClose.add(autoClose);
 
 		// 返回控件对象
 		return control;
@@ -1400,18 +1463,22 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
+	// #region ud2 库表单控件
 
+	// 数字控件
 	createControl('number', function (collection) {
 
 		// 重写集合初始化方法
 		collection.init = function (control) {
+
+			// #region 私有字段
 
 			var // 获取样式类名
 				className = collection.className,
 				// 步长, 最小值, 最大值, 值
 				step, min, max, value,
 				// 获取用户自定义项
-				options = control.getOptions(['step', 'min', 'max', 'value', 'abc', 'abcDef'], function (options) {
+				options = control.getOptions(['step', 'min', 'max', 'value'], function (options) {
 					// 处理步长
 					step = parseFloat(options.step);
 					if (isNaN(step) || step === 0) step = 1;
@@ -1446,10 +1513,14 @@ var ud2 = (function (window, $) {
 				// 动画锁
 				lock = false,
 				// 回调方法
-				callbacks = {
+				controlCallbacks = {
 					// 当值发生改变时回调
 					change: fnNoop
 				};
+
+			// #endregion
+
+			// #region 私有方法
 
 			// 强制转换value值，使value值符合范围区间，以及满足步长规则
 			// value[number]: 待转换的value值
@@ -1461,7 +1532,127 @@ var ud2 = (function (window, $) {
 				value = Math.round((value - min) / step) * (DUBUG_FLOATNUM * step) / DUBUG_FLOATNUM + min;
 				return value;
 			}
+			// 执行控件动画，对值递增或递减
+			// isNext[bool]: 是否为递增动画
+			// - true: 递增 false: 递减
+			function animate(isNext) {
+				// 判断是否上锁，没上锁则上锁并执行动画
+				if (lock) return; lock = true;
+				// 判断上下限
+				if (isNext && value + step > max
+					|| !isNext && value - step < min) { lock = false; return; }
 
+				var // 临时容器标签
+					tInput = '<input class="ud2-ctrl-txtbox" />',
+					// 建立临时容器
+					$tempL = $div.clone().addClass(className + '-view').html(tInput),
+					$tempR = $div.clone().addClass(className + '-view').html(tInput),
+					// 获取父容器
+					$parent = $value.parent(),
+					// 用于存储动画容器
+					$run = null;
+
+				// 对值运算
+				if (isNext) {
+					value = Math.round((value + step) * DUBUG_FLOATNUM) / DUBUG_FLOATNUM;
+				} else {
+					value = Math.round((value - step) * DUBUG_FLOATNUM) / DUBUG_FLOATNUM;
+				}
+
+				// 加入临时容器
+				$tempL.children().val(value);
+				$tempR.children().val(value);
+				$value.before($tempL);
+				$value.after($tempR);
+
+				$move.animate({
+					'top': isNext ? '-100%' : '100%'
+				}, 300, function () {
+					lock = false;
+					setValue(value);
+					$move.css('top', 0);
+					$tempL.remove();
+					$tempR.remove();
+				});
+			}
+			// 上一个数字
+			function prev() {
+				animate(0);
+			}
+			// 下一个数字
+			function next() {
+				animate(1);
+			}
+			// 设置控件值
+			// () 获取默认值设置为控件值
+			// (v) 设置控件值
+			// - v[number]: 控件值
+			function setValue(v) {
+				if (v !== void 0) {
+					value = convertValue(v);
+					controlCallbacks.change.call(control.public, value);
+				}
+				$value.val(value);
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 获取或设置控件值
+			// () 获取控件值
+			// - return[number]: 返回控件值
+			// (v) 设置控件值
+			// - v[number]: 控件值
+			// - return[ud2.number]: 返回该控件对象
+			function val(v) {
+				if (v !== void 0) {
+					setValue(v);
+					return control.public;
+				}
+				else {
+					return value;
+				}
+			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置值改变回调函数
+			// 所回调的函数 this 指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[number]: 当前事件对象，方便链式调用
+			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
+
+			// #endregion
+
+			// #region 事件处理
+
+			// 事件绑定
+			function bindEvent() {
+				event($prev).setTap(prev);
+				event($next).setTap(next);
+				$value
+					// 按下回车抛出焦点
+					.keydown(function (event) {
+						if (event.keyCode === 13) $value.blur();
+					})
+					// 获取焦点
+					.focus(function () {
+						callbacks.ctrlClose.fire($number);
+						$number.addClass(className + '-on');
+					})
+					// 失去焦点设置值
+					.blur(function () {
+						setValue($value.val());
+						$number.removeClass(className + '-on');
+					});
+			}
+
+			// #endregion
+
+			// #region 初始化
 
 			// 初始化
 			(function init() {
@@ -1470,11 +1661,28 @@ var ud2 = (function (window, $) {
 				control.origin.remove();
 				control.transferStyles();
 				control.transferAttrs({ accept: $value, attrReg: 'name|tabindex' });
-			}());
-		};
+				setValue();
 
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			// 返回
+			return extendObjects(control.public, {
+				val: val,
+				setChange: setChange
+			});
+
+			// #endregion
+
+		};
+		
 	});
 
+	// #endregion 
 
 	// #region ud2 初始化及返回参数
 

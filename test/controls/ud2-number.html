@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="../../dist/css/ud2.css" rel="stylesheet" />
+	<link href="../src/test.css" rel="stylesheet" />
+	<script src="../../vendor/js/jquery.js"></script>
+	<script src="../../dist/js/ud2.js"></script>
+</head>
+<body>
+
+	<h3>数字控件</h3>
+
+	<fieldset>
+		<legend>样式</legend>
+		<div>
+			<h5>默认</h5>
+			<p>
+				<input type="number" ud2="number" />
+			</p>
+
+			<hr class="hr" />
+
+			<h5>带有 setChange 回调的数字选择控件</h5>
+			<p>
+				<input type="number" ud2="number" ud2-id="num" />
+				<script>
+					$(function () {
+						ud2.number.collection["num"].setChange(function (val) {
+							if (val == 0) {
+								this.style(ud2.style.normal);
+							}
+							else if (val / 10 % 30 < 2) {
+								this.style(ud2.style.info);
+							}
+							else if (val / 10 % 30 < 4) {
+								this.style(ud2.style.warning);
+							}
+							else if (val / 10 % 30 < 6) {
+								this.style(ud2.style.success);
+							}
+							else if (val / 10 % 30 < 8) {
+								this.style(ud2.style.danger);
+							}
+						});
+					});
+				</script>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>最小值、最大值、步长方案</h5>
+			<p>
+				<input type="number" ud2="number" min="200" max="500" value="225" step="15.7" />
+			</p>
+			
+			<h5>尺寸方案</h5>
+			<p>
+				<input type="number" class="x sm" ud2="number" min="200" max="500" value="200" step="15" />
+				<hr class="hr hr-dotted" />
+				<input type="number" class="x" ud2="number" min="200" max="500" value="300" step="15" />
+				<hr class="hr hr-dotted" />
+				<input type="number" class="x lg" ud2="number" min="200" max="500" value="400" step="15" />
+			</p>
+			
+
+			
+		</div>
+	</fieldset>
+
+</body>
+</html>

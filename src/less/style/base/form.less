@@ -364,13 +364,16 @@ textarea.textbox {
 	vertical-align: text-top;
 	cursor: pointer;
 	.boxSizing('border-box');
-	.transition('border-color .3s, border-width .3s, background .3s');
+	.transition('border-color .3s, border-width .3s, background .3s, box-shadow .3s');
 	.appearance();
 	
 	// 滑动样式
 	&:not(:disabled):hover {
 		border-width: 2px;
 		border-color: @ColorBlue;
+	}
+	&:not(:disabled):focus {
+		box-shadow: 0 0 0 1px @ColorBlueBorder;
 	}
 	// 选中样式
 	&:checked {
@@ -431,7 +434,7 @@ textarea.textbox {
 		flex: 0 0 auto;
 	}
 	// 内部弹性控件
-	> .flex, > .textbox {
+	> .flex, > .textbox, > [ud2] {
 		-ms-flex: 1 1 auto;
 		flex: 1 1 auto;
 	}

@@ -32,17 +32,6 @@ module.exports = function (grunt) {
 						'src/js/ud2.js'
 					]
 				}
-			},
-			'script-ud2-compatible': {
-				options: {
-					mangle: true,
-					preserveComments: 'some',
-					banner: '/*! <%= pkg.name %>(compatible) - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com)\n */\n'
-				},
-				files: {
-					'dist/js/ud2.compatible.js': 'src/js/ud2.compatible.js'
-				}
 			}
 		},
 		// 编译LESS
@@ -86,20 +75,6 @@ module.exports = function (grunt) {
 						// 'src/less/style/ud2-message.less'
 					]
 				}
-			},
-			'css-ud2-compatible': {
-				options: {
-					// 是否压缩 true:是
-					compress: true,
-					// 头注释
-					banner: '/*! <%= pkg.name %>-compatible.css - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */'
-				},
-				files: {
-					'dist/css/ud2.compatible.css': [
-						'src/less/compatible/compatible.less'
-					]
-				}
 			}
 		},
 		// 复制文件
@@ -131,12 +106,6 @@ module.exports = function (grunt) {
 				files: ['src/js/ud2.js'],
 				// 执行任务
 				tasks: ['uglify:script-ud2']
-			},
-			'watch-ud2-oldbrowser': {
-				// 监测的文件
-				files: ['src/js/ud2.compatible.js'],
-				// 执行任务
-				tasks: ['uglify:script-ud2-compatible']
 			},
 			'watch-less-ud2': {
 				// 监测的文件

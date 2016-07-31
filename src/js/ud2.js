@@ -397,7 +397,15 @@ var ud2 = (function (window, $) {
 	// #endregion
 
 	// #region ud2 库事件
-	
+
+	// 用于触摸笔、触碰、鼠标等方式操作元素的事件处理
+	// elements[string, jQuery]: jQuery 对象或可生成 jQuery 对象的字符串
+	// userOptions[object]: 用户参数
+	// - (?) stopPropagation[bool]: 是否阻止事件向外冒泡，默认为false
+	// - (?) tapMaxTime[number]: tap的最大时间间隔，默认值为300(ms)
+	// - (?) swipeMaxTime[number]: number的最大时间间隔，默认值为500(ms)
+	// - (?) pointerValidLength[number]: 触点tap、press事件有效长度
+	// return[event] => 返回一个事件公开方法对象
 	var event = function (elements, userOptions) {
 
 		// #region 私有字段
@@ -408,11 +416,11 @@ var ud2 = (function (window, $) {
 			options = extendObjects({
 				// 阻止冒泡
 				stopPropagation: false,
-				// tap 的最大时间间隔，超出时间间隔则视为 press
+				// tap的最大时间间隔，超出时间间隔则视为press
 				tapMaxTime: 300,
-				// swipe 的最大时间间隔
+				// swipe的最大时间间隔
 				swipeMaxTime: 500,
-				// 触点 TAP/PRESS 事件有效长度
+				// 触点tap、press事件有效长度
 				pointerValidLength: 5
 			}, userOptions),
 			// 回调函数
@@ -1086,7 +1094,179 @@ var ud2 = (function (window, $) {
 			setSwipeTop: setSwipeTop,
 			setSwipeBottom: setSwipeBottom,
 			setDown: setDown,
-			setUp: setUp
+			setUp: setUp,
+			on: on,
+			off: off
+		});
+
+		// #endregion
+
+	};
+	// 用于鼠标滚轮方式操作元素的事件处理
+	// elements[string, jQuery]: jQuery 对象或可生成 jQuery 对象的字符串
+	// return[eventMouseWheel] => 返回一个事件公开方法对象
+	var eventMouseWheel = function (elements) {
+
+		// #region 私有字段
+
+		var // 事件对象
+			eventObj = {},
+			// 回调函数
+			callbacks = {
+				// 滚动
+				scroll: fnNoop,
+				// 向下
+				down: fnNoop,
+				// 向上
+				up: fnNoop
+			},
+			// 事件名称
+			MOUSEWHEEL_NAME = 'DOMMouseScroll mousewheel',
+			// 事件对象集合
+			events = [];
+
+		// #endregion
+
+		// #region 回调方法
+
+		// 设置拖动回调函数
+		// 所回调的函数 this 指向事件触发的 jQuery 对象
+		// fn[function]: 回调函数
+		// - fn(move[int]) 
+		//   move: 此回调函数拥有一个参数 move，用于时时返回鼠标滚轮触发的方向
+		//		   1: 向下 -1: 向上
+		// return[object]: 当前事件对象，方便链式调用
+		function setScroll(fn) { callbacks.scroll = fn; return eventObj; }
+		// 设置拖动回调函数
+		// 所回调的函数 this 指向事件触发的 jQuery 对象
+		// fn[function]: 回调函数
+		// return[object]: 当前事件对象，方便链式调用
+		function setDown(fn) { callbacks.down = fn; return eventObj; }
+		// 设置拖动回调函数
+		// 所回调的函数 this 指向事件触发的 jQuery 对象
+		// fn[function]: 回调函数
+		// return[object]: 当前事件对象，方便链式调用
+		function setUp(fn) { callbacks.up = fn; return eventObj; }
+
+		// #endregion
+
+		// #region 事件处理对象和相关方法
+
+		// 通过 origin 对象一个事件监听对象
+		// origin[jQuery]: jQuery 对象
+		function event(origin) {
+
+			// #region 私有字段
+
+			var // 事件状态 
+				// true: 绑定 false: 解绑
+				state = false;
+
+			// #endregion
+
+			// #region 事件回调
+
+			// mouseWheel 事件触发函数
+			// event: eventObject => 事件对象
+			function mouseWheel(event) {
+				// 停止冒泡
+				event.stopPropagation();
+				// 阻止浏览器事件
+				event.preventDefault();
+
+				var // 获取浏览器 event 对象
+					o = event.originalEvent,
+					// 计算滚轮方式 
+					// move:1 向下 move:-1 向上
+					move = o.deltaY / 100 || o.wheelDelta / -120 || (Math.abs(o.detail) > 2 ? o.detail / 3 : o.detail) || 0;
+
+				// 执行 move 的事件回调
+				callbacks.scroll.call(origin, move, event);
+				// 判断滚轮向上还是向下
+				if (move > 0) {
+					// 执行 down 的事件回调
+					callbacks.down.call(origin, event);
+				} else {
+					// 执行 up 的事件回调
+					callbacks.up.call(origin, event);
+				}
+			}
+
+			// #endregion
+
+			// #region 事件绑定与解绑
+
+			// 绑定事件
+			function eventBind() {
+				if (!state) {
+					state = true;
+					origin.on(MOUSEWHEEL_NAME, mouseWheel);
+				}
+			}
+			// 解绑事件
+			function eventUnbind() {
+				if (state) {
+					state = false;
+					origin.off(MOUSEWHEEL_NAME, mouseWheel);
+				}
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				eventBind();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			// 返回
+			return {
+				bind: eventBind,
+				unbind: eventUnbind
+			};
+
+			// #endregion
+		}
+		// 事件绑定
+		function on() {
+			events.forEach(function () {
+				arguments[0].bind();
+			});
+		}
+		// 事件解绑
+		function off() {
+			events.forEach(function () {
+				arguments[0].unbind();
+			});
+		}
+
+		// #endregion
+
+		// #region 初始化
+
+		// 初始化
+		(function init() {
+			convertToJQ(elements).each(function(i, origin){
+				events.push(event($(origin)));
+			});
+		}());
+
+		// #endregion
+
+		// #region 返回
+
+		// 返回事件对象
+		return extendObjects(eventObj, {
+			setScroll: setScroll,
+			setDown: setDown,
+			setUp: setUp,
+			on: on,
+			off: off
 		});
 
 		// #endregion
@@ -1116,6 +1296,7 @@ var ud2 = (function (window, $) {
 			ud2 = {
 				// 公开库事件
 				event: event,
+				eventMouseWheel: eventMouseWheel,
 				// 公开库基础样式
 				style: style,
 				// 初始化全部未初始化的控件
@@ -1633,21 +1814,20 @@ var ud2 = (function (window, $) {
 			function bindEvent() {
 				event($prev).setTap(prev);
 				event($next).setTap(next);
-				$value
-					// 按下回车抛出焦点
-					.keydown(function (event) {
-						if (event.keyCode === 13) $value.blur();
-					})
-					// 获取焦点
-					.focus(function () {
-						callbacks.ctrlClose.fire($number);
-						$number.addClass(className + '-on');
-					})
-					// 失去焦点设置值
-					.blur(function () {
-						setValue($value.val());
-						$number.removeClass(className + '-on');
-					});
+				eventMouseWheel($value).setDown(next).setUp(prev);
+				$value.keydown(function (event) {
+					switch (event.keyCode) {
+						case 13: { $value.blur(); break; }
+						case 38: { event.preventDefault(); prev(); break; }
+						case 40: { event.preventDefault(); next(); break; }
+					}
+				}).focus(function () {
+					callbacks.ctrlClose.fire($number);
+					$number.addClass(className + '-on');
+				}).blur(function () {
+					setValue($value.val());
+					$number.removeClass(className + '-on');
+				});
 			}
 
 			// #endregion
@@ -1681,6 +1861,8 @@ var ud2 = (function (window, $) {
 		};
 		
 	});
+
+
 
 	// #endregion 
 

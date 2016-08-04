@@ -412,13 +412,15 @@ textarea.textbox {
 	flex-direction: row;
 	-ms-flex-wrap: nowrap;
 	flex-wrap: nowrap;
-	width: 100%;
 
 	// 内部控件的基础样式
+	// 内部弹性控件强制取消弹性
 	> * {
 		position: relative;
 		z-index: 1;
 		font-size: @BaseFontSize;
+		-ms-flex: 0 0 auto;
+		flex: 0 0 auto;
 
 		&:not(:first-child) {
 			margin-left: -1px;
@@ -428,17 +430,14 @@ textarea.textbox {
 			z-index: 2;
 		}
 	}
-	// 内部弹性控件强制取消弹性
-	> .noflex, > * {
-		-ms-flex: 0 0 auto;
-		flex: 0 0 auto;
-	}
+
 	// 内部弹性控件
-	> .flex, > .textbox, > [ud2] {
+	> .textbox, > [ud2] {
+		width: 200px;
 		-ms-flex: 1 1 auto;
 		flex: 1 1 auto;
 	}
-	
+
 	// 取消多个控件组合时除第一个控件外的左侧圆角
 	> :not(:first-child) {
 		border-top-left-radius: 0;
@@ -462,11 +461,29 @@ textarea.textbox {
 		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
 	}
 }
-// 评分控件组合样式
-.group-justified {
+// 组强制通栏
+.group-justify {
+	width: 100%;
+
 	> * {
 		-ms-flex: 1 1 auto;
 		flex: 1 1 auto;
+	}
+
+	> .textbox, > [ud2] {
+		width: 100%;
+	}
+}
+// 强制与取消强制弹性
+.group, .group-justify {
+	> .flex {
+		-ms-flex: 1 1 auto;
+		flex: 1 1 auto;
+	}
+
+	> .noflex {
+		-ms-flex: 0 0 auto;
+		flex: 0 0 auto;
 	}
 }
 

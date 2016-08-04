@@ -53,7 +53,8 @@ module.exports = function (grunt) {
 						'src/less/style/base/form.less',
 
 						'src/less/style/control/common.less',
-						'src/less/style/control/ud2-number.less'
+						'src/less/style/control/ud2-number.less',
+						'src/less/style/control/ud2-range.less'
 
 						//,
 						// 'src/less/style/scroll.less',
@@ -125,4 +126,4 @@ module.exports = function (grunt) {
 	// 建立发布任务
 	grunt.registerTask('project-open', ['clean', 'copy', 'less', 'uglify', 'watch']);
 	grunt.registerTask('project-publish', ['clean', 'copy', 'less', 'uglify']);
-}
+};

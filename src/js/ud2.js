@@ -1273,6 +1273,128 @@ var ud2 = (function (window, $) {
 
 	};
 
+	var scroll = function (elements, userOptions) {
+
+		var // 滚动对象
+			scrollObj = {},
+			// 默认项
+			options = extendObjects({
+				// 设置浏览器尺寸发生改变时是否重新计算滚动区域
+				// 如果设置此值为true，则浏览器发生orientationchange与resize事件时，滚动区域重新计算
+				recountByResize: false,
+				// 滚动条显示方式
+				// 0: 默认  1: 永久显示  2: 永久消失
+				barState: 0,
+				// 开启横滚动条
+				hasHorizontal: false,
+				// 开启竖滚动条
+				hasVertical: true,
+				// 滚动条尺寸
+				barSize: 6,
+				// 滚动条最小长度
+				barMinLength: 30,
+				// 滚动条偏移量
+				barOffset: 1,
+				// 滚动条颜色
+				barColor: 'rgba(0,0,0,.4)',
+				// 滚动条当鼠标滑入时的颜色
+				barColorOn: 'rgba(0,0,0,.6)',
+				// 滚动条圆角
+				barBorderRadiusState: true,
+				// 是否开启滚轮来控制滚动区域
+				isMouseWheelMode: true,
+				// 滚轮滚动长度
+				mousewheelLength: 'normal',
+				// 是否开启触摸来控制滚动区域
+				isTouchMode: true,
+				// 是否开启通过滚动条来控制滚动区域
+				isScrollMode: false,
+				// 缓动
+				slowMoving: true
+			}, userOptions),
+			// 滚动对象
+			$scroll = checkJQElements($elements).eq(0),
+			// 滚动包裹容器
+			$wrapper = $div.clone().addClass(prefixLibName + 'scroll-wrapper'),
+			// 横滚动条
+			$barHorizontal = $div.clone().addClass(prefixLibName + 'scroll-bar'),
+			// 竖滚动条
+			$barVertical = $div.clone().addClass(prefixLibName + 'scroll-bar'),
+			// 滚动状态标记属性
+			ATTRNAME_IS_SCROLL = prefixLibName + 'scroll-runing',
+			// 缓动
+			easing = {
+				quadratic: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+				circular: 'cubic-bezier(0.1, 0.57, 0.1, 1)'
+			},
+			// 主运动触点数据对象
+			mainPointer = {
+				// 触点ID
+				id: null,
+				// 新触点开始时间戳
+				start: 0,
+				// 旧触点结束时间戳
+				end: 0,
+				// 是否移动标记
+				moved: false,
+				// 触点开始移动记录点
+				startMove: { x: 0, y: 0 },
+				// 触点上次的移动距离
+				lastMove: { x: 0, y: 0 }
+			},
+			// 鼠标滚轮数据对象
+			mousewheel = {
+				// 鼠标滚轮定时器
+				// 用于阻止滚轮在边缘的多次滚动
+				timer: null
+			},
+			// 是否正在滚动
+			isScrolling = false,
+			// 当滚动完成时执行强制停止回调定时器
+			scrollEndTimer = null,
+			// 触摸启动最小长度
+			touchStartMinLength = 5,
+			// 滚动对象数据
+			scrollData = {
+				// 外层盒子高度
+				h: 0,
+				// 带有内边距的盒子高度
+				ih: 0,
+				// 盒子的可滚动高度
+				sh: 0,
+				// 外层盒子宽度
+				w: 0,
+				// 带有内边距的盒子宽度
+				iw: 0,
+				// 盒子的可滚动宽度
+				sw: 0,
+				// 盒子当前移动的距离
+				now: { x: 0, y: 0 },
+				// 当前是否处于触点移动中
+				isMoved: false
+			},
+			// 滚动条对象数据
+			barData = {
+				// 滚动条高度
+				h: 0,
+				// 最大滚动高度
+				mh: 0,
+				// 可滚动高度
+				sh: 0,
+				// 滚动条宽度
+				w: 0,
+				// 最大滚动宽度
+				mw: 0,
+				// 可滚动宽度
+				sw: 0,
+				// 定时器
+				timer: null
+			};
+
+
+
+	};
+
 	// #endregion
 
 	// #region ud2 库公用控件

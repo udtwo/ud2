@@ -111,51 +111,56 @@ var ud2 = (function (window, $) {
 
 	// 库类型检测对象
 	var type = (function () {
-		// 判断参数类型 isType(TypeName)(Value)
-		// type[object]: 判断的参数类型 例如 Function、Array...
-		// return[function]: 返回一个方法，此方法来判断传入的 Value 参数是否为 TypeName 类型
+		// 判断参数类型isType(TypeName)(Value)
+		// type[object]: 判断的参数类型 例如Function、Array...
+		// return[function]: 返回一个方法，此方法来判断传入的Value参数是否为TypeName类型
 		function isType(type) {
 			return function (obj) {
 				return {}.toString.call(obj) === "[object " + type + "]";
 			};
 		}
-		// 判断传入参数是否为一个对象 Object
+		// 判断传入参数是否为一个对象Object
 		// typeValue[object]: 判断变量
-		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为对象
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的typeValue参数是否为对象
 		function isObject(typeValue) {
 			return isType("Object")(typeValue);
 		}
-		// 判断传入参数是否为一个方法 Function
+		// 判断传入参数是否为一个方法Function
 		// typeValue[object]: 判断变量
-		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为方法
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的typeValue参数是否为方法
 		function isFunction(typeValue) {
 			return isType("Function")(typeValue);
 		}
-		// 判断传入参数是否为一个字符串 String 
+		// 判断传入参数是否为一个字符串String 
 		// typeValue[object]: 判断变量
-		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为字符串
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的typeValue参数是否为字符串
 		function isString(typeValue) {
 			return isType("String")(typeValue);
 		}
-		// 判断传入参数是否为一个数字 Number
+		// 判断传入参数是否为一个数字Number
 		// typeValue[object]: 判断变量
-		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为数字
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的typeValue参数是否为数字
 		function isNumber(typeValue) {
 			return isType("Number")(typeValue);
 		}
 		// 判断传入参数是否为一个自然数[非负整数](Natural Number)
 		// typeValue[object]: 判断变量
-		// return[bool]: 返回一个布尔值，此布尔值表示传入的 typeValue 参数是否为自然数
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的typeValue参数是否为自然数
 		function isNaturalNumber(typeValue) {
 			return /^([1-9]\d+|[0-9])$/.test(typeValue);
 		}
-		// 判断传入参数是否为一个 jQuery 对象
+		// 判断传入参数是否为一个jQuery对象
 		// typeValue[object]: 判断变量
-		// return[bool]: 返回一个布尔值，此布尔值标识传入的 typeValue 参数是否为 jQuery 对象
+		// return[bool]: 返回一个布尔值，此布尔值标识传入的typeValue参数是否为jQuery对象
 		function isJQuery(typeValue) {
 			return typeValue instanceof $;
 		}
-
+		// 判断传入参数是否为一个数组对象
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值标识传入的typeValue参数是否为数组对象
+		function isArray(typeValue) {
+			return Array.isArray(typeValue);
+		}
 		// 返回对象
 		return {
 			isType: isType,
@@ -164,7 +169,8 @@ var ud2 = (function (window, $) {
 			isString: isString,
 			isNumber: isNumber,
 			isNaturalNumber: isNaturalNumber,
-			isJQuery: isJQuery
+			isJQuery: isJQuery,
+			isArray: isArray
 		};
 	}());
 	// 库强制转换对象
@@ -357,6 +363,44 @@ var ud2 = (function (window, $) {
 		}
 		return origin;
 	}
+	// 获取控件自定义项
+	// 调用此方法须通过call、apply方法传入control对象或调用对象
+	// (optNameArr, callbacks) 通过属性名数组，获取数组内的全部名称对应的属性，获取数序为control.userOptions、ud2-前缀元素属性、元素属性
+	// - optNameArr[array]: 属性名数组，确定待获取的全部属性名称
+	// - callbacks[fn]: 回调方法，获取全部属性后的数据处理
+	// (options, userOptions, callbacks) 通过默认属性和用户自定义属性，获取合并厚的属性值
+	// - options[object]: 默认属性
+	// - userOptions[object]: 用户自定义属性
+	// - callbacks[fn]: 回调方法，获取全部属性后的数据处理
+	function getOptions() {
+		var args = arguments, len = args.length, control = this,
+			options, userOptions, arr, callbacks;
+		if (len === 2) {
+			arr = args[0];
+			callbacks = args[1];
+
+			if (type.isArray(arr) && type.isFunction(callbacks)) {
+				options = {};
+				arr.forEach(function (name) {
+					options[name] = control.userOptions[name] || control.getOriginAttr(name, 1) || control.getOriginAttr(name);
+				});
+				callbacks(options);
+				return options;
+			}
+		}
+		else if (len === 3) {
+			options = args[0];
+			userOptions = args[1] || {};
+			callbacks = args[2];
+
+			if (type.isObject(options) && type.isObject(userOptions) && type.isFunction(callbacks)) {
+				options = extendObjects(options, userOptions);
+				callbacks(options);
+				return options;
+			}
+		}
+		return {};
+	}
 	// 获取元素绑定的控件名称集合
 	// 此功能用于获取jQuery元素绑定的控件名称集合
 	// $element[jQuery]: jQuery对象
@@ -412,8 +456,10 @@ var ud2 = (function (window, $) {
 
 		var // 事件对象
 			eventObj = {},
+			// 事件选项
+			stopPropagation, tapMaxTime, swipeMaxTime, pointerValidLength,
 			// 默认项
-			options = extendObjects({
+			options = getOptions({
 				// 阻止冒泡
 				stopPropagation: false,
 				// tap的最大时间间隔，超出时间间隔则视为press
@@ -422,7 +468,12 @@ var ud2 = (function (window, $) {
 				swipeMaxTime: 500,
 				// 触点tap、press事件有效长度
 				pointerValidLength: 5
-			}, userOptions),
+			}, userOptions, function (options) {
+				stopPropagation = options.stopPropagation;
+				tapMaxTime = options.tapMaxTime;
+				swipeMaxTime = options.swipeMaxTime;
+				pointerValidLength = options.pointerValidLength;
+			}),
 			// 回调函数
 			callbacks = {
 				// 拖动
@@ -683,7 +734,7 @@ var ud2 = (function (window, $) {
 			// pointerDown事件触发函数
 			// event[eventObject]: 事件对象
 			function pointerDown(event) {
-				if (options.stopPropagation) event.stopPropagation();
+				if (stopPropagation) event.stopPropagation();
 
 				var // 获取浏览器event对象
 					o = event.originalEvent,
@@ -714,7 +765,7 @@ var ud2 = (function (window, $) {
 			// pointerMove事件触发函数
 			// event[eventObject]: 事件对象
 			function pointerMove(event) {
-				if (options.stopPropagation) event.stopPropagation();
+				if (stopPropagation) event.stopPropagation();
 				event.preventDefault();
 
 				var // 获取浏览器event对象
@@ -732,7 +783,7 @@ var ud2 = (function (window, $) {
 			// pointerUp事件触发函数
 			// event[eventObject]: 事件对象
 			function pointerUp(event) {
-				if (options.stopPropagation) event.stopPropagation();
+				if (stopPropagation) event.stopPropagation();
 
 				var // 获取浏览器event对象
 					o = event.originalEvent,
@@ -756,7 +807,7 @@ var ud2 = (function (window, $) {
 			// eventStart事件触发函数
 			// event[eventObject]: 事件对象
 			function eventStart(event) {
-				if (options.stopPropagation) event.stopPropagation();
+				if (stopPropagation) event.stopPropagation();
 
 				var // 事件类型
 					type = event.type,
@@ -764,7 +815,7 @@ var ud2 = (function (window, $) {
 					o = event.originalEvent,
 					// 有改变的触控点集合
 					touches;
-					
+
 				if (type === 'touchstart') {
 					touches = o.changedTouches;
 
@@ -807,7 +858,7 @@ var ud2 = (function (window, $) {
 			// touchMove事件触发函数
 			// event[eventObject]: 事件对象
 			function touchMove(event) {
-				if (options.stopPropagation) event.stopPropagation();
+				if (stopPropagation) event.stopPropagation();
 				// 阻止浏览器事件
 				event.preventDefault();
 
@@ -831,7 +882,7 @@ var ud2 = (function (window, $) {
 			// touchEnd事件触发函数
 			// event[eventObject]: 事件对象
 			function touchEnd(event) {
-				if (options.stopPropagation) event.stopPropagation();
+				if (stopPropagation) event.stopPropagation();
 
 				var // 获取浏览器event对象
 					o = event.originalEvent,
@@ -856,7 +907,7 @@ var ud2 = (function (window, $) {
 			// mouseMove事件触发函数
 			// event[eventObject]: 事件对象
 			function mouseMove(event) {
-				if (options.stopPropagation) event.stopPropagation();
+				if (stopPropagation) event.stopPropagation();
 
 				// 停止冒泡
 				event.stopPropagation();
@@ -873,7 +924,7 @@ var ud2 = (function (window, $) {
 			// mouseUp事件触发函数
 			// event[eventObject]: 事件对象
 			function mouseUp(event) {
-				if (options.stopPropagation) event.stopPropagation();
+				if (stopPropagation) event.stopPropagation();
 
 				if (!pointers[0]) return;
 				// 执行upHandler回调
@@ -923,13 +974,13 @@ var ud2 = (function (window, $) {
 
 				// 确定是否为第一次触碰点的弹起操作
 				if (interval) {
-					// 如果x或y方向移动距离不超过options.pointerValidLength
-					if (absMove.x < options.pointerValidLength && absMove.y < options.pointerValidLength) {
+					// 如果x或y方向移动距离不超过pointerValidLength
+					if (absMove.x < pointerValidLength && absMove.y < pointerValidLength) {
 						// 如果外层滚动条未滚动
 						if (!isParentsScrolling) {
 							// 检测是否tap方式
-							// 存在一个按压时间，且时间小于options.tapMaxTime
-							if (interval < options.tapMaxTime) {
+							// 存在一个按压时间，且时间小于tapMaxTime
+							if (interval < tapMaxTime) {
 								temporaryMask();
 								callbacks.tap.call(origin, event);
 							}
@@ -939,10 +990,10 @@ var ud2 = (function (window, $) {
 						}
 					}
 
-					// 当移动距离超过options.pointerValidLength且x方向移动距离大于y方向且时间小于options.swipeMaxTime
+					// 当移动距离超过pointerValidLength且x方向移动距离大于y方向且时间小于swipeMaxTime
 					// 则执行左右滑动回调
-					if (absMove.x >= options.pointerValidLength && absMove.x >= absMove.y
-						&& interval < options.swipeMaxTime) {
+					if (absMove.x >= pointerValidLength && absMove.x >= absMove.y
+						&& interval < swipeMaxTime) {
 						if (move.x < 0) {
 							event.preventDefault();
 							callbacks.swipeLeft.call(origin, event);
@@ -952,10 +1003,10 @@ var ud2 = (function (window, $) {
 							callbacks.swipeRight.call(origin, event);
 						}
 					}
-					// 当移动距离超过options.pointerValidLength且y方向移动距离大于x方向且时间小于options.swipeMaxTime
+					// 当移动距离超过pointerValidLength且y方向移动距离大于x方向且时间小于swipeMaxTime
 					// 则执行上下滑动回调
-					if (absMove.y >= options.pointerValidLength && absMove.y >= absMove.x
-						&& interval < options.swipeMaxTime) {
+					if (absMove.y >= pointerValidLength && absMove.y >= absMove.x
+						&& interval < swipeMaxTime) {
 						if (move.y < 0) {
 							event.preventDefault();
 							callbacks.swipeTop.call(origin, event);
@@ -1231,6 +1282,7 @@ var ud2 = (function (window, $) {
 			};
 
 			// #endregion
+
 		}
 		// 事件绑定
 		function on() {
@@ -1251,7 +1303,7 @@ var ud2 = (function (window, $) {
 
 		// 初始化
 		(function init() {
-			convertToJQ(elements).each(function(i, origin){
+			convertToJQ(elements).each(function (i, origin) {
 				events.push(event($(origin)));
 			});
 		}());
@@ -1272,13 +1324,38 @@ var ud2 = (function (window, $) {
 		// #endregion
 
 	};
-
+	// 滚动条控件及滚动事件
+	// 用于为元素生成滚动条及滚动事件
+	// elements[string, jQuery]: jQuery 对象或可生成 jQuery 对象的字符串
+	// userOptions[object]: 用户参数
+	// - (?) recountByResize[bool]: 设置浏览器尺寸发生改变时是否重新计算滚动区域
+	// - (?) barState[number]: 滚动条显示方式
+	// - (?) hasHorizontal[bool]: 是否开启横滚动条
+	// - (?) hasVertical[bool]: 是否开启竖滚动条
+	// - (?) barSize[number]: 滚动条尺寸
+	// - (?) barMinLength[number]: 滚动条最小长度
+	// - (?) barOffset[number]: 滚动条偏移量
+	// - (?) barColor[rgb, rgba]: 滚动条颜色
+	// - (?) barColorOn[rgb, rgba]: 滚动条当鼠标滑入时的颜色
+	// - (?) barBorderRadiusState[bool]: 滚动条是否为圆角
+	// - (?) mouseWheelLength[number]: 滚轮滚动长度
+	// - (?) isTouchMode[bool]: 是否开启触摸来控制滚动区域
+	// - (?) isMouseWheelMode[bool]: 是否开启滚轮来控制滚动区域
+	// - (?) isScrollMode: 是否开启通过滚动条来控制滚动区域
+	// - (?) isSlowMovning: 是否缓动
+	// return[scroll] => 返回一个滚动条控件
 	var scroll = function (elements, userOptions) {
+
+		// #region 私有字段
 
 		var // 滚动对象
 			scrollObj = {},
+			// 滚动选项
+			recountByResize, barState, barSize, barMinLength, barOffset, barColor, barColorOn,
+			barBorderRadiusState, hasHorizontal, hasVertical, isMouseWheelMode, isTouchMode,
+			isScrollMode, mouseWheelLength, isSlowMovning,
 			// 默认项
-			options = extendObjects({
+			options = getOptions({
 				// 设置浏览器尺寸发生改变时是否重新计算滚动区域
 				// 如果设置此值为true，则浏览器发生orientationchange与resize事件时，滚动区域重新计算
 				recountByResize: false,
@@ -1299,29 +1376,43 @@ var ud2 = (function (window, $) {
 				barColor: 'rgba(0,0,0,.4)',
 				// 滚动条当鼠标滑入时的颜色
 				barColorOn: 'rgba(0,0,0,.6)',
-				// 滚动条圆角
+				// 滚动条是否为圆角
 				barBorderRadiusState: true,
-				// 是否开启滚轮来控制滚动区域
-				isMouseWheelMode: true,
 				// 滚轮滚动长度
-				mousewheelLength: 'normal',
+				mouseWheelLength: 'normal',
 				// 是否开启触摸来控制滚动区域
 				isTouchMode: true,
+				// 是否开启滚轮来控制滚动区域
+				isMouseWheelMode: true,
 				// 是否开启通过滚动条来控制滚动区域
 				isScrollMode: false,
 				// 缓动
-				slowMoving: true
-			}, userOptions),
+				isSlowMovning: true
+			}, userOptions, function (options) {
+				recountByResize = options.recountByResize;
+				barState = options.barState;
+				barSize = options.barSize;
+				barMinLength = options.barMinLength;
+				barOffset = options.barOffset;
+				barColor = options.barColor;
+				barColorOn = options.barColorOn;
+				barBorderRadiusState = options.barBorderRadiusState;
+				hasHorizontal = options.hasHorizontal;
+				hasVertical = options.hasVertical;
+				isMouseWheelMode = options.isMouseWheelMode;
+				isTouchMode = options.isTouchMode;
+				isScrollMode = options.isScrollMode;
+				mouseWheelLength = options.mouseWheelLength;
+				isSlowMovning = options.isSlowMovning;
+			}),
 			// 滚动对象
-			$scroll = checkJQElements($elements).eq(0),
+			$scroll = convertToJQ(elements).eq(0),
 			// 滚动包裹容器
 			$wrapper = $div.clone().addClass(prefixLibName + 'scroll-wrapper'),
 			// 横滚动条
 			$barHorizontal = $div.clone().addClass(prefixLibName + 'scroll-bar'),
 			// 竖滚动条
 			$barVertical = $div.clone().addClass(prefixLibName + 'scroll-bar'),
-			// 滚动状态标记属性
-			ATTRNAME_IS_SCROLL = prefixLibName + 'scroll-runing',
 			// 缓动
 			easing = {
 				quadratic: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
@@ -1342,18 +1433,21 @@ var ud2 = (function (window, $) {
 				// 触点上次的移动距离
 				lastMove: { x: 0, y: 0 }
 			},
-			// 鼠标滚轮数据对象
-			mousewheel = {
-				// 鼠标滚轮定时器
-				// 用于阻止滚轮在边缘的多次滚动
-				timer: null
-			},
 			// 是否正在滚动
 			isScrolling = false,
+			// 是否跟随
+			isOplock = false,
 			// 当滚动完成时执行强制停止回调定时器
 			scrollEndTimer = null,
 			// 触摸启动最小长度
 			touchStartMinLength = 5,
+			// 鼠标滚轮定时器
+			// 用于阻止滚轮在边缘的多次滚动
+			mouseWheelTimer = null,
+			// 记录鼠标是否在滚动条区域中按下滚动条，并拖拽操作
+			mouseInScroll = false,
+			// 记录鼠标是否在滚动容器中
+			mouseInBox = false,
 			// 滚动对象数据
 			scrollData = {
 				// 外层盒子高度
@@ -1389,9 +1483,599 @@ var ud2 = (function (window, $) {
 				sw: 0,
 				// 定时器
 				timer: null
+			},
+			// 此对象的跟随对象
+			followers = [],
+			// 滚动对象名称
+			SCROLL_NAME = 'scroll',
+			// 滚动状态标记属性
+			ATTRNAME_IS_SCROLL = prefixLibName + 'scroll-runing';
+
+		// #endregion
+
+		// #region 私有方法
+
+		// 重计算滚动条滚动位置
+		function recountPosition() {
+			getScrollData();
+			translateMove(scrollData.now.x, scrollData.now.y);
+
+			return scrollObj;
+		}
+		// 重新计算滚动对象及外层对象高度，且初始化滚动条数据
+		function getScrollData() {
+			var // 外层盒子高度
+				wrapperHeight = 0,
+				// 滚动条高度
+				scrollHeight = 0,
+				// 滚动条高度
+				barHeight = 0,
+				// 最大滚动槽高度
+				maxScrollBarHeight = 0,
+				// 外层盒子宽度
+				wrapperWidth = 0,
+				// 滚动条宽度
+				scrollWidth = 0,
+				// 滚动条宽度
+				barWidth = 0,
+				// 最大滚动槽宽度
+				maxScrollBarWidth = 0,
+				// 尺寸
+				size;
+
+			// 如果开启竖滚动条
+			if (options.hasVertical) {
+				// 获取外层对象高度
+				wrapperHeight = $wrapper.height();
+				scrollHeight = $scroll.height();
+
+				// 保存高度数据到滚动对象数据中
+				scrollData.h = scrollHeight;
+				scrollData.ih = $scroll.innerHeight();
+				scrollData.sh = wrapperHeight - scrollHeight;
+				if (scrollData.now.y < -scrollData.sh) scrollData.now.y = -scrollData.sh;
+
+				// 最大滚动高度
+				maxScrollBarHeight = scrollData.ih - 2 * options.barOffset;
+
+				// 计算滚动条高度
+				if (scrollHeight !== 0) {
+					size = scrollData.sh / (scrollData.ih * 5);
+					size = 1 - (size > 1 ? 1 : size);
+					barHeight = maxScrollBarHeight * size;
+					barHeight = barHeight < options.barMinLength ? options.barMinLength : barHeight;
+					barHeight = barHeight > maxScrollBarHeight ? maxScrollBarHeight : barHeight;
+
+					barData.h = barHeight;
+					barData.mh = maxScrollBarHeight;
+					barData.sh = maxScrollBarHeight - barHeight;
+
+					$barVertical.height(barHeight);
+				}
+			}
+			// 如果开启横滚动条
+			if (options.hasHorizontal) {
+				// 获取外层对象宽度
+				wrapperWidth = $wrapper.width();
+				scrollWidth = $scroll.width();
+
+				// 保存宽度数据到滚动对象数据中
+				scrollData.w = scrollWidth;
+				scrollData.iw = $scroll.innerWidth();
+				scrollData.sw = wrapperWidth - scrollWidth;
+				if (scrollData.now.x < -scrollData.sw) scrollData.now.x = -scrollData.sw;
+
+				// 最大滚动宽度
+				maxScrollBarWidth = scrollData.iw - 2 * options.barOffset;
+
+				// 计算滚动条宽度
+				if (scrollWidth !== 0) {
+					size = scrollData.sw / (scrollData.iw * 5);
+					size = 1 - (size > 1 ? 1 : size);
+					barWidth = maxScrollBarWidth * size;
+					barWidth = barWidth < options.barMinLength ? options.barMinLength : barWidth;
+					barWidth = barWidth > maxScrollBarWidth ? maxScrollBarWidth : barWidth;
+
+					barData.w = barWidth;
+					barData.mw = maxScrollBarWidth;
+					barData.sw = maxScrollBarWidth - barWidth;
+
+					$barHorizontal.width(barWidth);
+				}
+			}
+		}
+		// 获取当前移动位置
+		// return[point]: 移动位置对象
+		function getPosition() {
+			var x, y;
+			var matrix = $wrapper.css('transform');
+			// 通过矩阵获取当前滚动位置
+			matrix = matrix.split(')')[0].split(', ');
+			x = Math.round(+(matrix[12] || matrix[4]));
+			y = Math.round(+(matrix[13] || matrix[5]));
+			return { x: x, y: y };
+		}
+		// 设置当前滚动状态
+		// state[bool]: 是否正在滚动 true: 滚动 false: 未滚动
+		function setScrollingState(state) {
+			if (isScrolling !== state) {
+				isScrolling = state;
+				$scroll.attr(ATTRNAME_IS_SCROLL, state ? 1 : 0);
+			}
+		}
+		// 坐标转换
+		// 通过滚动容器坐标运算滚动条坐标
+		// direction[bool]: 方向 false: x方向 true: y方向
+		// position[number]: 坐标
+		function getBarPositionByScrollPosition(position, direction) {
+			var dir = direction ? 'sh' : 'sw';
+			if (scrollData[dir] === 0 || barData[dir] === 0) {
+				return 0;
+			} else {
+				return position / scrollData[dir] * barData[dir];
+			}
+		}
+		// 坐标转换
+		// 通过滚动条坐标运算滚动容器坐标
+		// direction[bool]: 方向 false: x方向 true: y方向
+		// position[number]: 坐标
+		function getScrollPositionByBarPosition(position, direction) {
+			var dir = direction ? 'sh' : 'sw';
+			if (scrollData[dir] === 0 || barData[dir] === 0) {
+				return 0;
+			} else {
+				return position / barData[dir] * scrollData[dir];
+			}
+		}
+		// 开启滚动条
+		function barOpen() {
+			if (options.barState === 0) {
+				if (barData.timer) window.clearTimeout(barData.timer);
+				$barHorizontal.stop().fadeIn(200);
+				$barVertical.stop().fadeIn(200);
+			}
+		}
+		// 关闭滚动条
+		function barClose() {
+			if (options.barState === 0) {
+				if (!mouseInBox && !mouseInScroll && !isScrolling) {
+					if (barData.timer) window.clearTimeout(barData.timer);
+					barData.timer = window.setTimeout(function () {
+						$barHorizontal.stop().fadeOut(400);
+						$barVertical.stop().fadeOut(400);
+					}, 800);
+				}
+			}
+		}
+		// 计算滚动缓停的位移和时间
+		// current[number]: 当前滚动位置
+		// start[number]: 滚动开始时的位置
+		// time[number]: 滚动用时
+		// wrapper[number]: 滚动对象的高度
+		// scroll[number]: 视窗对象的高度
+		// (?) deceleration[number]: 减速
+		function momentum(current, start, time, wrapper, scroll, deceleration) {
+			var distance = current - start,
+				speed = Math.abs(distance) / time,
+				destination,
+				duration;
+
+			wrapper = -wrapper;
+			scroll = scroll || 0;
+			deceleration = deceleration || 0.0005;
+			destination = current + speed * speed / (2 * deceleration) * (distance < 0 ? -1 : 1);
+			duration = speed / deceleration;
+
+			if (destination < wrapper) {
+				destination = scroll ? wrapper - scroll / 2.5 * (speed / 8) : wrapper;
+				distance = Math.abs(destination - current);
+				duration = distance / speed;
+			} else if (destination > 0) {
+				destination = scroll ? scroll / 2.5 * (speed / 8) : 0;
+				distance = Math.abs(current) + destination;
+				duration = distance / speed;
+			}
+
+			return {
+				destination: Math.round(destination),
+				duration: duration
 			};
+		}
+		// 执行滚动动画
+		// x[number]: 滚动到 X 坐标
+		// y[number]: 滚动到 Y 坐标
+		// time[number]: 滚动用时
+		// e[easingObject]: 缓动
+		function translateMove(x, y, time, e) {
+			var i, len;
 
+			// 设置动画时长
+			time = time || 0;
+			// 设置 $wrapper 的过渡动画
+			e = e || easing.circular;
 
+			if (x > 0) x = 0;
+			if (y > 0) y = 0;
+			if (y < -scrollData.sh) y = -scrollData.sh;
+			if (x < -scrollData.sw) x = -scrollData.sw;
+
+			// 使用过渡动画实现滚动
+			translateTimingFunction(e);
+			translateTime(time);
+			$wrapper.css('transform', 'translate(' + x + 'px, ' + y + 'px)' + (support.perspective ? ' translateZ(0)' : ''));
+			if (options.hasVertical) $barVertical.css('transform', 'translate(0, ' + getBarPositionByScrollPosition(-y, 1) + 'px)' + (support.perspective ? ' translateZ(0)' : ''));
+			if (options.hasHorizontal) $barHorizontal.css('transform', 'translate(' + getBarPositionByScrollPosition(-x, 0) + 'px, 0)' + (support.perspective ? ' translateZ(0)' : ''));
+			scrollData.now = { x: x, y: y };
+
+			len = followers.length;
+			if (len !== 0) {
+				for (i = 0; i < len; i++) {
+					followers[i].move(-x, -y, time);
+				}
+			}
+		}
+		// 设置滚动动画的缓动
+		// e[easingObject]: 缓动
+		function translateTimingFunction(e) {
+			$wrapper.css('transition-timing-function', e);
+			$barVertical.css('transition-timing-function', e + ', ease-out, ease-out, ease-out');
+			$barHorizontal.css('transition-timing-function', e + ', ease-out, ease-out, ease-out');
+		}
+		// 设置滚动动画的用时 
+		// time[number]: 滚动用时
+		function translateTime(time) {
+			var t = parseInt(time);
+			$wrapper.css('transition-duration', t + 'ms');
+			$barVertical.css('transition-duration', t + 'ms, 300ms, 300ms, 300ms');
+			$barHorizontal.css('transition-duration', t + 'ms, 300ms, 300ms, 300ms');
+
+			// 当滚动完成时强制停止
+			// 由于transition-end在部分浏览器中时间不准确，这里的定时器方式替代了transition-end
+			if (t !== 0) {
+				if (scrollEndTimer) { window.clearTimeout(scrollEndTimer); }
+				scrollEndTimer = window.setTimeout(function () {
+					translateMove(scrollData.now.x, scrollData.now.y, 0);
+					setScrollingState(false);
+					barClose();
+				}, t);
+			} else {
+				setScrollingState(false);
+				barClose();
+			}
+		}
+
+		// #endregion
+
+		// #region 公共方法
+
+		// 移动滚动条
+		// x[number]: 滚动到 X 坐标
+		// y[number]: 滚动到 Y 坐标
+		// time[number]: 滚动用时
+		// return[scroll]: 返回滚动条对象
+		function move(x, y, time) {
+			time = time || 0;
+			translateMove(-x, -y, time);
+			return scrollObj;
+		}
+		// 获取或设置跟随状态
+		// (): 获取跟随状态
+		// - return[bool]: 返回当前是否被跟随
+		// (state): 设置跟随状态
+		// - state[bool]: 是否被跟随
+		// - return[scroll]: 返回滚动对象
+		function oplock(state) {
+			if (state !== void 0) {
+				isOplock = !!state;
+				return scrollObj;
+			}
+			else {
+				return isOplock;
+			}
+		}
+		// 绑定一个scroll控件跟随此控件
+		// scroll[scroll]: 待绑定的scroll控件
+		// return[scroll]: 返回滚动对象
+		function followerBind(scroll) {
+			if (type.isObject(scroll) && scroll.type && scroll.type === SCROLL_NAME) {
+				followers.push(scroll);
+			}
+			return scrollObj;
+		}
+		// 解绑一个scroll控件跟随此控件
+		// scroll[scroll]: 待解绑的scroll控件
+		// return[scroll]: 返回滚动对象
+		function followerUnbind(scroll) {
+			var index;
+			if (type.isObject(scroll) && scroll.type && scroll.type === SCROLL_NAME) {
+				index = followers.indexOf(scroll);
+				if (index > -1) {
+					followers.splice(index, 1);
+				}
+			}
+			return scrollObj;
+		}
+
+		// #endregion
+		
+		// #region 事件处理对象和相关方法
+
+		// 触点按下时触发的事件
+		function pointerDown() {
+			if (isOplock) return;
+			getScrollData();
+			barOpen();
+
+			var pos = getPosition();
+			translateMove(pos.x, pos.y);
+
+			mainPointer.moved = false;
+			mainPointer.start = getTime();
+			mainPointer.startMove = { x: scrollData.now.x, y: scrollData.now.y };
+			mainPointer.lastMove = { x: 0, y: 0 };
+		}
+		// 触点移动时触发的事件
+		// move[moveObject]: 移动数据对象
+		function pointerMove(move) {
+			if (isOplock) return;
+
+			var // 本次触点移动的时间标记
+				timeStamp = getTime(),
+				// 从触点按下到当前函数触发时的移动长度
+				x = move.x, y = move.y,
+				// 从触点按下到当前函数触发时的绝对长度
+				absX = Math.abs(x), absY = Math.abs(y),
+				// 移动增量
+				deltaX = x - mainPointer.lastMove.x,
+				deltaY = y - mainPointer.lastMove.y,
+				// 移动长度
+				newX = 0, newY = 0;
+
+			// 设置当前滚动状态为滚动中
+			barOpen();
+			// 记录最后 move 方法移动的坐标点
+			mainPointer.lastMove = { x: x, y: y };
+
+			// 设置移动启动长度
+			if (timeStamp - mainPointer.end > 300
+				&& absX < touchStartMinLength
+				&& absY < touchStartMinLength) return;
+
+			// 标记启动
+			if (!mainPointer.moved) mainPointer.moved = true;
+
+			// 计算移动距离
+			if (options.hasVertical) newY = deltaY + scrollData.now.y;
+			if (options.hasHorizontal) newX = deltaX + scrollData.now.x;
+			if (deltaX !== 0 || deltaY !== 0) translateMove(newX, newY);
+
+			// 重置启动点
+			if (timeStamp - mainPointer.start >= 300) {
+				mainPointer.start = timeStamp;
+				mainPointer.startMove.x = newX;
+				mainPointer.startMove.y = newY;
+			}
+		}
+		// 触点抬起时触发的事件
+		function pointerUp() {
+			if (isOplock) return;
+
+			var // 当前坐标
+				x = scrollData.now.x, y = scrollData.now.y,
+				// 移动长度
+				newX = x, newY = y,
+				// 动量
+				momentumX = null, momentumY = null,
+				// 时长
+				duration = getTime() - mainPointer.start,
+				// 运动时间
+				time = 0,
+				// 缓动
+				e;
+
+			// 触点结束时刻
+			mainPointer.end = getTime();
+
+			// 如无运动关闭滚动条
+			barClose();
+
+			// 如果未移动直接跳出
+			if (!mainPointer.moved || !options.isSlowMovning) return;
+
+			// 当延迟小于300ms则进行延迟滚动特效
+			if (duration < 300) {
+				var timeX = 0, timeY = 0;
+				if (options.hasVertical) {
+					momentumY = momentum(y, mainPointer.startMove.y, duration, scrollData.sh,
+					options.bounce ? scrollData.h : 0);
+					newY = momentumY.destination;
+					timeY = momentumY.duration;
+				}
+				if (options.hasHorizontal) {
+					momentumX = momentum(x, mainPointer.startMove.x, duration, scrollData.sw,
+					options.bounce ? scrollData.w : 0);
+					newX = momentumX.destination;
+					timeX = momentumX.duration;
+				}
+
+				time = Math.max(timeX, timeY);
+			}
+
+			// 当坐标确定发生移动则执行滚动动画
+			if (newX !== x || newY !== y) {
+				barOpen();
+				setScrollingState(true);
+				translateMove(newX, newY, time);
+			}
+		}
+		// 鼠标滚轮发生滚动时触发的事件
+		// move[number]: 滚轮滚动方向及长度
+		function mouseWheel(move) {
+			var x = scrollData.now.x,
+				y = scrollData.now.y,
+				time = 300,
+				moveLen = options.mouseWheelLength;
+
+			getScrollData();
+
+			// 判断移动距离
+			if (moveLen === 'normal') moveLen = Math.round(scrollData.h);
+			move > 0 ? y -= moveLen : y += moveLen;
+
+			if (y > 0 || y < -scrollData.sh) {
+				setScrollingState(false);
+			} else {
+				barOpen();
+				setScrollingState(true);
+			}
+			translateMove(x, y, time);
+		}
+		// 滚动条被按下时触发的事件
+		function scrollDown() {
+			this.move = 0;
+			mouseInScroll = true;
+			barOpen();
+			$(this).css('background', options.barColorOn);
+		}
+		// 滚动条被释放时触发的事件
+		function scrollUp() {
+			mouseInScroll = false;
+			barClose();
+			$(this).css('background', options.barColor);
+		}
+		// 滚动条被按下并拖拽时触发的事件
+		// move[number]: 滚动条滚动方向及长度
+		// direction[bool]: 滚动方向
+		function scrollMove(move, direction) {
+			var x = direction
+						? scrollData.now.x
+						: getScrollPositionByBarPosition(-(move.x - this.move), 0) + scrollData.now.x,
+				y = direction
+						? getScrollPositionByBarPosition(-(move.y - this.move), 1) + scrollData.now.y
+						: scrollData.now.y;
+
+			if (direction) {
+				this.move = move.y;
+			} else {
+				this.move = move.x;
+			}
+
+			translateMove(x, y);
+		}
+		// 事件绑定
+		function bindEvent() {
+			// 绑定屏幕尺寸变化的事件
+			if (options.recountByResize) callbacks.pageResize.add(recountPosition);
+
+			// 鼠标在滑入滑出滚动区域时滚动条的显示处理
+			if (options.barState === 0) {
+				$scroll.on(MOUSE_ENTER, function () {
+					getScrollData();
+					mouseInBox = true;
+					barOpen();
+				}).on([MOUSE_LEAVE, TOUCH_END].join(' '), function () {
+					mouseInBox = false;
+					barClose();
+				});
+			}
+
+			// 绑定事件
+			if (options.isTouchMode) {
+				event($scroll, { stopPropagation: true })
+					.setDown(pointerDown)
+					.setUp(pointerUp)
+					.setPan(pointerMove);
+			}	
+			if (options.isMouseWheelMode) {
+				eventMouseWheel($scroll).setScroll(mouseWheel);
+			}
+			if (options.isScrollMode) {
+				// 通过滚动条滑动来控制当前容器的移动距离
+				event($barVertical, { stopPropagation: true })
+					.setPan(function (move) { scrollMove.call(this, move, 1); })
+					.setDown(scrollDown)
+					.setUp(scrollUp);
+				event($barHorizontal, { stopPropagation: true })
+					.setPan(function (move) { scrollMove.call(this, move, 0); })
+					.setDown(scrollDown)
+					.setUp(scrollUp);
+			}
+		}
+
+		// #endregion
+
+		// #region 初始化
+
+		// 初始化
+		(function init() {
+			// 判断传入的鼠标滚轮滚动长度是否符合要求
+			if (mouseWheelLength !== 'normal' && !type.isNaturalNumber(mouseWheelLength))
+				mouseWheelLength = 'normal';
+
+			// 对象内部集合
+			var $child = $scroll.contents();
+			// 如果内部对象集合长度为0(说明$scroll内容为空)，则把$wrapper元素插入到$scroll内
+			// 否则用$wrapper包裹所有内部对象，得到最新的包裹对象并提交给$wrapper
+			if ($child.length === 0) {
+				$scroll.append($wrapper);
+			} else {
+				$child.wrapAll($wrapper);
+				$wrapper = $scroll.children('.' + prefixLibName + 'scroll-wrapper');
+			}
+
+			// 延续scroll盒的padding值
+			// 让外盒的padding来模拟scroll盒的padding
+			// HACK: 此处当$wrapper.css('padding')获取值的时候，EDGE浏览器获取的值为空
+			// 进而分别试用top/bottom/left/right来获取padding值
+			$wrapper.css('padding',
+				$scroll.css('padding-top')
+				+ ' ' + $scroll.css('padding-right')
+				+ ' ' + $scroll.css('padding-bottom')
+				+ ' ' + $scroll.css('padding-left'));
+
+			// 对$scroll添加.ud2-scroll类(滚动条基础样式)
+			$scroll.addClass('ud2-scroll');
+
+			// 添加滚动条并设置尺寸
+			if (hasVertical) {
+				$scroll.prepend($barVertical);
+				$wrapper.css({ 'height': 'auto', 'min-height': '100%' });
+			}
+			if (hasHorizontal) {
+				$scroll.prepend($barHorizontal);
+				$wrapper.css({ 'width': 'auto', 'min-width': '100%' });
+			}
+			$barVertical.css({ 'top': barOffset, 'right': barOffset, 'width': barSize, 'background': barColor });
+			$barHorizontal.css({ 'left': barOffset, 'bottom': barOffset, 'height': barSize, 'background': barColor });
+			if (barBorderRadiusState) {
+				$barVertical.css('border-radius', barSize / 2);
+				$barHorizontal.css('border-radius', barSize / 2);
+			}
+			if (barState === 1) {
+				$barVertical.show();
+				$barHorizontal.show();
+			}
+
+			// 获取scroll的数据值
+			getScrollData();
+			// 绑定事件
+			bindEvent();
+		}());
+
+		// #endregion
+
+		// #region 返回
+
+		// 返回
+		return extendObjects(scrollObj, {
+			type: SCROLL_NAME,
+			move: move,
+			oplock: oplock,
+			followerBind: followerBind,
+			followerUnbind: followerUnbind
+		});
+
+		// #endregion
 
 	};
 
@@ -1419,6 +2103,7 @@ var ud2 = (function (window, $) {
 				// 公开库事件
 				event: event,
 				eventMouseWheel: eventMouseWheel,
+				scroll: scroll,
 				// 公开库基础样式
 				style: style,
 				// 初始化全部未初始化的控件
@@ -1524,14 +2209,8 @@ var ud2 = (function (window, $) {
 				// 获取控件自定义项
 				// optNameArr[array]: 自定义项名称集合
 				// callbacks[function]: 用于处理自定义项值的回调方法
-				getOptions: function (optNameArr, callbacks) {
-					var options = {};
-					optNameArr.forEach(function (name) {
-						options[name] = control.userOptions[name]
-							|| control.getOriginAttr(name, 1) || control.getOriginAttr(name);
-					});
-					callbacks(options);
-					return options;
+				getOptions: function () {
+					return getOptions.apply(this, arguments);
 				},
 				// 转移原标签的style、class属性到新控件的根标签
 				// options[object]: 自定义选项
@@ -1668,7 +2347,7 @@ var ud2 = (function (window, $) {
 
 	// 为未命名控件生成ud2-id属性值
 	// 生成的id从编号0开始顺延
-	var createControlID = (function(){
+	var createControlID = (function () {
 		var id = 0;
 		return function () {
 			return prefixLibName + id++;
@@ -1703,7 +2382,7 @@ var ud2 = (function (window, $) {
 					case 0: {
 						return create.call(constructor, void 0, void 0, {});
 					}
-					// (ctrlID)、(origin)、(userOptions)
+						// (ctrlID)、(origin)、(userOptions)
 					case 1: {
 						if (type.isString(args[0]))
 							return create.call(constructor, args[0], void 0, void 0);
@@ -1713,7 +2392,7 @@ var ud2 = (function (window, $) {
 							return create.call(constructor, void 0, void 0, args[0]);
 						return create.call(constructor);
 					}
-					// (ctrlID, origin)、(ctrlID, userOptions)、(origin, userOptions)
+						// (ctrlID, origin)、(ctrlID, userOptions)、(origin, userOptions)
 					case 2: {
 						if (type.isString(args[0]) && (type.isJQuery(args[1]) || type.isString(args[1])))
 							return create.call(constructor, args[0], args[1], void 0);
@@ -1723,7 +2402,7 @@ var ud2 = (function (window, $) {
 							return create.call(constructor, void 0, args[0], args[1]);
 						break;
 					}
-					// (ctrlID, origin, userOptions)
+						// (ctrlID, origin, userOptions)
 					case 3: {
 						id = type.isString(args[0]) && args[0].length > 0 ? args[0] : createControlID();
 						// 如果传入的jQuery对象长度大于1，则默认选择第一个元素做为origin
@@ -1750,7 +2429,7 @@ var ud2 = (function (window, $) {
 				// 此处的ctrl.public对象内的属性为控件的公共属性
 				return ctrlCollection.init(ctrl) || ctrl.public;
 			};
-		
+
 		// 执行创建控件回调，初始化控件
 		callbacks(ctrlCollection);
 
@@ -1990,7 +2669,7 @@ var ud2 = (function (window, $) {
 			// #endregion
 
 		};
-		
+
 	});
 	// 范围控件
 	createControl('range', function (collection) {
@@ -2146,7 +2825,7 @@ var ud2 = (function (window, $) {
 					// 让值存在于符合步长值集合中 (value = min + step * x);
 					valueRight = Math.round((vr - min) / step) * step + min;
 					valueRight = parseFloat(valueRight.toFixed(stepDigit));
-					if (valueRight > max) valueRight -= step; 
+					if (valueRight > max) valueRight -= step;
 					percentRight = valueToPercent(valueRight);
 					$right.css({ 'left': percentToViewPos(percentRight) + '%' });
 
@@ -2231,7 +2910,7 @@ var ud2 = (function (window, $) {
 				if (v !== void 0) {
 					v = convertValue(r !== void 0 ?
 						[v, r].join(',') :
-						Array.isArray(v) ? v.join(',') : v);
+						type.isArray(v) ? v.join(',') : v);
 					setValue(v[0], v[1]);
 					return control.public;
 				}
@@ -2330,8 +3009,8 @@ var ud2 = (function (window, $) {
 			function bindEvent() {
 				// 控件开关事件绑定
 				event($power).setTap(toggle);
-				event($left).setDown(updateHandleInfoSize).setPan(leftMove).setUp(leftUp);
-				event($right).setDown(updateHandleInfoSize).setPan(rightMove).setUp(rightUp);
+				event($left, { stopPropagation: true }).setDown(updateHandleInfoSize).setPan(leftMove).setUp(leftUp);
+				event($right, { stopPropagation: true }).setDown(updateHandleInfoSize).setPan(rightMove).setUp(rightUp);
 				// 页面尺寸发生改变时，重新计算手柄位置
 				callbacks.pageResize.add(function () {
 					updateHandleInfoSize();
@@ -2341,7 +3020,7 @@ var ud2 = (function (window, $) {
 			}
 
 			// #endregion
-			
+
 			// #region 初始化
 
 			// 初始化
@@ -2436,7 +3115,7 @@ var ud2 = (function (window, $) {
 	//		}
 	//	}
 	//}());
-	
+
 	// 返回控件
 	return extendObjects(ud2, {
 		type: type

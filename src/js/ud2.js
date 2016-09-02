@@ -70,13 +70,40 @@ var ud2 = (function (window, $) {
 		MOUSE_OUT = 'mouseout',
 		MOUSE_ENTER = 'mouseenter',
 		MOUSE_LEAVE = 'mouseleave',
+		KEY_DOWN = 'keydown',
+		KEY_PRESS = 'keypress',
+		KEY_UP = 'keyup',
+		FOCUS = 'focus',
+		BLUR = 'blur',
 		CLICK = 'click',
 		// 触碰事件组合
 		EVENT_DOWN = [POINTER_DOWN, TOUCH_START, MOUSE_DOWN].join(' '),
+		// 键盘编码
+		KEYCODE = {
+			'A': 65, 'B': 66, 'C': 67, 'D': 68, 'E': 69, 'F': 70, 'G': 71,
+			'H': 72, 'I': 73, 'J': 74, 'K': 75, 'L': 76, 'M': 77, 'N': 78,
+			'O': 79, 'P': 80, 'Q': 81, 'R': 82, 'S': 83, 'T': 84,
+			'U': 85, 'V': 86, 'W': 87, 'X': 88, 'Y': 89, 'Z': 90,
+			'LEFT': 37, 'UP': 38, 'RIGHT': 39, 'DOWN': 40,
+			'KEY0': 48, 'KEY1': 49, 'KEY2': 50, 'KEY3': 51, 'KEY4': 52, 'KEY5': 53,
+			'KEY6': 54, 'KEY7': 55, 'KEY8': 56, 'KEY9': 57, '`': 192, 'BACK': 8,
+			'NUM0': 96, 'NUM1': 97, 'NUM2': 98, 'NUM3': 99, 'NUM4': 100,
+			'NUM5': 101, 'NUM6': 102, 'NUM7': 103, 'NUM8': 104, 'NUM9': 105,
+			'ENTER': 13, 'NUM+': 107, 'NUM-': 109, 'NUM*': 106, 'NUM/': 111,
+			'-': 189, '=': 187, ',': 188, '.': 190, '/': 191, '\\': 220,
+			'SHIFT': 16, 'CTRL': 17, 'ALT': 18, 'CAPS': 20, 'TAB': 9,
+			'[': 219, ']': 221, ';': 186, '\'': 222,
+			'F1': 112, 'F2': 113, 'F3': 114, 'F4': 115, 'F5': 116, 'F6': 117,
+			'F7': 118, 'F8': 119, 'F9': 120, 'F10': 121, 'F11': 122, 'F12': 123
+		},
 		// 触碰事件
 		// EVENT_DOWN = [POINTER_DOWN, TOUCH_START, MOUSE_DOWN].join(' '),
 		// 状态名称
 		STATE_NAME = ['normal', 'info', 'success', 'warning', 'danger'],
+		// 索引功能选择器字段
+		SELECTOR_TAB = '[type="checkbox"]',
+		// 隐藏域选择器字段
+		SELECTOR_HIDDEN = '[type="hidden"]',
 
 		// 用于克隆的空jQuery对象
 		$div = $('<div />'),
@@ -102,7 +129,11 @@ var ud2 = (function (window, $) {
 			// 页面尺寸改变时的回调对象
 			pageResize: $.Callbacks(),
 			// 控件完全关闭的回调对象
-			ctrlClose: $.Callbacks()
+			ctrlClose: $.Callbacks(),
+			// 文档发生按键按下的回调对象
+			keyDown: $.Callbacks(),
+			// 文档发生按键抬起的回调对象
+			keyUp: $.Callbacks()
 		};
 
 	// #endregion
@@ -1211,7 +1242,7 @@ var ud2 = (function (window, $) {
 
 			var // 事件状态 
 				// true: 绑定 false: 解绑
-				state = false;
+				bindingState = false;
 
 			// #endregion
 
@@ -1249,15 +1280,15 @@ var ud2 = (function (window, $) {
 
 			// 绑定事件
 			function eventBind() {
-				if (!state) {
-					state = true;
+				if (!bindingState) {
+					bindingState = true;
 					origin.on(MOUSEWHEEL_NAME, mouseWheel);
 				}
 			}
 			// 解绑事件
 			function eventUnbind() {
-				if (state) {
-					state = false;
+				if (bindingState) {
+					bindingState = false;
 					origin.off(MOUSEWHEEL_NAME, mouseWheel);
 				}
 			}
@@ -1324,6 +1355,112 @@ var ud2 = (function (window, $) {
 		// #endregion
 
 	};
+	// 用于快捷键绑定的事件处理
+	var eventKeyShortcut = function () {
+
+		// #region 私有字段
+
+		var // 事件对象
+			eventObj = {},
+			// 快捷键组
+			keyGroup = [],
+			// 连接字符串
+			JOINSTR = '\u00FF',
+			// 绑定状态
+			bindingState = false;
+
+		// #endregion
+
+		// #region 公共方法
+
+		// 添加快捷键
+		function add(keyCode, callbacks, keyOptions) {
+			var isCtrl = keyOptions.isCtrl === void 0 ? 0 : !!keyOptions.isCtrl * 1,
+				isAlt = keyOptions.isAlt === void 0 ? 0 : !!keyOptions.isAlt * 1,
+				isShift = keyOptions.isShift === void 0 ? 0 : !!keyOptions.isShift * 1,
+				name = [KEYCODE, isCtrl, isAlt, isShift].join(JOINSTR);
+			if (!keyGroup[name]) keyGroup[name] = callbacks;
+		}
+
+		// 移除快捷键
+		function remove(keyCode, callbacks, keyOptions) {
+			var isCtrl = keyOptions.isCtrl === void 0 ? 0 : !!keyOptions.isCtrl * 1,
+				isAlt = keyOptions.isAlt === void 0 ? 0 : !!keyOptions.isAlt * 1,
+				isShift = keyOptions.isShift === void 0 ? 0 : !!keyOptions.isShift * 1,
+				name = [KEYCODE, isCtrl, isAlt, isShift].join(JOINSTR);
+			if (keyGroup[name]) delete keyGroup[name];
+		}
+
+		// #endregion
+
+		// #region 事件处理
+
+		// 键盘按下事件
+		function keyDown(event, KEYCODE, isCtrl, isAlt, isShift) {
+			isCtrl = isCtrl * 1;
+			isAlt = isAlt * 1;
+			isShift = isShift * 1;
+			for (var i in keyGroup) {
+				if (i === [KEYCODE, isCtrl, isAlt, isShift].join(JOINSTR)) {
+					event.preventDefault();
+					break;
+				}
+			}
+		}
+		// 键盘抬起事件
+		function keyUp(event, KEYCODE, isCtrl, isAlt, isShift) {
+			isCtrl = isCtrl * 1;
+			isAlt = isAlt * 1;
+			isShift = isShift * 1;
+			for (var i in keyGroup) {
+				if (i === [KEYCODE, isCtrl, isAlt, isShift].join(JOINSTR)) {
+					keyGroup[i]();
+					break;
+				}
+			}
+		}
+		// 事件绑定
+		function eventBind() {
+			if (!bindingState) {
+				bindingState = true;
+				callbacks.keyDown.add(keyDown);
+				callbacks.keyUp.add(keyUp);
+			}
+		}
+		// 事件解绑
+		function eventUnbind() {
+			if (bindingState) {
+				bindingState = false;
+				callbacks.keyDown.remove(keyDown);
+				callbacks.keyUp.remove(keyUp);
+			}
+		}
+
+		// #endregion
+
+		// #region 初始化
+
+		// 初始化
+		(function init() {
+			bind();
+		}());
+
+		// #endregion
+
+		// #region 返回
+
+		// 返回
+		return extendObjects(eventObj, {
+			add: add,
+			remove: remove,
+			on: eventBind,
+			off: eventUnbind
+		});
+
+		// #endregion
+
+	};
+
 	// 滚动条控件及滚动事件
 	// 用于为元素生成滚动条及滚动事件
 	// elements[string, jQuery]: jQuery 对象或可生成 jQuery 对象的字符串
@@ -1748,6 +1885,11 @@ var ud2 = (function (window, $) {
 
 		// #region 公共方法
 
+		// 获取滚动条内容区域对象
+		// return[jQuery]: 返回内容区域对象
+		function getContent() {
+			return $wrapper;
+		}
 		// 移动滚动条
 		// x[number]: 滚动到 X 坐标
 		// y[number]: 滚动到 Y 坐标
@@ -1797,7 +1939,7 @@ var ud2 = (function (window, $) {
 		}
 
 		// #endregion
-		
+
 		// #region 事件处理对象和相关方法
 
 		// 触点按下时触发的事件
@@ -1985,7 +2127,7 @@ var ud2 = (function (window, $) {
 					.setDown(pointerDown)
 					.setUp(pointerUp)
 					.setPan(pointerMove);
-			}	
+			}
 			if (options.isMouseWheelMode) {
 				eventMouseWheel($scroll).setScroll(mouseWheel);
 			}
@@ -2025,7 +2167,7 @@ var ud2 = (function (window, $) {
 
 			// 延续scroll盒的padding值
 			// 让外盒的padding来模拟scroll盒的padding
-			// HACK: 此处当$wrapper.css('padding')获取值的时候，EDGE浏览器获取的值为空
+			// (!HACK) 此处当$wrapper.css('padding')获取值的时候，EDGE浏览器获取的值为空
 			// 进而分别试用top/bottom/left/right来获取padding值
 			$wrapper.css('padding',
 				$scroll.css('padding-top')
@@ -2072,7 +2214,9 @@ var ud2 = (function (window, $) {
 			move: move,
 			oplock: oplock,
 			followerBind: followerBind,
-			followerUnbind: followerUnbind
+			followerUnbind: followerUnbind,
+			recountPosition: recountPosition,
+			getContent: getContent
 		});
 
 		// #endregion
@@ -2100,12 +2244,6 @@ var ud2 = (function (window, $) {
 	var ud2 = (function () {
 		var // 库公共对象
 			ud2 = {
-				// 公开库事件
-				event: event,
-				eventMouseWheel: eventMouseWheel,
-				scroll: scroll,
-				// 公开库基础样式
-				style: style,
 				// 初始化全部未初始化的控件
 				// 在页面初始化完成后，会自动调用此方法
 				controlCreate: function () {
@@ -2302,16 +2440,16 @@ var ud2 = (function (window, $) {
 		// 获取或设置控件样式
 		// () 获取控件样式
 		// - return[ud2.style.*]: 返回控件样式对象
-		// (s) 设置控件样式
-		// - s[ud2.style.*]: 控件样式对象
+		// (whichStyle) 设置控件样式
+		// - whichStyle[ud2.style.*]: 控件样式对象
 		// - return[control]: 返回当前控件对象
-		function styleHandler(s) {
-			if (s !== void 0) {
+		function styleHandler(whichStyle) {
+			if (whichStyle !== void 0) {
 				for (var i in style) {
 					control.style === style[i] && control.current.removeClass(style[i].name);
 				}
-				control.style = s;
-				control.current.addClass(s.name);
+				control.style = whichStyle;
+				control.current.addClass(whichStyles.name);
 				return control.public;
 			}
 			else {
@@ -2431,7 +2569,7 @@ var ud2 = (function (window, $) {
 			};
 
 		// 执行创建控件回调，初始化控件
-		callbacks(ctrlCollection);
+		callbacks(ctrlCollection, constructor);
 
 		// 将控件绑定在ud2对象上
 		ud2[name] = constructor;
@@ -2445,7 +2583,992 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
-	// #region ud2 库表单控件
+	// #region ud2 表单控件
+
+	// 选择控件
+	createControl('select', function (collection, constructor) {
+
+		var // className存于变量
+			cls = collection.className,
+			// 组内选项对象从选项控件移除的特征标识
+			groupOptionOutSelectFeatureID = 'gr',
+			// 替代文本常量
+			TYPE_SELECT = 'select', TYPE_GROUP = TYPE_SELECT + '.group', TYPE_OPTION = TYPE_SELECT + '.option';
+
+		// 选项组对象
+		// (object) 通过对象参数，创建一个菜单控件选项组对象
+		// - name[string]: 组名称
+		// - isDisabled[bool]: 是否禁用
+		// (name, isDisabled) 创建一个菜单控件选项组对象
+		// - name[string]: 组名称
+		// - isDisabled[bool]: 是否禁用
+		// return[ud2.select.group]: 返回选项组对象
+		constructor.group = function () {
+			var // 参数集合        参数长度
+				args = arguments, len = args.length,
+				// 组标记  禁用状态  组内选项集合
+				label, isDisabled, options = [],
+				// 选项组对象
+				groupObj = { select: null }, 
+				// 参数对象 选项内容对象
+				argObj, $group;
+
+			// 标记操作
+			// () 获取选项组标记内容
+			// - return[string]: 返回选项组标记内容
+			// (text) 设置选项组标记内容
+			// - text[string]: 待更改的选项组标记内容
+			// - return[ud2.select.group]: 返回该选项组对象
+			function labelOperate(text) {
+				if (text !== void 0) {
+					label = String(text);
+					$group.attr('title', label);
+					return groupObj;
+				}
+				else {
+					return label;
+				}
+			}
+			// 禁用状态操作
+			// () 获取当前的禁用状态
+			// - return[bool]: 返回当前的禁用状态
+			// (state) 设置禁用状态
+			// - state[bool]: 设置当前的禁用状态
+			// - return[ud2.select.group]: 返回该选项组对象
+			function disabledOperate(state) {
+				var i, j;
+				if (state !== void 0) {
+					if (isDisabled !== state) {
+						isDisabled = !!state;
+						if (state) {
+							$group.attr(cls + '-disabled', 'true');
+							if (j = options.length, j !== 0) {
+								for (i = 0; i < j; i++) groupObj.select.valOption(options[i], 0);
+							}
+						}
+						else {
+							$group.removeAttr(cls + '-disabled');
+						}
+					}
+					return groupObj;
+				}
+				else {
+					return isDisabled;
+				}
+			}
+			// 将选项组对象添加到选项控件中
+			// select[ud2.select]: 待添入的选项控件
+			// return[ud2.select.group]: 返回该选项组对象
+			function selectIn(select) {
+				var i, j;
+				if (select && select.type === TYPE_SELECT && !groupObj.select) {
+					// 绑定关系
+					groupObj.select = select;
+					select.groups.push(groupObj);
+					select.getContent().append(getContent());
+
+					if (j = options.length, j !== 0) {
+						for (i = 0; i < j; i++) options[i].selectIn(select);
+					}
+				}
+				return groupObj;
+			}
+			// 将选项控件从选项组对象中移除
+			// return[ud2.select.group]: 返回该选项组对象
+			function selectOut() {
+				var i, j;
+				if (groupObj.select) {
+					if (j = options.length, j !== 0) {
+						for (i = 0; i < j; i++) options[i].selectOut(groupOptionOutSelectFeatureID);
+					}
+
+					// 解绑关系
+					groupObj.select.groups.splice(groupObj.select.groups.indexOf(groupObj), 1);
+					groupObj.select = null;
+					$group.detach();
+				}
+				return groupObj;
+			}
+			// 向选项组中添加选项对象
+			// whichOption[ud2.select.option]: 待添加的选项对象
+			// return[ud2.select.group]: 返回该选项组对象
+			function optionAdd(whichOption) {
+				// 判断传入option的类型是否符合
+				if (whichOption && whichOption.type && whichOption.type === TYPE_OPTION
+					&& !whichOption.group) {
+					whichOption.groupIn(groupObj);
+				}
+				return groupObj;
+			}
+			// 向选项组中移除选项对象
+			// whichOption[ud2.select.option]: 待移除的选项对象
+			// return[ud2.select.group]: 返回该选项组对象
+			function optionRemove(whichOption) {
+				// 判断传入option的类型是否符合
+				if (whichOption && whichOption.type && whichOption.type === TYPE_OPTION
+					&& whichOption.group === groupObj) {
+					whichOption.groupOut();
+				}
+				return groupObj;
+			}
+			// 获取选项组内容对象
+			// return[jQuery]: 返回选项组内容对象
+			function getContent() {
+				return $group;
+			}
+
+
+			// 初始化
+			(function init() {
+				// 判断传参方式，并初始化组对象
+				if (len === 1 && type.isObject(argObj = args[0], argObj)) {
+					label = argObj.label;
+					isDisabled = !!argObj.isDisabled;
+				}
+				else {
+					label = args[0];
+					isDisabled = !!args[1];
+				}
+				// 未传递参数时，给定默认值
+				label = String(label);
+				// 创建选项组内容元素
+				$group = $div.clone()
+					.attr('title', label)
+					.addClass(cls + '-group');
+				// 设置禁用状态
+				if (isDisabled) $group.attr(cls + '-disabled', 'true');
+			}());
+
+			// 返回
+			return extendObjects(groupObj, {
+				type: 'select.group',
+				options: options,
+				getContent: getContent,
+				label: labelOperate,
+				disabled: disabledOperate,
+				optionAdd: optionAdd,
+				optionRemove: optionRemove,
+				selectIn: selectIn,
+				selectOut: selectOut
+			});
+		};
+		// 选项对象
+		// (object) 通过对象参数，创建一个菜单控件选项对象
+		// - name[string]: 选项名称
+		// - value[string]: 选项值
+		// - isDisabled[bool]: 是否禁用
+		// - isSelected[bool]: 是否选中
+		// (name, value, isDisabled, isSelected) 创建一个菜单控件选项对象
+		// - name[string]: 选项名称
+		// - value[string]: 选项值
+		// - isDisabled[bool]: 是否禁用
+		// - isSelected[bool]: 是否选中
+		// return[ud2.select.option]: 返回选项对象
+		constructor.option = function () {
+
+			var // 参数集合        参数长度
+				args = arguments, len = args.length,
+				// 选项标记 选项值 是否禁用 是否选中
+				label, value, isDisabled, isSelected,
+				// 选项对象 
+				optionObj = { group: null, select: null },
+				// 参数对象 选项内容对象
+				argObj, $option;
+
+			// 标记操作
+			// () 获取选项标记内容
+			// - return[string]: 返回选项组标记内容
+			// (text) 设置选项组标记内容
+			// - text[string]: 待更改的选项组标记内容
+			// - return[ud2.select.option]: 返回该选项对象
+			function labelOperate(text) {
+				if (text !== void 0) {
+					label = String(text);
+					$option.html(label).attr('title', label);
+					return optionObj;
+				}
+				else {
+					return label;
+				}
+			}
+			// 值操作
+			// () 获取选项值
+			// - return[string]: 返回选项值
+			// (text) 设置选项值
+			// - text[string]: 待更改的选项值
+			// - return[ud2.select.option]: 返回该选项对象
+			function valueOperate(text) {
+				if (text !== void 0) {
+					value = String(text);
+					$option.attr(cls + '-value', value);
+					return optionObj;
+				}
+				else {
+					return value;
+				}
+			}
+			// 选中状态操作
+			// () 获取当前的选中状态
+			// - return[bool]: 返回当前的选中状态
+			// (state) 设置选中状态
+			// - state[bool]: 设置当前的选中状态
+			// - return[ud2.select.option]: 返回该选项对象
+			function selectedOperate(state) {
+				if (state !== void 0) {
+					// 判断可以选中的条件
+					if (state && !isDisabled
+						&& (optionObj.group === null || optionObj.group !== null && !optionObj.group.disabled())) {
+						isSelected = true;
+						$option.addClass('on');
+					}
+					else {
+						isSelected = false;
+						$option.removeClass('on');
+					}
+					return optionObj;
+				}
+				else {
+					return isSelected;
+				}
+			}
+			// 禁用状态操作
+			// () 获取当前的禁用状态
+			// - return[bool]: 返回当前的禁用状态
+			// (state) 设置禁用状态
+			// - state[bool]: 设置当前的禁用状态
+			// - return[ud2.select.option]: 返回该选项对象
+			function disabledOperate(state) {
+				if (state !== void 0) {
+					state = !!state;
+					// 判断禁用情况
+					if (state) {
+						isDisabled = true;
+						$option.attr(cls + '-disabled', 'true');
+						if (isSelected) {
+							// 此项顺序不可调换
+							if (optionObj.select !== null) optionObj.select.valOption(optionObj, false);
+						}
+					}
+					else {
+						isDisabled = false;
+						$option.removeAttr(cls + '-disabled');
+					}
+					return optionObj;
+				}
+				else {
+					return isDisabled;
+				}
+			}
+			// 将选项对象添加到选项组对象中
+			// select[ud2.select.group]: 待添入的选项组对象
+			// return[ud2.select.option]: 返回该选项对象
+			function groupIn(whichGroup) {
+				// 判断传入的选项组对象是否符合
+				if (whichGroup.type && whichGroup.type === TYPE_GROUP
+					&& !optionObj.group && !optionObj.select) {
+					// 如果组对象被禁用，则默认取消被选中选项的选中状态
+					if (whichGroup.disabled() && isSelected) selectedOperate(0);
+
+					// 绑定与组的关系
+					optionObj.group = whichGroup;
+					whichGroup.options.push(optionObj);
+					whichGroup.getContent().append($option);
+					// 如果组已绑定到选项控件中，绑定与选项控件的关系
+					if (whichGroup.select) selectIn(whichGroup.select);
+				}
+
+				return optionObj;
+			}
+			// 将选项对象从选项组中移除
+			// return[ud2.select.option]: 返回该选项对象
+			function groupOut() {
+				var isHave = -1;
+				if (optionObj.group) {
+					// 解绑与组的关系
+					isHave = optionObj.group.options.indexOf(optionObj);
+					optionObj.group.options.splice(isHave, 1);
+					optionObj.group = null;
+					$option.detach();
+
+					// 如果组已绑定到选项控件中，解绑与选项控件的关系
+					if (optionObj.select) selectOut();
+				}
+				return optionObj;
+			}
+			// 向选项控件中添加选项对象
+			// whichSelect[ud2.select]: 待添入的选项控件
+			// return[ud2.select.option]: 返回该选项对象
+			function selectIn(whichSelect) {
+				var // 设置参数默认值
+					isDefaultGroup = !optionObj.group,
+					// 长度
+					len;
+
+				// 检测传入参数的数据类型是否符合，且当前选项对象是否未绑定选项控件对象
+				if (whichSelect && whichSelect.type && whichSelect.type === TYPE_SELECT
+					&& !optionObj.select) {
+					
+					// 如果是默认分组下，绑定到选项控件的默认分组，且将选项内容对象加入到控件中
+					// 如果是在选项组下，则只绑定选项对象与选项控件的关系
+					if (isDefaultGroup) {
+						optionObj.select = whichSelect;
+						whichSelect.options.push(optionObj);
+						whichSelect.optionsDefault.push(optionObj);	
+						len = whichSelect.optionsDefault.length;
+
+						if (len === 1) {
+							whichSelect.getContent().prepend($option);
+						}
+						else {
+							whichSelect.optionsDefault[len - 2].getContent().after($option);
+						}
+					}
+					else {
+						optionObj.select = whichSelect;
+						whichSelect.options.push(optionObj);
+					}
+					// 如果该选项状态为已选中，则在选项控件中，选中此对象
+					if (isSelected) {
+						whichSelect.valOption(optionObj);
+					}
+				}
+
+				return optionObj;
+			}
+			// 向选项控件中移除选项对象
+			// return[ud2.select.option]: 返回该选项对象
+			function selectOut() {
+				var isHave = -1;
+
+				// 组从选项控件移除时，迭代组内的选项对象并全部移除选项控件
+				if (arguments[0] && arguments[0] === groupOptionOutSelectFeatureID) {
+					// 如果选项已被选中，则取消选中
+					if (isSelected) {
+						// 取消选项集合中的已选状态
+						optionObj.select.valOption(optionObj, false);
+						// 恢复本对象原本的已选状态
+						optionObj.selected(1);
+					}
+
+					// 删除与选项控件的关系
+					isHave = optionObj.select.options.indexOf(optionObj);
+					optionObj.select.options.splice(isHave, 1);
+					optionObj.select = null;
+
+					return;
+				}
+
+				if (optionObj.select) {
+					// 如果存在组
+					if (optionObj.group) return groupOut();
+					else {
+						optionObj.select.optionsDefault.splice(optionObj.select.optionsDefault.indexOf(optionObj), 1);
+					}
+
+					// 如果选项已被选中，则取消选中
+					if (isSelected) {
+						// 取消选项集合中的已选状态
+						optionObj.select.valOption(optionObj, false);
+						// 恢复本对象原本的已选状态
+						optionObj.selected(1);
+					}
+
+					// 删除与选项控件的关系
+					isHave = optionObj.select.options.indexOf(optionObj);
+					optionObj.select.options.splice(isHave, 1);
+					optionObj.select = null;
+					$option.detach();
+				}
+
+				return optionObj;
+			}
+
+			// 获取选项内容对象
+			// return[jQuery]: 返回选项组内容对象
+			function getContent() {
+				return $option;
+			}
+
+			// 初始化
+			(function init() {
+				// 判断传参方式，并初始化选项对象
+				if (len === 1 && type.isObject(argObj = args[0], argObj)) {
+					label = argObj.label;
+					value = argObj.value;
+					isDisabled = !!argObj.isDisabled;
+					isSelected = !isDisabled && !!argObj.isSelected;
+				}
+				else {
+					label = args[0];
+					value = args[1];
+					isDisabled = !!args[2];
+					isSelected = !isDisabled && !!args[3];
+				}
+				// 未传递参数时，给定默认值
+				label = String(label);
+				value = value || label;
+				// 创建选项内容元素
+				$option = $a.clone()
+					.html(label)
+					.attr('title', label)
+					.attr(cls+ '-value', value)
+					.addClass(cls + '-option');
+				// 设置禁用状态
+				if (isDisabled) $option.attr(cls + '-disabled', 'true');
+				// 设置选中状态
+				if (isSelected) selectedOperate(true);
+
+				// 设置选项对象事件
+				event($option).setTap(function () {
+					if (!optionObj.disabled()
+						&& (!optionObj.group || optionObj.group && !optionObj.group.disabled())) {
+						if (optionObj.select) {	
+							optionObj.select.valOption(optionObj);
+							if (!optionObj.select.multiple()) optionObj.select.close();
+						}
+					}
+				});
+			}());
+
+			// 返回
+			return extendObjects(optionObj, {
+				type: 'select.option',
+				getContent: getContent,
+				label: labelOperate,
+				val: valueOperate,
+				selected: selectedOperate,
+				disabled: disabledOperate,
+				groupIn: groupIn,
+				groupOut: groupOut,
+				selectIn: selectIn,
+				selectOut: selectOut
+			});
+
+		};
+		// 选项列表方向
+		constructor.direction = {
+			// 向上
+			up: 1,
+			// 向下
+			down: 0
+		};
+
+		// 重写集合初始化方法
+		collection.init = function (control) {
+
+			// #region 私有字段
+
+			var // 最大高度(em), 选项标题, 多选, 菜单方向    空列表占位文本
+				maxHeight, placeholder, isMultiple, dir, emptyText,
+				// 选项
+				options = control.getOptions(['maxheight', 'placeholder', 'multiple', 'dir', 'emptyText'], function (options) {
+					// 处理最大高度
+					maxHeight = parseInt(options.maxheight);
+					if (isNaN(maxHeight) || maxHeight === 0) maxHeight = 20;
+					// 处理标题
+					placeholder = options.placeholder || '请选择以下项目';
+					// 处理是否多选
+					isMultiple = !!options.multiple;
+					// 处理菜单方向
+					dir = options.dir === 'up' || options.dir === constructor.direction.up
+						? constructor.direction.up : constructor.direction.down;
+					// 空列表占位文本
+					emptyText = options.emptyText || '当前列表未包含任何项';
+				}),
+				// 控件结构
+				template = '<div class="' + cls + '-put"><a class="' + cls + '-btn" /><i class="' + cls + '-ico" /></div>'
+					+ '<div class="' + cls + '-list" />'
+					+ '<input type="checkbox" /><input type="hidden" />',
+				// 获取初始化的控件对象
+				current = control.current,
+				// 控件对象
+				$select = current.html(template),
+				// 列表对象
+				$list = $select.children('div:last'),
+				// 显示容器对象
+				$box = $select.children('div:first'),
+				// 菜单按钮对象
+				$btn = $box.children('a'),
+				// 索引功能对象
+				$tab = $select.children(SELECTOR_TAB),
+				// 值对象
+				$value = $select.children(SELECTOR_HIDDEN),
+				// 标记控件是否处于开启状态
+				isOpen = false,
+				// 列表滚动条
+				listScroll = null,
+				// 组集合
+				groupCollection = [],
+				// 无组选项集合
+				optionNoGroupCollection = [],
+				// 选项集合
+				optionCollection = [],
+				// 被选作值的选项集合
+				optionValueCollection = [],
+				// 回调方法
+				controlCallbacks = {
+					// 开启回调
+					open: fnNoop,
+					// 关闭回调
+					close: fnNoop,
+					// 值改变
+					change: fnNoop
+				};
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 设置列表方向
+			// direction[ud2.select.direction]: 方向值
+			function setListDir(direction) {
+				dir = direction;
+				switch (dir) {
+					case 1: {
+						$select.removeClass(cls + '-dir-down').addClass(cls + '-dir-up');
+						break;
+					}
+					case 0: {
+						$select.removeClass(cls + '-dir-up').addClass(cls + '-dir-down');
+						break;
+					}
+				}
+			}
+			// 设置控件的默认文本
+			// text[string]: 待设置的文本
+			function setPlaceholder(text) {
+				placeholder = text;
+				$btn.html(placeholder);
+			}
+			// 设置控件的空列表占位文本
+			// text[string]: 待设置的文本
+			function setEmptyText(text) {
+				emptyText = text;
+				getContent().attr(cls + '-empty', emptyText);
+			}
+			// 解析选项控件全部组
+			function analysisGroups() {
+				var $groups = control.origin.children('optgroup');
+
+				analysisOptions();
+				for (var i = 0, l = $groups.length, group; i < l; i++) {
+					var $group = $groups.eq(i),
+						name = $group.attr('label') || '',
+						disabled = !!($group.attr('disabled') && $group.attr('disabled') !== 'false');
+					group = constructor.group(name, disabled);
+					groupAdd(group);
+					analysisOptions(group, $group);
+				}
+			}
+			// 解析选项控件全部选项
+			// group[ud2.select.group]: 待解析的选项组对象
+			// $group[jQuery]: 待解析的选项组内容对象
+			function analysisOptions(group, $group) {
+				var noGroup = group === void 0,
+					$options = noGroup ? control.origin.children('option') : $group.children('option');
+
+				for (var i = 0, l = $options.length, option; i < l; i++) {
+					var $select = $options.eq(i),
+						name = $options.eq(i).html(),
+						val = $options.eq(i).val(),
+						disabled = !!($options.eq(i).attr('disabled') && $options.eq(i).attr('disabled') !== 'false'),
+						selected = !!($options.eq(i).attr('selected') && $options.eq(i).attr('selected') !== 'false');
+
+					option = constructor.option(name, val, disabled, selected);
+					if (noGroup) {
+						optionAdd(option);
+					}
+					else {
+						group.optionAdd(option);
+					}
+				}
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 重计算高度
+			// - return[ud2.select]: 返回该控件对象
+			function recountHeight() {
+				var optionLen = optionCollection.length,
+					labelLen = groupCollection.length,
+					overHeight = 0;
+				overHeight = optionLen * 2.5 + labelLen * 2;
+				overHeight = overHeight > maxHeight ? maxHeight : overHeight;
+				$list.css('height', (overHeight === 0 ? 2 : overHeight) + 'em');
+				listScroll.recountPosition();
+				return control.public;
+			}
+			// 获取或设置选项标题
+			// () 获取选项标题
+			// - return[string]: 返回当前的选项标题
+			// (text) 设置选项标题
+			// - text[string]: 设置选项标题
+			// - return[ud2.select]: 返回该控件对象
+			function placeholderOperate(text) {
+				if (type.isString(text)) {
+					setPlaceholder(text);
+					return control.public;
+				}
+				else {
+					return placeholder;
+				}
+			}
+			// 获取或设置空列表占位文本
+			// () 获取空列表占位文本
+			// - return[string]: 返回当前的空列表占位文本
+			// (text) 设置空列表占位文本
+			// - text[string]: 设置空列表占位文本
+			// - return[ud2.select]: 返回该控件对象
+			function emptyTextOperate(text) {
+				if (type.isString(text)) {
+					setEmptyText(text);
+					return control.public;
+				}
+				else {
+					return emptyText;
+				}
+			}
+			// 获取或设置列表方向
+			// () 获取列表方向
+			// - return[string]: 方向状态码
+			// (direction) 设置列表方向
+			// - direction[ud2.select.direction]: 方向值
+			// - return[ud2.select]: 返回该控件对象
+			function directionOperate(direction) {
+				if (direction !== void 0) {
+					setListDir(direction);
+					return control.public;
+				}
+				else {
+					return dir;
+				}
+			}
+			// 获取或设置控件选择方式
+			// () 获取控件选择方式
+			// - return[bool]: true为多选，false为单选
+			// (state) 设置控件选择方式
+			// - state[bool]: true为多选，false为单选
+			// - return[ud2.select]: 返回该控件对象
+			function multipleOperate(state) {
+				var i, j;
+				if (state !== void 0) {
+					state = !!state;
+					if (state !== isMultiple) {
+						isMultiple = state;
+						j = optionValueCollection.length;
+						console.log(j > 1, isMultiple, j > 1 && isMultiple, optionValueCollection);
+						if (j > 1 && !isMultiple) {
+							for (i = 0; i < j - 1; i++) {
+								optionValueCollection[0].selected(0);
+								optionValueCollection.splice(0, 1);
+							}
+						}
+						if (j > 0) {
+							if (isMultiple) {
+								$btn.html('1个项目');
+							}
+							else {
+								$btn.html(optionValueCollection[0].label());
+							}
+						}
+						controlCallbacks.change.call(control.public, val());
+					}
+
+					return control.public;
+				}
+				else {
+					return isMultiple;
+				}
+			}
+			// 打开控件
+			// return[ud2.select]: 返回该控件
+			function open() {
+				if (!isOpen) {
+					isOpen = true;
+					$select.addClass('on').focus();
+					recountHeight();
+
+					controlCallbacks.open.call(control.public);
+				}
+				return control.public;
+			}
+			// 关闭控件
+			// return[ud2.select]: 返回该控件
+			function close() {
+				if (isOpen) {
+					isOpen = false;
+					$select.removeClass('on');
+
+					controlCallbacks.close.call(control.public);
+				}
+				return control.public;
+			}
+			// 开关控件
+			// return[ud2.select]: 返回该控件
+			function toggle() {
+				if (isOpen) {
+					close();
+				} else {
+					open();
+				}
+				return control.public;
+			}
+			// 获取选项控件内容对象
+			// return[jQuery]: 返回选项组内容对象
+			function getContent() {
+				return listScroll.getContent();
+			}
+
+			// 获取或设置控件值
+			// () 获取控件值
+			// - return[string]: 返回控件值
+			// (arr) 设置控件值
+			// - arr[array, string]: 控件值
+			// - return[ud2.select]: 返回该控件对象
+			function val(arr) {
+				var i, valArr = [];
+				if (arr !== void 0) {
+					if (type.isArray(arr)) {
+						arr = arr.map(function (a) { return a === null ? a : String(a); });
+						for (var i = optionValueCollection.length - 1; i >= 0; i--) {
+							valOption(optionValueCollection[i], false);
+						}
+						for (var i = 0; i < optionCollection.length; i++) {
+							if (!optionCollection[i].disabled()
+								&& (!optionCollection[i].group || optionCollection[i].group && !optionCollection[i].group.disabled())
+								&& arr.indexOf(optionCollection[i].val()) !== -1) valOption(optionCollection[i]);
+						}
+					}
+					else {
+						return val(Array.prototype.slice.call(arguments));
+					}
+					return control.public;
+				}
+				else {
+					for (i = 0; i < optionValueCollection.length; i++) valArr.push(optionValueCollection[i].val());
+					$value.val(valArr.join(','));
+					return isMultiple ? valArr : valArr[0] ? valArr[0] : null;
+				}
+			}
+			// 通过选项控件获取或设置控件值对象集合
+			// () 获取控件值对象集合
+			// - return[array]: 返回控件值对象集合
+			// (option) 设置或取消选项对象为控件值对象
+			// - option[ud2.select.option]: 待设置和取消的选项对象
+			// - return[ud2.select]: 返回该控件对象
+			// (option, isSelected) 强制设置或取消选项对象为控件值对象
+			// - option[ud2.select.option]: 待设置和取消的选项对象
+			// - isSelected: 强制设置true或取消false
+			// - return[ud2.select]: 返回该控件对象
+			function valOption(option, isSelected) {
+				var isHave, isSelectedExist = isSelected !== void 0;
+				if (option && option.type && option.type === TYPE_OPTION) {
+					// 获取选项对象在选项控件中的序列位置
+					isHave = optionCollection.indexOf(option);
+					// 判断是否存在于选项控件中，不存在则直接跳出
+					if (isHave === -1) return control.public;
+					// 获取当前选项对象是否已经被选上
+					isHave = optionValueCollection.indexOf(option); 
+					// 判断选项控件是否为多选
+					if (isMultiple) {
+						if (isSelectedExist
+							&& (isSelected && isHave > -1 || !isSelected && isHave === -1)) return control.public;
+
+						if ((!isSelectedExist || isSelectedExist && !isSelected)
+							&& isHave > -1) {
+							option.selected(0);
+							optionValueCollection.splice(isHave, 1);
+						}
+						else if ((!isSelectedExist || isSelectedExist && isSelected)
+							&& isHave === -1) {
+							option.selected(1);
+							optionValueCollection.push(option);
+						}
+
+						if (optionValueCollection.length === 0) {
+							$btn.removeAttr(cls + '-value').html(placeholder);
+						}
+						else {
+							$btn.attr(cls + '-value', true).html(optionValueCollection.length + '个项目');
+						}
+					}
+					else {
+						if (isHave > -1 && (!isSelectedExist || isSelectedExist && isSelected)
+							|| isHave === -1 && isSelectedExist && !isSelected) return control.public;
+
+						if (optionValueCollection[0]) {
+							optionValueCollection[0].selected(0);
+							optionValueCollection.splice(0, 1);
+						}
+
+						// 如果强制取消选中
+						if (isHave > -1 && isSelectedExist && !isSelected) {
+							$btn.removeAttr(cls + '-value').html(placeholder);
+						}
+						else {
+							option.selected(1);
+							optionValueCollection.push(option);
+							$btn.attr(cls + '-value', true).html(option.label());
+						}
+					}
+					
+					controlCallbacks.change.call(control.public, val());
+					return control.public;
+				}
+				else {
+					return optionValueCollection;
+				}
+			}
+
+			// 选项组添加
+			// group[ud2.select.group]: 待添加的选项组对象
+			// return[ud2.select]: 返回该控件对象
+			function groupAdd(group) {
+				// 判断参数传入是否正确
+				if (group && group.type && group.type === TYPE_GROUP
+					&& !group.select) {
+					group.selectIn(control.public);
+				}
+
+				return control.public;
+			}
+			// 选项组移除
+			// group[ud2.select.group]: 待移除的选项组对象
+			// return[ud2.select]: 返回该控件对象
+			function groupRemove(group) {
+				// 判断参数传入是否正确
+				if (group && group.type && group.type === TYPE_GROUP
+					&& group.select === control.public) {
+					group.selectOut();
+				}
+
+				return control.public;
+			}
+			// 选项添加
+			// option[ud2.select.option]: 待添加的选项对象
+			// return[ud2.select]: 返回该控件对象
+			function optionAdd(option) {
+				if (option && option.type && option.type === TYPE_OPTION
+					&& !option.select) {
+					option.selectIn(control.public);
+				}
+			}
+			// 选项移除
+			// option[ud2.select.option]: 待移除的选项对象
+			// return[ud2.select]: 返回该控件对象
+			function optionRemove(option) {
+				if (option && option.type && option.type === TYPE_OPTION
+					&& option.select === control.public) {
+					option.selectOut();
+				}
+			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置开启回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.select]: 返回该控件对象
+			function setOpen(fn) { callbacks.open = fn; return control.public; }
+			// 设置关闭回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.select]: 返回该控件对象
+			function setClose(fn) { callbacks.close = fn; return control.public; }
+			// 设置开启回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.select]: 返回该控件对象
+			function setChange(fn) { callbacks.change = fn; return control.public; }
+
+			// #endregion
+
+			// #region 事件处理
+
+			// 事件绑定
+			function bindEvent() {
+				event($box).setTap(toggle);
+				$tab.on(FOCUS, function () {
+					callbacks.ctrlClose.fire($select);
+					open();
+				});
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 控件初始化
+				control.origin.after($select);
+				control.origin.remove();
+				control.transferStyles();
+				control.transferAttrs({ accept: $tab, attrReg: 'tabindex' });
+				control.transferAttrs({ accept: $value, attrReg: 'name' });
+				setListDir(dir);
+				setPlaceholder(placeholder);
+
+				// 开启滚动条
+				listScroll = scroll($list, {
+					barState: 0, isScrollMode: true,
+					barColor: 'rgba(0,0,0,.2)',
+					barColorOn: 'rgba(0,0,0,.4)'
+				});
+				getContent().attr(cls + '-empty', emptyText);
+
+				// 设置自动关闭方法
+				control.autoClose = close;
+				// 事件绑定
+				bindEvent();
+
+				// 更新返回对象
+				updateControlPublic();
+				// 解析对象
+				analysisGroups();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			// 更新返回对象
+			function updateControlPublic() {
+				extendObjects(control.public, {
+					getContent: getContent,
+					placeholder: placeholderOperate,
+					emptyText: emptyTextOperate,
+					direction: directionOperate,
+					multiple: multipleOperate,
+					groups: groupCollection,
+					options: optionCollection,
+					optionsByValue: optionValueCollection,
+					optionsDefault: optionNoGroupCollection,
+					groupAdd: groupAdd,
+					groupRemove: groupRemove,
+					optionAdd: optionAdd,
+					optionRemove: optionRemove,
+					val: val,
+					valOption: valOption,
+					open: open,
+					close: close,
+					toggle: toggle,
+					setOpen: setOpen,
+					setClose: setClose,
+					setChange: setChange
+				});
+			}
+			// 返回
+			return control.public;
+
+			// #endregion
+		};
+
+	});
 
 	// 数字控件
 	createControl('number', function (collection) {
@@ -3054,6 +4177,9 @@ var ud2 = (function (window, $) {
 			// 返回
 			return extendObjects(control.public, {
 				val: val,
+				open: open,
+				close: close,
+				toggle: toggle,
 				setOpen: setOpen,
 				setClose: setClose,
 				setChange: setChange
@@ -3065,7 +4191,7 @@ var ud2 = (function (window, $) {
 
 	});
 
-	// #endregion 
+	// #endregion
 
 	// #region ud2 初始化及返回参数
 
@@ -3097,8 +4223,14 @@ var ud2 = (function (window, $) {
 		});
 
 		// 窗口尺寸改变事件
-		$win.bind('resize orientationchange', function () {
+		$win.on('resize orientationchange', function () {
 			callbacks.pageResize.fire();
+		});
+		// 文档发生按键抬起的回调对象
+		$dom.on('keydown', function (event) {
+			callbacks.keyDown.fire(event, event.keyCode, event.ctrlKey, event.altKey, event.shiftKey);
+		}).on('keyup', function (event) {
+			callbacks.keyUp.fire(event, event.keyCode, event.ctrlKey, event.altKey, event.shiftKey);
 		});
 
 		// 当页面读取完成时，创建全部控件
@@ -3118,6 +4250,19 @@ var ud2 = (function (window, $) {
 
 	// 返回控件
 	return extendObjects(ud2, {
+		// 公共对象
+		common: {
+			// 键盘代码
+			key: KEYCODE
+		},
+		// 公开库事件
+		event: event,
+		eventMouseWheel: eventMouseWheel,
+		eventKeyShortcut: eventKeyShortcut,
+		scroll: scroll,
+		// 公开库基础样式
+		style: style,
+		// 类型处理
 		type: type
 	});
 

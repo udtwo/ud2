@@ -1,0 +1,228 @@
+﻿/**
+ * ud2-select.less
+ * 选项列表控件的默认样式
+ */
+
+// 导入必要的文件
+@import "../../common/import.less";
+
+// 为所有带有 .ud2-select 的标签设置内部样式
+.ud2-select {
+	padding-left: @CtrlPaddingLR;
+	padding-right: 2em;
+	text-align: left;
+	.boxSizing('border-box');
+}
+// 设置显示文本、图标为内联块元素
+.ud2-select-btn, .ud2-select-ico {
+	display: inline-block;
+}
+// 设置文字溢出处理
+.ud2-select-btn, .ud2-select-option, .ud2-select-group, .ud2-select-group::before {
+	.textOverflow();
+}
+// 设置控件的 a 标签样式
+// 此处的 a 标签为控件的默认按钮，激活菜单开关按钮
+.ud2-select-btn {
+	position: relative;
+	z-index: 2;
+	width: 100%;
+	line-height: (@CtrlHeight - 2);
+	color: @ColorNotes;
+	cursor: pointer;
+	overflow-y: hidden;
+
+	&[ud2-select-value] {
+		color: @ColorText;
+	}
+}
+// 箭头标识
+.ud2-select-ico {
+	content: '\20';
+	position: absolute;
+	top: @BaseSize * 1.2;
+	right: .5em;
+	width: 0;
+	height: 0;
+	border: .5em;
+	border-style: solid dashed dashed dashed;
+	border-color: @ColorWhiteBackDark transparent transparent transparent;
+	vertical-align: middle;
+	.transition('border-color .4s, transform .4s');
+	.transformOrigin('50% 25%');
+}
+// 设置控件上方向开启的样式方案
+.ud2-select-dir-up {
+	.ud2-select-ico {
+		.transform('rotate(180deg)');
+	}
+
+	.ud2-select-list {
+		bottom: @CtrlHeight + 4;
+	}
+
+	&.on {
+		.ud2-select-ico {
+			.transform('rotate(0)');
+		}
+	}
+}
+// 设置控件下方向开启的样式方案
+.ud2-select-dir-down {
+	.ud2-select-ico {
+		.transform('rotate(0)');
+	}
+
+	.ud2-select-list {
+		top: @CtrlHeight + 4;
+	}
+
+	&.on {
+		.ud2-select-ico {
+			.transform('rotate(180deg)');
+		}
+	}
+}
+// 设置控件的列表外层样式
+.ud2-select-list {
+	display: none;
+	position: absolute;
+	left: -1px;
+	width: 100%;
+	height: 20em;
+	border: 1px solid @ColorWhiteBackDark;
+	border-radius: @BorderRadius;
+	background: @ColorWhite;
+	box-shadow: 3px 3px 3px @ColorWhiteDeeper;
+
+	div, div::before, a {
+		display: block;
+		.boxSizing('border-box');
+	}
+
+	div::before, a {
+		line-height: 1;
+		border-bottom: 1px solid @ColorWhiteBorder;
+	}
+
+	.ud2-scroll-wrapper:empty::before {
+		position: relative;
+		display: block;
+		content: attr(ud2-select-empty);
+		height: 2em;
+		line-height: 2em;
+		text-align: center;
+		opacity: @OpacityNoImport;
+	}
+}
+// 设置控件的列表项样式
+.ud2-select-option {
+	position: relative;
+	padding: .75em .5em;
+	height: 2.5em;
+	cursor: pointer;
+
+	&::after {
+		font-family: 'ud2';
+		display: block;
+		content: '\ed17';
+		position: absolute;
+		right: -1em;
+		top: .65em;
+		font-size: 1.2em;
+		opacity: 0;
+		.transition('right .3s, opacity .3s, color .3s');
+	}
+
+	// 鼠标滑入样式
+	&:hover {
+		background: @ColorWhiteBackLight;
+	}
+	// 设置控件的列表项被选择样式
+	&.on {
+		font-weight: 800;
+		color: @ColorBlue;
+
+		&::after {
+			right: .25em;
+			opacity: 1;
+		}
+	}
+}
+// 设置控件的列表集合样式
+.ud2-select-group {
+	&::before {
+		content: attr(title);
+		height: 2em;
+		padding: .5em;
+		background: @ColorWhiteBackLight;
+		font-weight: 800;
+	}
+
+	.ud2-select-option {
+		padding-left: @BaseFontSize;
+	}
+}
+// 设置列表开启后的样式
+.ud2-select.on {
+	z-index: @MaxZIndex;
+	background: @ColorWhiteBackLight;
+	border-color: @ColorWhiteBackDark;
+	// 列表开启后的外层样式
+	.ud2-select-list {
+		display: block;
+	}
+	// 并且改变颜色
+	.ud2-select-ico {
+		border-top-color: @ColorBlueBackDark;
+	}
+}
+// 设置被禁用样式
+.ud2-select-group[ud2-select-disabled]::before, .ud2-select-group[ud2-select-disabled] .ud2-select-option, .ud2-select-option[ud2-select-disabled] {
+	opacity: @OpacityHover;
+	cursor: default;
+}
+// 设置控件的小尺寸方案
+.ud2-select.sm, .group.sm {
+	.ud2-select-put > a {
+		line-height: (@CtrlHeight - 2) - @CtrlSizeGradient * 2;
+	}
+
+	.ud2-select-put > i {
+		top: @BaseSize * 1.2 - @CtrlSizeGradient;
+	}
+}
+// 设置控件的上方向小尺寸方案
+.ud2-select-dir-up.sm, .group.sm > .ud2-select-dir-up {
+	.ud2-select-list {
+		bottom: @CtrlHeight;
+	}
+}
+// 设置控件的下方向小尺寸方案
+.ud2-select-dir-down.sm, .group.sm > .ud2-select-dir-down {
+	.ud2-select-list {
+		top: @CtrlHeight;
+	}
+}
+// 设置控件的大尺寸方案
+.ud2-select.lg, .group.lg {
+	.ud2-select-put > a {
+		line-height: (@CtrlHeight - 2) + @CtrlSizeGradient * 2;
+	}
+
+	.ud2-select-put > i {
+		top: @BaseSize * 1.2 + @CtrlSizeGradient;
+	}
+}
+// 设置控件的上方向大尺寸方案
+.ud2-select-dir-up.lg, .group.lg > .ud2-select-dir-up {
+	.ud2-select-list {
+		bottom: @CtrlHeight + 8;
+	}
+}
+// 设置控件的下方向大尺寸方案
+.ud2-select-dir-down.lg, .group.lg > .ud2-select-dir-down {
+	.ud2-select-list {
+		top: @CtrlHeight + 8;
+	}
+}

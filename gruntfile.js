@@ -55,6 +55,7 @@ module.exports = function (grunt) {
 						'src/less/style/event/ud2-scroll.less',
 
 						'src/less/style/control/common.less',
+						'src/less/style/control/ud2-dialog.less',
 						'src/less/style/control/ud2-select.less',
 						'src/less/style/control/ud2-number.less',
 						'src/less/style/control/ud2-range.less'

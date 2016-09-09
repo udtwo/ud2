@@ -39,16 +39,17 @@
 		overflow: hidden;
 		line-height: @LineHeight;
 		font-size: 1em;
-		color: @ColorBlue;
+		color: darken(@ColorBlueBorder, 20%);
 		cursor: pointer;
-		.transition('right .2s, color .2s');
+		.transition('right .2s, color ease-in .2s');
+
 		// 设置开关按钮的关闭按钮
 		&:last-of-type {
 			right: -1em;
 		}
 		// 设置滑入状态
 		&:hover {
-			color: @ColorRed;
+			color: darken(@ColorBlueBorder, 40%);
 		}
 	}
 	// 设置开关按钮的关闭样式
@@ -62,6 +63,22 @@
 	}
 }
 
+// 遮罩层
+.ud2-backmask {
+	position: fixed;
+	z-index: @MaxZIndex;
+	top: 0; left: 0; right: 0; bottom: 0;
+	opacity: 0;
+	background: fadeout(@ColorBlack, 80%);
+	visibility: hidden;
+	.transition('opacity .3s, visibility .3s');
+
+	&.on {
+		opacity: 1;
+		visibility: visible;
+	}
+}
+
 // JS控件状态样式
 .ud2-ctrl-color(@Color, @Background) {
 	&, &.on {
@@ -69,6 +86,22 @@
 	}
 	&:hover, &.on {
 		background: @Background;
+	}
+
+	.ud2-ctrl-arrow {
+		border-top-color: darken(@Color, 20%);
+	}
+
+	&.on .ud2-ctrl-arrow {
+		border-top-color: darken(@Color, 40%);
+	}
+
+	.ud2-ctrl-power .ico, .ud2-ctrl-ico {
+		color: darken(@Color, 20%);
+
+		&:hover {
+			color: darken(@Color, 40%);
+		}
 	}
 }
 

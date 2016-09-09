@@ -413,7 +413,10 @@ var ud2 = (function (window, $) {
 			if (type.isArray(arr) && type.isFunction(callbacks)) {
 				options = {};
 				arr.forEach(function (name) {
-					options[name] = control.userOptions[name] || control.getOriginAttr(name, 1) || control.getOriginAttr(name);
+					var opt = control.userOptions[name];
+					if (opt === void 0) opt = control.getOriginAttr(name, 1);
+					if (opt === void 0) opt = control.getOriginAttr(name);
+					options[name] = opt;
 				});
 				callbacks(options);
 				return options;
@@ -460,6 +463,40 @@ var ud2 = (function (window, $) {
 				nameArr[i] = nameArr[i].substr(0, 1).toUpperCase() + nameArr[i].substr(1);
 			}
 		return nameArr.join('');
+	}
+	// 通过参数获取坐标值
+	// val[array, object, string, number]: 待转换的值
+	// bX[number]: 转换不成功时默认的x值
+	// bY[number]: 转换不成功时默认的y值
+	// return[object]: 转换后的坐标值
+	function getCoordinate(val, bX, bY) {
+		if (type.isArray(val) && val.length === 2) {
+			val = { x: val[0], y: val[1] };
+		}
+		else if (type.isObject(val)) {
+			val = { x: val.x || val.width || val.w, y: val.y || val.height || val.h };
+		}
+		else if (type.isString(val)) {
+			val = val.split(val.indexOf(',') > -1 ? ',' : ' ');
+			if (val.length === 2)
+				val = { x: val[0], y: val[1] };
+			else
+				val = { x: val[0], y: val[1] };
+		}
+		else if (type.isNumber(val)) {
+			val = { x: val, y: val };
+		}
+		else {
+			val = { x: 0, y: 0 };
+		}
+		val.x = parseInt(val.x) || bX;
+		val.y = parseInt(val.y) || bY;
+		return val;
+	}
+	// 参数转数组
+	// args[arguments]: 待转换的参数
+	function argsToArray(args) {
+		return Array.prototype.slice.call(args);
 	}
 	// 将传入参数强制转换为jQuery对象
 	// jq[jQuery, string, object]: 待转换值
@@ -2233,9 +2270,11 @@ var ud2 = (function (window, $) {
 				styles = {},
 				// 样式名称集合
 				stylesName = ['normal', 'info', 'success', 'warning', 'danger'],
+				// 默认图标
+				ico = ['', '\ued20', '\ued1e', '\ued21', '\ued1f'],
 				// 迭代变量
 				i = 0, len = stylesName.length;
-		for (; i < len; i++) styles[stylesName[i]] = { name: stylesName[i], no: i };
+		for (; i < len; i++) styles[stylesName[i]] = { name: stylesName[i], no: i, ico: ico[i] };
 		return styles;
 	}());
 
@@ -2271,6 +2310,12 @@ var ud2 = (function (window, $) {
 							}
 						});
 					});
+				},
+				// 库已准备完成时的回调方法
+				ready: function (fn) {
+					if (type.isFunction(fn)) {
+						callbacks.pageReady.add(fn);
+					}
 				}
 			};
 
@@ -2401,7 +2446,16 @@ var ud2 = (function (window, $) {
 				// 控件默认样式
 				style: style.normal,
 				// 控件自动关闭执行的方法
-				autoClose: fnNoop
+				autoClose: fnNoop,
+				// 控件移除
+				remove: function () {
+					var index = this.public.collection.indexOf(this), i;
+					callbacks.ctrlClose.remove(autoClose);
+					this.public.collection.splice(index, 1);
+					delete this.public.collection[this.public.id];
+					for (i in this.public) delete this.public[i];
+					for (i in this) delete this[i];
+				}
 			};
 
 		// 处理转移方法的参数
@@ -2449,7 +2503,7 @@ var ud2 = (function (window, $) {
 					control.style === style[i] && control.current.removeClass(style[i].name);
 				}
 				control.style = whichStyle;
-				control.current.addClass(whichStyles.name);
+				control.current.addClass(whichStyle.name);
 				return control.public;
 			}
 			else {
@@ -2580,10 +2634,414 @@ var ud2 = (function (window, $) {
 		// 返回构造函数
 		return constructor;
 	};
+	// 遮罩层
+	var backmask = (function () {
+
+		var // 遮罩对象
+			backmaskObj = {},
+			// 遮罩层内容对象
+			$backmask = $('<div class="' + prefixLibName + 'backmask"></div>'),
+			// 调用者
+			callerCollection = [],
+			// 开启状态
+			openState = false;
+
+		// 添加调用者
+		function callerAdd(caller) {
+			if (callerCollection.indexOf(caller) === -1) {
+				callerCollection.push(caller);
+				return true;
+			}
+			return false;
+		}
+		// 移除调用者
+		function callerRemove(caller) {
+			var index = callerCollection.indexOf(caller);
+			if (index > -1) {
+				callerCollection.splice(index, 1);
+				return true;
+			}
+			return false;
+		}
+
+		// 开启遮罩层
+		// caller[object]: 调用遮罩层的对象
+		function open(caller) {
+			if (callerAdd(caller)) $backmask.addClass('on');
+			return backmaskObj;
+		}
+		// 关闭遮罩层
+		// caller[object]: 调用遮罩层的对象
+		function close(caller) {
+			if (callerRemove(caller) && !callerCollection.length) $backmask.removeClass('on');
+			return backmaskObj;
+		}
+
+		// 初始化
+		(function init() {
+			callbacks.pageReady.add(function () {
+				$body.append($backmask);
+			});
+		}());
+
+		// 返回
+		return extendObjects(backmaskObj, {
+			open: open,
+			close: close
+		});
+
+	}());
 
 	// #endregion
 
 	// #region ud2 表单控件
+
+	// 对话框控件
+	createControl('dialog', function (collection, constructor) {
+
+		var // className存于变量
+			cls = collection.className,
+			// 定位常量
+			POS_CENTER = 'center', POS_FULL = 'fullscreen', POS_TOPLEFT = 'top-left', POS_TOPRIGHT = 'top-right',
+			POS_BOTTOMLEFT = 'bottom-left', POS_BOTTOMRIGHT = 'bottom-right',
+			// 定位默认长度
+			NORMAL_LENGTH = 20;
+
+		// 对话框参数处理方法
+		// (option)
+		// (title, content)
+		// (title, content, icoStyle)
+		// (title, content, sendFn)
+		// (title, content, icoStyle, sendFn)
+		// (title, content, ico, icoStyle)
+		// (title, content, sendFn, cancelFn)
+		// (title, content, icoStyle, sendFn, cancelFn)
+		// (title, content, ico, icoStyle, sendFn)
+		// (title, content, ico, icoStyle, sendFn, cancelFn)
+		function dialogArgs(options, fn) {
+			var len = options.length,
+				title, content, ico, icoStyle, sendFn, cancelFn;
+
+			if (len === 1 && type.isObject(options[0])) {
+				title = options[0].title || '';
+				content = options[0].content || '';
+				ico = options[0].ico;
+				icoStyle = options[0].icoStyle;
+				sendFn = options[0].sendFn;
+				cancelFn = options[0].cancelFn;
+			}
+			else {
+				// 会话标题与内容
+				title = options[0] || '';
+				content = options[1] || '';
+
+				if (len === 3){
+					if (type.isFunction(options[2])){ // sendFn
+						sendFn = options[2];
+					}
+					else { // icoStyle
+						icoStyle = options[2];
+					}
+				}
+
+				if (len === 4){
+					if (type.isFunction(options[2]) && type.isFunction(options[3])){
+						sendFn = options[2];
+						cancelFn = options[3];
+					}
+					else if (type.isObject(options[2]) &&type.isFunction(options[3])) {
+						icoStyle = options[2];
+						sendFn = options[3];
+					}
+					else {
+						ico = options[2];
+						icoStyle = options[3];
+					}
+				}
+
+				if (len === 5) {
+					if (type.isObject(options[2]) && type.isFunction(options[3]) && type.isFunction(options[4])) {
+						icoStyle = options[2];
+						sendFn = options[3];
+						cancelFn = options[4];
+					}
+					else {
+						ico = options[2];
+						icoStyle = options[3];
+						sendFn = options[4];
+					}
+				}
+				
+				if (len === 6) {
+					ico = options[2];
+					icoStyle = options[3];
+					sendFn = options[4];
+					cancelFn = options[5];
+				}
+			}
+
+			icoStyle = icoStyle && (!icoStyle.name || !icoStyle.ico) ? style.normal : icoStyle;
+			sendFn = type.isFunction(sendFn) ? sendFn : fnNoop;
+			cancelFn = type.isFunction(cancelFn) ? cancelFn : fnNoop;
+			return fn(title, content, ico, icoStyle, sendFn, cancelFn);
+		}
+
+		// 重写集合初始化方法
+		collection.init = function (control) {
+
+			// #region 私有字段
+
+			var // 尺寸 位置     标题    内容     关闭按钮
+				size, position, title, content, btnClose,
+				// 获取用户自定义项
+				options = control.getOptions([
+					'size', 'position', 'title', 'content', 'btnClose', 'backmask', 'moveable'
+				], function (options) {
+					// 初始化标题及内容
+					title = options.title || '未定义标题';
+					content = options.content || null;
+					
+					// 初始化尺寸
+					size = getCoordinate(options.size, 400, 300);
+					// 初始化位置
+					position = options.position;
+					position = position === void 0 ? POS_CENTER : position;
+					if (position !== POS_CENTER && position !== POS_FULL
+						&& position !== POS_TOPLEFT && position !== POS_TOPRIGHT
+						&& position !== POS_BOTTOMLEFT && position !== POS_BOTTOMRIGHT) {
+						position = getCoordinate(position, NORMAL_LENGTH, NORMAL_LENGTH);
+					}
+
+					// 初始化关闭按钮状态
+					btnClose = options.btnClose;
+					btnClose = btnClose === void 0 ? true : btnClose === 'false' || !btnClose ? false : true;
+				}),
+				// 控件结构
+				template = '<div class="' + cls + '-header">' + title + '</div>'
+					+ '<div class="' + cls + '-body"></div>'
+					+ '<a class="' + cls + '-close ico">&#xed1f;</a>',
+				// 获取初始化的控件对象
+				current = control.current,
+				// 控件对象
+				$dialog = current.html(template),
+				// 控件头部对象
+				$header = $dialog.children('div').eq(0),
+				// 控件内容对象
+				$content = $dialog.children('div').eq(1),
+				// 关闭按钮对象
+				$close = $dialog.children('a'),
+				// 动画锁
+				animateLock = false,
+				// 开启状态
+				openState = false,
+				// 事件对象
+				eventObj = null,
+				// 回调	
+				controlCallbacks = {
+					// 开启回调
+					open: fnNoop,
+					// 关闭回调
+					close: fnNoop
+				};
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 获取对话框内容对象
+			// return[jquery]: 返回对话框内容对象
+			function getContent() {
+				return $content;
+			}
+			// 获取对话框处于动画状态
+			// return[bool]: 返回对话框是否在动画进行中
+			function getAnimateState() {
+				return animateLock;
+			}
+			// 对话框开启
+			// return[ud2.dialog]: 返回该控件对象
+			function open() {
+				if (!openState && !animateLock) {
+					openState = true;
+					animateLock = true;
+					backmask.open(control.public);
+					window.setTimeout(function () { $dialog.addClass('on'); }, 10);
+					window.setTimeout(function () { animateLock = false; }, 310);
+					controlCallbacks.open.call(control.public);
+				}
+				return control.public;
+			}
+			// 对话框关闭
+			// return[ud2.dialog]: 返回该控件对象
+			function close() {
+				if (openState && !animateLock) {
+					openState = false;
+					animateLock = true;
+					backmask.close(control.public);
+					window.setTimeout(function () { $dialog.removeClass('on'); }, 10);
+					window.setTimeout(function () { animateLock = false; }, 310);
+					controlCallbacks.close.call(control.public);
+				}
+				return control.public;
+			}
+			// 对话框移除
+			function remove() {
+				if (openState) {
+					close();
+					window.setTimeout(remove, 310);
+					return;
+				}
+				$dialog.remove();
+				eventObj.off();
+				control.remove();
+			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置开启回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.dialog]: 返回该控件对象
+			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
+			// 设置关闭回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.dialog]: 返回该控件对象
+			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
+
+			// #endregion
+
+			// #region 样式与事件处理
+
+			// 样式重写
+			function rewriteCSS() {
+				var dialogCSS = {};
+
+				// 修改样式
+				if (position !== POS_FULL) {
+					dialogCSS.width = size.x;
+					dialogCSS.height = size.y;
+				}
+				if (position === POS_TOPLEFT) {
+					dialogCSS.top = NORMAL_LENGTH; dialogCSS.left = NORMAL_LENGTH;
+				}
+				else if (position === POS_TOPRIGHT) {
+					dialogCSS.top = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH;
+				}
+				else if (position === POS_BOTTOMLEFT) {
+					dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.left = NORMAL_LENGTH;
+				}
+				else if (position === POS_BOTTOMRIGHT) { dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH; }
+				else if (position === POS_FULL) { dialogCSS.top = 0; dialogCSS.bottom = 0; dialogCSS.left = 0; dialogCSS.right = 0; }
+				else if (position === POS_CENTER) { dialogCSS.top = '50%'; dialogCSS.left = '50%'; dialogCSS.marginLeft = -size.x / 2; dialogCSS.marginTop = -size.y / 2; }
+				else { dialogCSS.top = position.y; dialogCSS.left = position.x; }
+				$dialog.css(dialogCSS);
+
+				// 关闭按钮
+				if (!btnClose) { $close.detach(); }
+
+				// 内容初始化
+				if (control.origin.length) {
+					$content.append(control.origin);
+				}
+				else {
+					$content.append(content);
+				}
+
+				// 放置到文档中
+				$body.append($dialog);
+			}
+			// 事件绑定
+			function bindEvent() {
+				eventObj = event($close).setTap(close);
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 样式重写
+				rewriteCSS();
+				// 事件绑定
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			// 返回
+			return extendObjects(control.public, {
+				getContent: getContent,
+				getAnimateState: getAnimateState,
+				open: open,
+				close: close,
+				remove: remove,
+				setOpen: setOpen,
+				setClose: setClose
+			});
+
+			// #endregion
+
+		};
+		// 弹出对话框
+		constructor.alert = function () {
+
+			// 解析传入参数
+			return dialogArgs.call(this, argsToArray(arguments), function (title, content, ico, icoStyle, sendFn) {
+
+				var // 对话框对象
+					dialog = constructor({ title: title, size: [350, 250], btnClose: false }),
+					// 对话框内容对象
+					$content = dialog.getContent(),
+					// 弹出内容的默认架构
+					$html = $('<div class="' + cls + '-alert"><table><tr><td>'
+						+ content + '</td></tr></table></div>'),
+					// 对话框页脚内容
+					$footer = $('<div class="' + cls + '-footer"><a class="btn">确 定</a></div>'),
+					// 事件对象
+					eventObj;
+
+				// 样式重写
+				function rewriteCSS() {
+					if (ico !== void 0) {
+						$html.find('td').before('<td><i class="ico fc-' + icoStyle.name + '">' + ico + '</i></td>');
+
+					}
+					else if (icoStyle !== void 0) {
+						$html.find('td').before('<td><i class="ico fc-' + icoStyle.name + '">' + icoStyle.ico + '</i></td>');
+					}
+					$content.css('bottom', '3em').append($html).after($footer);
+				}
+				// 事件绑定
+				function bindEvent() {
+					eventObj = event($footer.children('a')).setTap(function () {
+						if (dialog.getAnimateState()) return;
+						eventObj.off();
+						if (sendFn) sendFn();
+						dialog.remove();
+					});
+				}
+				
+				// 初始化
+				(function init() {
+					rewriteCSS();
+					bindEvent();
+
+					dialog.open();
+				}());
+
+				return dialog;
+
+			});
+
+		};
+
+	});
 
 	// 选择控件
 	createControl('select', function (collection, constructor) {
@@ -3076,7 +3534,7 @@ var ud2 = (function (window, $) {
 					emptyText = options.emptyText || '当前列表未包含任何项';
 				}),
 				// 控件结构
-				template = '<div class="' + cls + '-put"><a class="' + cls + '-btn" /><i class="' + cls + '-ico" /></div>'
+				template = '<div class="' + cls + '-put"><a class="' + cls + '-btn" /><i class="ud2-ctrl-arrow" /></div>'
 					+ '<div class="' + cls + '-list" />'
 					+ '<input type="checkbox" /><input type="hidden" />',
 				// 获取初始化的控件对象
@@ -3189,7 +3647,7 @@ var ud2 = (function (window, $) {
 			// #region 公共方法
 
 			// 重计算高度
-			// - return[ud2.select]: 返回该控件对象
+			// return[ud2.select]: 返回该控件对象
 			function recountHeight() {
 				var optionLen = optionCollection.length,
 					labelLen = groupCollection.length,
@@ -3258,7 +3716,6 @@ var ud2 = (function (window, $) {
 					if (state !== isMultiple) {
 						isMultiple = state;
 						j = optionValueCollection.length;
-						console.log(j > 1, isMultiple, j > 1 && isMultiple, optionValueCollection);
 						if (j > 1 && !isMultiple) {
 							for (i = 0; i < j - 1; i++) {
 								optionValueCollection[0].selected(0);
@@ -3332,17 +3789,15 @@ var ud2 = (function (window, $) {
 				if (arr !== void 0) {
 					if (type.isArray(arr)) {
 						arr = arr.map(function (a) { return a === null ? a : String(a); });
-						for (var i = optionValueCollection.length - 1; i >= 0; i--) {
-							valOption(optionValueCollection[i], false);
-						}
-						for (var i = 0; i < optionCollection.length; i++) {
+						for (i = optionValueCollection.length - 1; i >= 0; i--) valOption(optionValueCollection[i], false);
+						for (i = 0; i < optionCollection.length; i++) {
 							if (!optionCollection[i].disabled()
 								&& (!optionCollection[i].group || optionCollection[i].group && !optionCollection[i].group.disabled())
 								&& arr.indexOf(optionCollection[i].val()) !== -1) valOption(optionCollection[i]);
 						}
 					}
 					else {
-						return val(Array.prototype.slice.call(arguments));
+						return val(argsToArray(arguments));
 					}
 					return control.public;
 				}
@@ -3473,17 +3928,17 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.select]: 返回该控件对象
-			function setOpen(fn) { callbacks.open = fn; return control.public; }
+			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
 			// 设置关闭回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.select]: 返回该控件对象
-			function setClose(fn) { callbacks.close = fn; return control.public; }
+			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
 			// 设置开启回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.select]: 返回该控件对象
-			function setChange(fn) { callbacks.change = fn; return control.public; }
+			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
 
 			// #endregion
 
@@ -3505,11 +3960,14 @@ var ud2 = (function (window, $) {
 			// 初始化
 			(function init() {
 				// 控件初始化
-				control.origin.after($select);
-				control.origin.remove();
-				control.transferStyles();
-				control.transferAttrs({ accept: $tab, attrReg: 'tabindex' });
-				control.transferAttrs({ accept: $value, attrReg: 'name' });
+				if (control.origin.length) {
+					control.origin.after($select);
+					control.origin.remove();
+					control.transferStyles();
+					control.transferAttrs({ accept: $tab, attrReg: 'tabindex' });
+					control.transferAttrs({ accept: $value, attrReg: 'name' });
+				}
+
 				setListDir(dir);
 				setPlaceholder(placeholder);
 
@@ -3566,21 +4024,22 @@ var ud2 = (function (window, $) {
 			return control.public;
 
 			// #endregion
+
 		};
 
 	});
-
 	// 数字控件
 	createControl('number', function (collection) {
+
+		var // className存于变量
+			cls = collection.className;
 
 		// 重写集合初始化方法
 		collection.init = function (control) {
 
 			// #region 私有字段
 
-			var // 获取样式类名
-				className = collection.className,
-				// 步长, 步长位数, 最小值, 最大值, 值
+			var // 步长, 步长位数, 最小值, 最大值, 值
 				step, stepDigit, min, max, value,
 				// 获取用户自定义项
 				options = control.getOptions(['step', 'min', 'max', 'value'], function (options) {
@@ -3603,9 +4062,9 @@ var ud2 = (function (window, $) {
 					else stepDigit = 0;
 				}),
 				// 控件结构
-				template = '<a class="' + className + '-ico">&#xe106;</a>'
-					+ '<div class="' + className + '-move"><input type="text" value="0" class="ud2-ctrl-textbox" /></div>'
-					+ '<a class="' + className + '-ico">&#xe107;</a>',
+				template = '<a class="' + cls + '-ico ud2-ctrl-ico">&#xe106;</a>'
+					+ '<div class="' + cls + '-move"><input type="text" value="0" class="ud2-ctrl-textbox" /></div>'
+					+ '<a class="' + cls + '-ico ud2-ctrl-ico">&#xe107;</a>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -3655,8 +4114,8 @@ var ud2 = (function (window, $) {
 				var // 临时容器标签
 					tInput = '<input class="ud2-ctrl-textbox" />',
 					// 建立临时容器
-					$tempL = $div.clone().addClass(className + '-view').html(tInput),
-					$tempR = $div.clone().addClass(className + '-view').html(tInput),
+					$tempL = $div.clone().addClass(cls + '-view').html(tInput),
+					$tempR = $div.clone().addClass(cls + '-view').html(tInput),
 					// 获取父容器
 					$parent = $value.parent(),
 					// 用于存储动画容器
@@ -3769,10 +4228,12 @@ var ud2 = (function (window, $) {
 			// 初始化
 			(function init() {
 				// 控件初始化
-				control.origin.after($number);
-				control.origin.remove();
-				control.transferStyles();
-				control.transferAttrs({ accept: $value, attrReg: 'name|tabindex' });
+				if (control.origin.length) {
+					control.origin.after($number);
+					control.origin.remove();
+					control.transferStyles();
+					control.transferAttrs({ accept: $value, attrReg: 'name|tabindex' });
+				}
 				setValue();
 
 				// 事件绑定
@@ -3797,14 +4258,15 @@ var ud2 = (function (window, $) {
 	// 范围控件
 	createControl('range', function (collection) {
 
+		var // className存于变量
+			cls = collection.className;
+
 		// 重写集合初始化方法
 		collection.init = function (control) {
 
 			// #region 私有字段
 
-			var // 样式类名
-				className = collection.className,
-				// 双手柄, 步长, 步长位数, 最小值, 最大值, 左值, 右值
+			var // 双手柄, 步长, 步长位数, 最小值, 最大值, 左值, 右值
 				both, step, stepDigit, min, max, valueLeft, valueRight,
 				// 获取用户自定义项
 				options = control.getOptions(['both', 'min', 'max', 'value', 'step'], function (options) {
@@ -3834,7 +4296,7 @@ var ud2 = (function (window, $) {
 				// 控件结构
 				template = '<input type="text" maxlength="20" class="ud2-ctrl-textbox" />'
 					+ '<div class="ud2-ctrl-power"><i class="ico ico-range-x"></i><i class="ico ico-solid-cancel"></i></div>'
-					+ '<div class="' + className + '-list"><div class="' + className + '-end" /><div class="' + className + '-back" /></div>',
+					+ '<div class="' + cls + '-list"><div class="' + cls + '-end" /><div class="' + cls + '-back" /></div>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -3846,11 +4308,11 @@ var ud2 = (function (window, $) {
 				// 列表容器
 				$list = $power.next(),
 				// 左侧拖拽手柄
-				$left = $a.clone().addClass(className + '-hand'),
+				$left = $a.clone().addClass(cls + '-hand'),
 				// 右侧拖拽手柄
-				$right = $a.clone().addClass(className + '-hand'),
+				$right = $a.clone().addClass(cls + '-hand'),
 				// 按钮背景
-				$back = $list.find('.' + className + '-back'),
+				$back = $list.find('.' + cls + '-back'),
 				// 处理信息数据
 				handleInfo = {
 					// 按钮的最大位移
@@ -4153,10 +4615,12 @@ var ud2 = (function (window, $) {
 				if (both) $back.after($right);
 
 				// 控件初始化
-				control.origin.after($range);
-				control.origin.remove();
-				control.transferStyles();
-				control.transferAttrs({ accept: $value, attrReg: 'name|tabindex' });
+				if (control.origin.length) {
+					control.origin.after($range);
+					control.origin.remove();
+					control.transferStyles();
+					control.transferAttrs({ accept: $value, attrReg: 'name|tabindex' });
+				}
 
 				// 设置自动关闭方法
 				control.autoClose = close;

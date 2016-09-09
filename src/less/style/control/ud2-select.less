@@ -12,9 +12,25 @@
 	padding-right: 2em;
 	text-align: left;
 	.boxSizing('border-box');
+
+	// 箭头标识
+	.ud2-ctrl-arrow {
+		content: '\20';
+		position: absolute;
+		top: @BaseSize * 1.2;
+		right: .5em;
+		width: 0;
+		height: 0;
+		border: .5em;
+		border-style: solid dashed dashed dashed;
+		border-color: @ColorWhiteBackDark transparent transparent transparent;
+		vertical-align: middle;
+		.transition('border-color .4s, transform .4s');
+		.transformOrigin('50% 25%');
+	}
 }
 // 设置显示文本、图标为内联块元素
-.ud2-select-btn, .ud2-select-ico {
+.ud2-select-btn, .ud2-select .ud2-ctrl-arrow {
 	display: inline-block;
 }
 // 设置文字溢出处理
@@ -36,24 +52,9 @@
 		color: @ColorText;
 	}
 }
-// 箭头标识
-.ud2-select-ico {
-	content: '\20';
-	position: absolute;
-	top: @BaseSize * 1.2;
-	right: .5em;
-	width: 0;
-	height: 0;
-	border: .5em;
-	border-style: solid dashed dashed dashed;
-	border-color: @ColorWhiteBackDark transparent transparent transparent;
-	vertical-align: middle;
-	.transition('border-color .4s, transform .4s');
-	.transformOrigin('50% 25%');
-}
 // 设置控件上方向开启的样式方案
 .ud2-select-dir-up {
-	.ud2-select-ico {
+	.ud2-ctrl-arrow {
 		.transform('rotate(180deg)');
 	}
 
@@ -62,14 +63,14 @@
 	}
 
 	&.on {
-		.ud2-select-ico {
+		.ud2-ctrl-arrow {
 			.transform('rotate(0)');
 		}
 	}
 }
 // 设置控件下方向开启的样式方案
 .ud2-select-dir-down {
-	.ud2-select-ico {
+	.ud2-ctrl-arrow {
 		.transform('rotate(0)');
 	}
 
@@ -78,7 +79,7 @@
 	}
 
 	&.on {
-		.ud2-select-ico {
+		.ud2-ctrl-arrow {
 			.transform('rotate(180deg)');
 		}
 	}
@@ -123,10 +124,10 @@
 	cursor: pointer;
 
 	&::after {
+		position: absolute;
 		font-family: 'ud2';
 		display: block;
 		content: '\ed17';
-		position: absolute;
 		right: -1em;
 		top: .65em;
 		font-size: 1.2em;
@@ -173,7 +174,7 @@
 		display: block;
 	}
 	// 并且改变颜色
-	.ud2-select-ico {
+	.ud2-ctrl-arrow {
 		border-top-color: @ColorBlueBackDark;
 	}
 }

@@ -23,7 +23,6 @@
 	font-size: 1em;
 	cursor: pointer;
 	line-height: 2.25em;
-	color: @ColorWhiteBackDark;
 	.boxSizing('border-box');
 	.transition('transform .3s, color .3s');
 
@@ -36,10 +35,18 @@
 	}
 
 	&:hover {
-		color: @ColorBlue;
 		.transform('scale(1.5)');
 	}
+
+	&.ud2-ctrl-ico {
+		color: @ColorWhiteBackDark;
+
+		&:hover {
+			color: @ColorBlue;
+		}
+	}
 }
+
 // 设置控件内的各按钮及容器高度
 .ud2-number-move,
 .ud2-number-view {

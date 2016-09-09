@@ -11,14 +11,32 @@
 </head>
 <body>
 
-	<h3>范围控件</h3>
+	<h3>列表控件</h3>
 
 	<fieldset>
 		<legend>样式</legend>
-		<div></div>
 		<div>
-			<div class="group group-justify">
-				<select ud2="select" multiple style="width: 350px;" class="noflex">
+			<h5>默认</h5>
+			<p>
+				<select ud2="select">
+					<option value="1">这是一个列表项目1</option>
+					<option value="1">这是一个列表项目2</option>
+					<option value="2">这是一个列表项目3</option>
+					<option value="1">这是一个列表项目4</option>
+					<option value="3">这是一个列表项目5</option>
+					<option value="4">这是一个列表项目6</option>
+					<option value="null">这是一个列表项目7</option>
+					<option value="6">这是一个列表项目8</option>
+					<option value="7">这是一个列表项目9</option>
+					<option value="4">这是一个列表项目0</option>
+				</select>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>多选列表</h5>
+			<p>
+				<select ud2="select" multiple>
 					<option value="1">这是一个列表项目1</option>
 					<option value="2">这是一个列表项目2</option>
 					<option value="3">这是一个列表项目3</option>
@@ -38,55 +56,104 @@
 						<option disabled value="8">这是一个列表项目c</option>
 					</optgroup>
 				</select>
-				
-				<select ud2="select">
-					<option value="1">这是一个列表项目1</option>
-					<option value="1">这是一个列表项目2</option>
-					<option value="2">这是一个列表项目3</option>
-					<option value="1">这是一个列表项目4</option>
-					<option value="3">这是一个列表项目5</option>
-					<option value="4">这是一个列表项目6</option>
-					<option value="null">这是一个列表项目7</option>
-					<option value="6">这是一个列表项目8</option>
-					<option value="7">这是一个列表项目9</option>
-					<option value="4">这是一个列表项目0</option>
-				</select>
-			</div>
+			</p>
 
+			<hr class="hr" />
+
+			<h5>选项及选项组操作</h5>
+			<p>
+				<div class="group group-justify">
+					<select ud2="select" multiple></select>
+					<button class="btn a">添加1个选项</button>
+					<button class="btn a">删除1个选项</button>
+					<button class="btn a">添加1个选项组</button>
+					<button class="btn a">删除1个选项组</button>
+					<button class="btn a">批量添加1000个选项</button>
+				</div>
+				<script>
+					$(function () {
+						var select = ud2.select.collection[2], f = 0, g = 0;
+						ud2.event($('.a')).setTap(function () {
+							var index = $('.a').index(this);
+							switch (index) {
+								case 0: {
+									select.optionAdd(ud2.select.option('新添加的选项' + f++, 'x'));
+									break;
+								}
+								case 1: {
+									if (select.options[0]) select.options[0].selectOut();
+									break;
+								}
+								case 2: {
+									select.groupAdd(ud2.select.group('新添加的分组' + g++));
+									break;
+								}
+								case 3: {
+									select.groupRemove(select.groups[0]);
+									break;
+								}
+								case 4: {
+									var a = new Date();
+									for (var i = 0; i < 1000; i++) select.optionAdd(ud2.select.option('新添加的选项' + f++, 'x'));
+									var b = new Date();
+									alert((b - a) / 1000 + 's');
+								}
+							}
+						});
+					});
+				</script>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>获取或设置选项控件选择模式</h5>
+			<p>
+				<div class="group group-justify">
+					<select ud2="select">
+						<option value="1">这是一个列表项目1</option>
+						<option value="1">这是一个列表项目2</option>
+						<option value="2">这是一个列表项目3</option>
+						<option value="1">这是一个列表项目4</option>
+						<option value="3">这是一个列表项目5</option>
+						<option value="4">这是一个列表项目6</option>
+						<option value="null">这是一个列表项目7</option>
+						<option value="6">这是一个列表项目8</option>
+						<option value="7">这是一个列表项目9</option>
+						<option value="4">这是一个列表项目0</option>
+					</select>
+					<button class="btn b">获取选择模式</button>
+					<button class="btn b">选择模式：单选</button>
+					<button class="btn b">选择模式：多选</button>
+				</div>
+				<script>
+					$(function () {
+						var select = ud2.select.collection[3];
+						ud2.event($('.b')).setTap(function () {
+							var index = $('.b').index(this);
+							switch (index) {
+								case 0: {
+									alert(select.multiple() ? '多选' : '单选');
+									break;
+								}
+								case 1: {
+									select.multiple(0);
+									break;
+								}
+								case 2: {
+									select.multiple(1);
+									break;
+								}
+							}
+						});
+					});
+				</script>
+			</p>
+
+			<hr class="hr" />
 
 		</div>
 	</fieldset>
 
-	<div class="group group-justify" style="position: fixed; bottom: 0; left: 0; right: 0;">
-		<button class="btn">添加1个选项</button>
-		<button class="btn">添加1000个选项</button>
-		<button class="btn">添加1个选项到组</button>
-		<button class="btn">删除1个选项</button>
-	</div>
-
-	<script>
-		window.onload = function () {
-			a = ud2.select.collection[0];
-			b = ud2.select.collection[1];
-			var i = 0;
-
-			a.setChange(function (val) {
-				console.log('a', val)
-			});
-			b.setChange(function (val) {
-				console.log('b', val)
-			});
-
-
-			var btns = $('button');
-			ud2.event(btns.eq(0)).setTap(function () { a.optionAdd(ud2.select.option('新项目' + i++, '0', 0, 1)); });
-			ud2.event(btns.eq(1)).setTap(function () {
-				for (var b = 0; b < 1000; b++) a.optionAdd(ud2.select.option('新项目' + i++, '0', 0, 1));
-			});
-			ud2.event(btns.eq(2)).setTap(function () { a.groups[1].optionAdd(ud2.select.option('新项目' + i++, '0', 0, 0)); });
-			ud2.event(btns.eq(3)).setTap(function () { a.optionRemove(a.options[0]); b.optionRemove(b.options[0]); });
-		};
-	</script>
 
 </body>
 </html>

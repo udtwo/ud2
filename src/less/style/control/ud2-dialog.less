@@ -64,12 +64,16 @@
 	left: 0; bottom: 0; right: 0;
 	height: 3em;
 	line-height: 2.95em;
-	background: #eee;
+	background: @ColorWhiteDeeper;
 	text-align: center;
+
+	a:not(:only-child):not(:first-child) {
+		margin-left: .5em;
+	}
 }
 
 // 弹出对话框默认样式
-.ud2-dialog-alert {
+.ud2-dialog-built {
 	&, table {
 		width: 100%; height: 100%;
 	}
@@ -85,6 +89,7 @@
 	}
 
 	td:only-child {
+		padding: 0 1em;
 		text-align: center;
 	}
 

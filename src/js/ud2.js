@@ -2705,7 +2705,11 @@ var ud2 = (function (window, $) {
 			POS_CENTER = 'center', POS_FULL = 'fullscreen', POS_TOPLEFT = 'top-left', POS_TOPRIGHT = 'top-right',
 			POS_BOTTOMLEFT = 'bottom-left', POS_BOTTOMRIGHT = 'bottom-right',
 			// 定位默认长度
-			NORMAL_LENGTH = 20;
+			NORMAL_LENGTH = 12,
+			// 对话框基础内容对象
+			$dialogBaseContent = $('<div class="' + cls + '-built"><table><tr><td></td></tr></table></div>'),
+			// 对话框基础页脚内容对象
+			$dialogBaseFooter = $('<div class="' + cls + '-footer"><a class="btn">确 定</a><a class="btn">取 消</a></div>');
 
 		// 对话框参数处理方法
 		// (option)
@@ -2785,6 +2789,38 @@ var ud2 = (function (window, $) {
 			cancelFn = type.isFunction(cancelFn) ? cancelFn : fnNoop;
 			return fn(title, content, ico, icoStyle, sendFn, cancelFn);
 		}
+		// 对话框CSS样式重写
+		function dialogRewriteCSS($content, $base, $footer, ico, icoStyle) {
+			var $td = $base.find('td');
+			if (ico !== void 0) {
+				$td.before('<td><i class="ico fc-' + icoStyle.name + '">' + ico + '</i></td>');
+
+			}
+			else if (icoStyle !== void 0 && icoStyle.name !== 'normal') {
+				$td.before('<td><i class="ico fc-' + icoStyle.name + '">' + icoStyle.ico + '</i></td>');
+			}
+			$content.css('bottom', '3em').append($base).after($footer);
+		}
+		// 对话框事件绑定
+		function dialogBindEvent(dialog, $event, eventObj, sendFn, cancelFn, $input) {
+			if (eventObj.send) {
+				eventObj.send = event($event.eq(0)).setTap(function () {
+					if (dialog.getAnimateState()) return;
+					if (sendFn) sendFn($input && $input.val());
+					eventObj.send.off();
+					dialog.remove();
+				});
+			}
+
+			if (eventObj.cancel) {
+				eventObj.cancel = event($event.eq(1)).setTap(function () {
+					if (dialog.getAnimateState()) return;
+					if (cancelFn) cancelFn($input && $input.val());
+					eventObj.cancel.off();
+					dialog.remove();
+				});
+			}
+		}
 
 		// 重写集合初始化方法
 		collection.init = function (control) {
@@ -2795,7 +2831,7 @@ var ud2 = (function (window, $) {
 				size, position, title, content, btnClose,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'size', 'position', 'title', 'content', 'btnClose', 'backmask', 'moveable'
+					'size', 'position', 'title', 'content', 'btnClose'
 				], function (options) {
 					// 初始化标题及内容
 					title = options.title || '未定义标题';
@@ -2886,11 +2922,12 @@ var ud2 = (function (window, $) {
 			}
 			// 对话框移除
 			function remove() {
-				if (openState) {
-					close();
+				if (openState || animateLock) {
+					if (openState) close();
 					window.setTimeout(remove, 310);
 					return;
 				}
+
 				$dialog.remove();
 				eventObj.off();
 				control.remove();
@@ -2934,7 +2971,7 @@ var ud2 = (function (window, $) {
 					dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.left = NORMAL_LENGTH;
 				}
 				else if (position === POS_BOTTOMRIGHT) { dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH; }
-				else if (position === POS_FULL) { dialogCSS.top = 0; dialogCSS.bottom = 0; dialogCSS.left = 0; dialogCSS.right = 0; }
+				else if (position === POS_FULL) { dialogCSS.top = NORMAL_LENGTH; dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.left = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH; }
 				else if (position === POS_CENTER) { dialogCSS.top = '50%'; dialogCSS.left = '50%'; dialogCSS.marginLeft = -size.x / 2; dialogCSS.marginTop = -size.y / 2; }
 				else { dialogCSS.top = position.y; dialogCSS.left = position.x; }
 				$dialog.css(dialogCSS);
@@ -2999,48 +3036,86 @@ var ud2 = (function (window, $) {
 					// 对话框内容对象
 					$content = dialog.getContent(),
 					// 弹出内容的默认架构
-					$html = $('<div class="' + cls + '-alert"><table><tr><td>'
-						+ content + '</td></tr></table></div>'),
+					$base = $dialogBaseContent.clone(),
 					// 对话框页脚内容
-					$footer = $('<div class="' + cls + '-footer"><a class="btn">确 定</a></div>'),
+					$footer = $dialogBaseFooter.clone(),
 					// 事件对象
-					eventObj;
+					eventObj = { send: 1 };
 
-				// 样式重写
-				function rewriteCSS() {
-					if (ico !== void 0) {
-						$html.find('td').before('<td><i class="ico fc-' + icoStyle.name + '">' + ico + '</i></td>');
-
-					}
-					else if (icoStyle !== void 0) {
-						$html.find('td').before('<td><i class="ico fc-' + icoStyle.name + '">' + icoStyle.ico + '</i></td>');
-					}
-					$content.css('bottom', '3em').append($html).after($footer);
-				}
-				// 事件绑定
-				function bindEvent() {
-					eventObj = event($footer.children('a')).setTap(function () {
-						if (dialog.getAnimateState()) return;
-						eventObj.off();
-						if (sendFn) sendFn();
-						dialog.remove();
-					});
-				}
-				
 				// 初始化
 				(function init() {
-					rewriteCSS();
-					bindEvent();
+					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
+					dialogBindEvent(dialog, $footer.children("a"), eventObj, sendFn);
+
+					$base.find('td:last').append(content);
+					$footer.find('a:last').remove();
 
 					dialog.open();
 				}());
 
-				return dialog;
+			});
+
+		};
+		// 确认对话框
+		constructor.confirm = function () {
+
+			// 解析传入参数
+			return dialogArgs.call(this, argsToArray(arguments), function (title, content, ico, icoStyle, sendFn, cancelFn) {
+				var // 对话框对象
+					dialog = constructor({ title: title, size: [350, 250], btnClose: false }),
+					// 对话框内容对象
+					$content = dialog.getContent(),
+					// 弹出内容的默认架构
+					$base = $dialogBaseContent.clone(),
+					// 对话框页脚内容
+					$footer = $dialogBaseFooter.clone(),
+					// 事件对象
+					eventObj = { send: 1, cancel: 1 };
+
+				// 初始化
+				(function init() {
+					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
+					dialogBindEvent(dialog, $footer.children("a"), eventObj, sendFn, cancelFn);
+
+					$base.find('td:last').append(content);
+
+					dialog.open();
+				}());
 
 			});
 
 		};
+		// 提问对话框
+		constructor.prompt = function () {
 
+			// 解析传入参数
+			return dialogArgs.call(this, argsToArray(arguments), function (title, content, ico, icoStyle, sendFn, cancelFn) {
+				var // 对话框对象
+					dialog = constructor({ title: title, size: [350, 250], btnClose: false }),
+					// 对话框内容对象
+					$content = dialog.getContent(),
+					// 弹出内容的默认架构
+					$base = $dialogBaseContent.clone(),
+					// 对话框页脚内容
+					$footer = $dialogBaseFooter.clone(),
+					// 输入框内容对象
+					$input = $('<input type="text" class="textbox" />'),
+					// 事件对象
+					eventObj = { send: 1, cancel: 1 };
+
+				// 初始化
+				(function init() {
+					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
+					dialogBindEvent(dialog, $footer.children("a"), eventObj, sendFn, cancelFn, $input);
+
+					$base.find('td:last').append(content).append($input);
+
+					dialog.open();
+				}());
+
+			});
+
+		};
 	});
 
 	// 选择控件

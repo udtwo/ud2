@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="../../dist/css/ud2.css" rel="stylesheet" />
+	<link href="../src/test.css" rel="stylesheet" />
+	<script src="../../vendor/js/jquery.js"></script>
+	<script src="../../dist/js/ud2.js"></script>
+
+	<style>
+		.box, .box-1, .box-2, .box-3,
+		.box2, .box2-1, .box2-2, .box2-3 {
+			width: 200px;
+			height: 200px;
+		}
+
+		.box, .box2 {
+			overflow: hidden;
+		}
+
+			.box2 .in {
+				width: 600px;
+			}
+
+				.box2 .in div {
+					float: left;
+				}
+
+		.box-1, .box2-1 {
+			background: #9f8;
+		}
+
+		.box-2, .box2-2 {
+			background: #89f;
+		}
+
+		.box-3, .box2-3, .boxn {
+			background: #f98;
+		}
+
+		.boxa {
+			width: 300px;
+			height: 300px;
+			background: #9f8;
+			position: relative;
+		}
+
+		.boxb {
+			width: 200px;
+			height: 200px;
+			background: #89f;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		.boxc {
+			width: 20px;
+			height: 20px;
+			background: #f98;
+			border-radius: 50%;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		.boxn {
+			width: 300px;
+			height: 80px;
+			font-size: 30px;
+			line-height: 40px;
+			text-align: center;
+			color: #fff;
+		}
+	</style>
+</head>
+<body>
+	<h3>快捷键事件</h3>
+
+	<fieldset>
+		<legend>样式</legend>
+		<div>
+			
+			<h5>按下S键，弹出“你好”</h5>
+			<h5>按下CTRL+S键，弹出“欢迎”</h5>
+			<h5>按下CTRL+ALT+S键，弹出“你好，欢迎”</h5>
+
+		</div>
+	</fieldset>
+
+	<script>
+		var event = ud2.eventKeyShortcut();
+		event.add(ud2.common.key.S, function () { ud2.dialog.alert('你好', '你好', ud2.style.info); });
+		event.add(ud2.common.key.S, function () { ud2.dialog.alert('欢迎', '欢迎', ud2.style.warning); }, { isCtrl: 1 });
+		event.add(ud2.common.key.S, function () { ud2.dialog.alert('你好，欢迎', '你好，欢迎', ud2.style.success); }, { isCtrl: 1, isAlt: 1 });
+	</script>
+</body>
+</html>

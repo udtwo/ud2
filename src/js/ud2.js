@@ -1393,16 +1393,28 @@ var ud2 = (function (window, $) {
 
 	};
 	// 用于快捷键绑定的事件处理
-	var eventKeyShortcut = function () {
+	// userOptions[object]: 用户参数
+	// - (?) defaultOn[bool]: 是否默认开启事件，默认为true
+	// return[event] => 返回一个事件公开方法对象
+	var eventKeyShortcut = function (userOptions) {
 
 		// #region 私有字段
 
 		var // 事件对象
 			eventObj = {},
+			// 默认开启
+			defaultOn,
+			// 默认项
+			options = getOptions({
+				// 默认开启
+				defaultOn: true
+			}, userOptions, function (options) {
+				defaultOn = options.defaultOn;
+			}),
 			// 快捷键组
-			keyGroup = [],
+			keyGroup = {},
 			// 连接字符串
-			JOINSTR = '\u00FF',
+			JOINSTR = '\uFF00',
 			// 绑定状态
 			bindingState = false;
 
@@ -1412,20 +1424,22 @@ var ud2 = (function (window, $) {
 
 		// 添加快捷键
 		function add(keyCode, callbacks, keyOptions) {
-			var isCtrl = keyOptions.isCtrl === void 0 ? 0 : !!keyOptions.isCtrl * 1,
-				isAlt = keyOptions.isAlt === void 0 ? 0 : !!keyOptions.isAlt * 1,
-				isShift = keyOptions.isShift === void 0 ? 0 : !!keyOptions.isShift * 1,
-				name = [KEYCODE, isCtrl, isAlt, isShift].join(JOINSTR);
+			var isCtrl = !keyOptions || keyOptions && keyOptions.isCtrl === void 0 ? 0 : keyOptions.isCtrl ? 1 : 0,
+				isAlt = !keyOptions || keyOptions && keyOptions.isAlt === void 0 ? 0 : keyOptions.isAlt ? 1 : 0,
+				isShift = !keyOptions || keyOptions && keyOptions.isShift === void 0 ? 0 : keyOptions.isShift ? 1 : 0,
+				name = [keyCode, isCtrl, isAlt, isShift].join(JOINSTR);
 			if (!keyGroup[name]) keyGroup[name] = callbacks;
+			return eventObj;
 		}
 
 		// 移除快捷键
 		function remove(keyCode, callbacks, keyOptions) {
-			var isCtrl = keyOptions.isCtrl === void 0 ? 0 : !!keyOptions.isCtrl * 1,
-				isAlt = keyOptions.isAlt === void 0 ? 0 : !!keyOptions.isAlt * 1,
-				isShift = keyOptions.isShift === void 0 ? 0 : !!keyOptions.isShift * 1,
-				name = [KEYCODE, isCtrl, isAlt, isShift].join(JOINSTR);
+			var isCtrl = !keyOptions || keyOptions && keyOptions.isCtrl === void 0 ? 0 : keyOptions.isCtrl ? 1 : 0,
+				isAlt = !keyOptions || keyOptions && keyOptions.isAlt === void 0 ? 0 : keyOptions.isAlt ? 1 : 0,
+				isShift = !keyOptions || keyOptions && keyOptions.isShift === void 0 ? 0 : keyOptions.isShift ? 1 : 0,
+				name = [keyCode, isCtrl, isAlt, isShift].join(JOINSTR);
 			if (keyGroup[name]) delete keyGroup[name];
+			return eventObj;
 		}
 
 		// #endregion
@@ -1433,24 +1447,18 @@ var ud2 = (function (window, $) {
 		// #region 事件处理
 
 		// 键盘按下事件
-		function keyDown(event, KEYCODE, isCtrl, isAlt, isShift) {
-			isCtrl = isCtrl * 1;
-			isAlt = isAlt * 1;
-			isShift = isShift * 1;
+		function keyDown(event) {
 			for (var i in keyGroup) {
-				if (i === [KEYCODE, isCtrl, isAlt, isShift].join(JOINSTR)) {
+				if (i === [event.keyCode, event.ctrlKey ? 1 : 0, event.altKey ? 1 : 0, event.shiftKey ? 1 : 0].join(JOINSTR)) {
 					event.preventDefault();
 					break;
 				}
 			}
 		}
 		// 键盘抬起事件
-		function keyUp(event, KEYCODE, isCtrl, isAlt, isShift) {
-			isCtrl = isCtrl * 1;
-			isAlt = isAlt * 1;
-			isShift = isShift * 1;
+		function keyUp(event) {
 			for (var i in keyGroup) {
-				if (i === [KEYCODE, isCtrl, isAlt, isShift].join(JOINSTR)) {
+				if (i === [event.keyCode, event.ctrlKey ? 1 : 0, event.altKey ? 1 : 0, event.shiftKey ? 1 : 0].join(JOINSTR)) {
 					keyGroup[i]();
 					break;
 				}
@@ -1479,7 +1487,7 @@ var ud2 = (function (window, $) {
 
 		// 初始化
 		(function init() {
-			bind();
+			if (defaultOn) eventBind();
 		}());
 
 		// #endregion
@@ -3045,7 +3053,7 @@ var ud2 = (function (window, $) {
 				// 初始化
 				(function init() {
 					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
-					dialogBindEvent(dialog, $footer.children("a"), eventObj, sendFn);
+					dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn);
 
 					$base.find('td:last').append(content);
 					$footer.find('a:last').remove();
@@ -3075,7 +3083,7 @@ var ud2 = (function (window, $) {
 				// 初始化
 				(function init() {
 					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
-					dialogBindEvent(dialog, $footer.children("a"), eventObj, sendFn, cancelFn);
+					dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn, cancelFn);
 
 					$base.find('td:last').append(content);
 
@@ -3106,7 +3114,7 @@ var ud2 = (function (window, $) {
 				// 初始化
 				(function init() {
 					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
-					dialogBindEvent(dialog, $footer.children("a"), eventObj, sendFn, cancelFn, $input);
+					dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn, cancelFn, $input);
 
 					$base.find('td:last').append(content).append($input);
 
@@ -4154,6 +4162,8 @@ var ud2 = (function (window, $) {
 				$move = $prev.next(),
 				// 动画锁
 				lock = false,
+				// 键盘快捷事件
+				eventKeyObj,
 				// 回调方法
 				controlCallbacks = {
 					// 当值发生改变时回调
@@ -4281,16 +4291,16 @@ var ud2 = (function (window, $) {
 				event($prev).setTap(prev);
 				event($next).setTap(next);
 				eventMouseWheel($value).setDown(next).setUp(prev);
-				$value.keydown(function (event) {
-					switch (event.keyCode) {
-						case 13: { $value.blur(); break; }
-						case 38: { event.preventDefault(); prev(); break; }
-						case 40: { event.preventDefault(); next(); break; }
-					}
-				}).focus(function () {
+				eventKeyObj = eventKeyShortcut({ defaultOn: false })
+					.add(KEYCODE.UP, prev)
+					.add(KEYCODE.DOWN, next);
+
+				$value.focus(function () {
+					eventKeyObj.on();
 					callbacks.ctrlClose.fire($number);
 					$number.addClass('on');
 				}).blur(function () {
+					eventKeyObj.off();
 					setValue($value.val());
 					$number.removeClass('on');
 				});

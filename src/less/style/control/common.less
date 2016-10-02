@@ -7,7 +7,7 @@
 @import "../../common/import.less";
 
 // 为控件设置基础样式
-.ud2-select, .ud2-number, .ud2-range {
+.ud2-select, .ud2-number, .ud2-range, .ud2-date {
 	.ctrl-js();
 }
 
@@ -80,11 +80,16 @@
 }
 
 // JS控件状态样式
-.ud2-ctrl-color(@Color, @Background) {
-	&, &.on {
+.ud2-ctrl-color(@Color, @Background, @Dark) {
+	& {
 		border-color: @Color;
 	}
+
 	&:hover, &.on {
+		border-color: @Dark;
+	}
+
+	&.on {
 		background: @Background;
 	}
 
@@ -110,30 +115,30 @@
 .ud2-address.info, .group.info > .ud2-address,
 .ud2-range.info, .group.info > .ud2-range,
 .ud2-number.info, .group.info > .ud2-number,
-.ud2-calendar.info, .group.info > .ud2-calendar {
-	.ud2-ctrl-color(@ColorBlueBorder, @ColorBlueBackLight);
+.ud2-date.info, .group.info > .ud2-date {
+	.ud2-ctrl-color(@ColorBlueBorder, @ColorBlueBackLight, @ColorBlueBackDark);
 }
 // 成功状态样式
 .ud2-select.success, .group.success > .ud2-select,
 .ud2-address.success, .group.success > .ud2-address,
 .ud2-range.success, .group.success > .ud2-range,
 .ud2-number.success, .group.success > .ud2-number,
-.ud2-calendar.success, .group.success > .ud2-calendar {
-	.ud2-ctrl-color(@ColorGreenBorder, @ColorGreenBackLight);
+.ud2-date.success, .group.success > .ud2-date {
+	.ud2-ctrl-color(@ColorGreenBorder, @ColorGreenBackLight, @ColorGreenBackDark);
 }
 // 警告状态样式
 .ud2-select.warning, .group.warning > .ud2-select,
 .ud2-address.warning, .group.warning > .ud2-address,
 .ud2-range.warning, .group.warning > .ud2-range,
 .ud2-number.warning, .group.warning > .ud2-number,
-.ud2-calendar.warning, .group.warning > .ud2-calendar {
-	.ud2-ctrl-color(@ColorOrangeBorder, @ColorOrangeBackLight);
+.ud2-date.warning, .group.warning > .ud2-date {
+	.ud2-ctrl-color(@ColorOrangeBorder, @ColorOrangeBackLight, @ColorOrangeBackDark);
 }
 // 危险状态样式
 .ud2-select.danger, .group.danger > .ud2-select,
 .ud2-address.danger, .group.danger > .ud2-address,
 .ud2-range.danger, .group.danger > .ud2-range,
 .ud2-number.danger, .group.danger > .ud2-number,
-.ud2-calendar.danger, .group.danger > .ud2-calendar {
-	.ud2-ctrl-color(@ColorRedBorder, @ColorRedBackLight);
+.ud2-date.danger, .group.danger > .ud2-date {
+	.ud2-ctrl-color(@ColorRedBorder, @ColorRedBackLight, @ColorRedBackDark);
 }

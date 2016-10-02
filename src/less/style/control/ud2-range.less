@@ -10,6 +10,12 @@
 .ud2-range {
 	padding-left: @CtrlPaddingLR;
 	padding-right: 2em;
+	// 设置控件被开启时的样式
+	&.on {
+		.ud2-range-list {
+			display: block;
+		}
+	}
 }
 // 设置盒子渲染方式
 .ud2-range, .ud2-range-hand {
@@ -61,16 +67,6 @@
 	border: 1px solid @ColorWhiteBackDark;
 	border-radius: @BorderRadius;
 	background: @ColorWhite;
-}
-// 设置控件被开启时的样式
-.ud2-range.on {
-	background: @ColorWhiteBackLight;
-	border-color: @ColorWhiteBackDark;
-	z-index: @MaxZIndex;
-
-	.ud2-range-list {
-		display: block;
-	}
 }
 // 设置控件的小尺寸方案
 .ud2-range.sm, .group.sm .ud2-range {

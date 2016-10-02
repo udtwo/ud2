@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="../../dist/css/ud2.css" rel="stylesheet" />
+	<link href="../src/test.css" rel="stylesheet" />
+	<script src="../../vendor/js/jquery.js"></script>
+	<script src="../../dist/js/ud2.js"></script>
+</head>
+<body>
+
+	<h3>日期控件</h3>
+
+	<fieldset>
+		<legend>样式</legend>
+		<div>
+			<h5>默认</h5>
+			<p>
+				<input ud2="date" />
+			</p>
+
+			<hr class="hr" />
+
+			<h5>带有 setChange 回调的日期控件 (2016/1/1-1/5)</h5>
+			<p>
+				<input ud2="date" ud2-id="date" value="2016/1/1" />
+				<script>
+					$(function () {
+						ud2.date.collection["date"].setChange(function (val) {
+							if (val == '2016/01/01') {
+								this.style(ud2.style.normal);
+							}
+							else if (val == '2016/01/02') {
+								this.style(ud2.style.info);
+							}
+							else if (val == '2016/01/03') {
+								this.style(ud2.style.warning);
+							}
+							else if (val == '2016/01/04') {
+								this.style(ud2.style.success);
+							}
+							else if (val == '2016/01/05') {
+								this.style(ud2.style.danger);
+							}
+						});
+					});
+				</script>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>格式化方案</h5>
+			<p>
+				<input ud2="date" ud2-date-format="mm月dd日 yyyy年" value="2016/5/30" />
+				<hr class="hr hr-dotted" />
+				<input ud2="date" ud2-date-format="yyyy:mm:dd" value="2016/5/30" />
+				<hr class="hr hr-dotted" />
+				<input ud2="date" ud2-date-format="dd.mm.yy" value="2016/5/30" />
+				<hr class="hr hr-dotted" />
+				<input ud2="date" ud2-date-format="yyyymmdd" value="2016/5/30" />
+				<hr class="hr hr-dotted" />
+				<input ud2="date" ud2-date-format="yy-d-m" value="2016/5/30" />
+			</p>
+
+			<hr class="hr" />
+			
+			<h5>尺寸方案</h5>
+			<p>
+				<input class="sm" ud2="date" />
+				<hr class="hr hr-dotted" />
+				<input ud2="date" />
+				<hr class="hr hr-dotted" />
+				<input class="lg" ud2="date" />
+			</p>
+			
+
+			
+		</div>
+	</fieldset>
+
+</body>
+</html>

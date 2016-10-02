@@ -43,6 +43,16 @@
 
 	.userSelect();
 
+	&:hover {
+		border-color: @ColorWhiteBackDark;
+	}
+
+	&.on {
+		z-index: @MaxZIndex;
+		background: @ColorWhiteBackLight;
+		border-color: @ColorWhiteBackDark;
+	}
+
 	> [type="checkbox"] {
 		position: absolute;
 		top: 0; left: -20000px;

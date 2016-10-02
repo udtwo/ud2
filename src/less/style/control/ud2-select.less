@@ -13,6 +13,18 @@
 	text-align: left;
 	.boxSizing('border-box');
 
+	// 设置列表开启后的样式
+	&.on {
+		// 列表开启后的外层样式
+		.ud2-select-list {
+			display: block;
+		}
+		// 并且改变颜色
+		.ud2-ctrl-arrow {
+			border-top-color: @ColorBlueBackDark;
+		}
+	}
+
 	// 箭头标识
 	.ud2-ctrl-arrow {
 		content: '\20';
@@ -162,20 +174,6 @@
 
 	.ud2-select-option {
 		padding-left: @BaseFontSize;
-	}
-}
-// 设置列表开启后的样式
-.ud2-select.on {
-	z-index: @MaxZIndex;
-	background: @ColorWhiteBackLight;
-	border-color: @ColorWhiteBackDark;
-	// 列表开启后的外层样式
-	.ud2-select-list {
-		display: block;
-	}
-	// 并且改变颜色
-	.ud2-ctrl-arrow {
-		border-top-color: @ColorBlueBackDark;
 	}
 }
 // 设置被禁用样式

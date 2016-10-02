@@ -3124,7 +3124,20 @@ var ud2 = (function (window, $) {
 			});
 
 		};
+
 	});
+	// 漂浮消息控件
+	createControl('message', function (collection, constructor) {
+
+		var // className存于变量
+			cls = collection.className;
+
+		collection.init = function (control) {
+
+		};
+
+	});
+
 
 	// 选择控件
 	createControl('select', function (collection, constructor) {
@@ -5328,6 +5341,17 @@ var ud2 = (function (window, $) {
 			});
 
 			// #endregion
+
+		};
+
+	});
+	// 文件上传控件
+	createControl('file', function (collection) {
+
+		var // className存于变量
+			cls = collection.className;
+
+		collection.init = function (control) {
 
 		};
 

@@ -3126,13 +3126,15 @@ var ud2 = (function (window, $) {
 		};
 
 	});
-	// 漂浮消息控件
+	// 浮动消息控件
 	createControl('message', function (collection, constructor) {
 
 		var // className存于变量
 			cls = collection.className;
 
 		collection.init = function (control) {
+
+
 
 		};
 
@@ -5385,6 +5387,12 @@ var ud2 = (function (window, $) {
 					callbacks.ctrlClose.fire(event.target);
 				}
 				if (type === 'mousedown') $dom.data(typeName, null);
+			});
+
+			// 默认事件处理
+			// 消息关闭事件处理
+			$dom.on(EVENT_DOWN, '.message:not([ud2]) .message-close', function () {
+				$(this).parent().remove();
 			});
 		});
 

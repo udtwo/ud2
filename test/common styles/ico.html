@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="../../dist/css/ud2.css" rel="stylesheet" />
+	<link href="../src/test.css" rel="stylesheet" />
+	<script src="../../vendor/js/jquery.js"></script>
+	<script src="../../dist/js/ud2.js"></script>
+
+	<style>
+		table {
+			width: 100%;
+			font-size: 24px;
+		}
+
+		table + table {
+			margin-top: 10px;
+		}
+
+		td {
+			width: 10%;
+			border: 1px solid #e0e0e0;
+			text-align: center;
+		}
+
+		tr:nth-child(2n+1) td {
+			background: #fff;
+		}
+
+		tr:nth-child(2n) td {
+			background: #efefef;
+		}
+	</style>
+</head>
+<body>
+
+	<h3>图标</h3>
+
+	<fieldset>
+		<legend>样式</legend>
+		<div>
+			<table><caption>E1XX</caption></table>
+			<table><caption>E2XX</caption></table>
+			<table><caption>E3XX</caption></table>
+			<table><caption>E4XX</caption></table>
+			<table><caption>E5XX</caption></table>
+			<table><caption>E6XX</caption></table>
+			<table><caption>E7XX</caption></table>
+			<table><caption>E8XX</caption></table>
+			<table><caption>E9XX</caption></table>
+			<table><caption>EAXX</caption></table>
+			<table><caption>EBXX</caption></table>
+			<table><caption>ECXX</caption></table>
+			<table><caption>EDXX</caption></table>
+			<table><caption>EEXX</caption></table>
+			<table><caption>EFXX</caption></table>
+			<table><caption>F0XX</caption></table>
+		</div>
+	</fieldset>
+
+	<script>
+		$(function () {
+			function write(table, n, z, y) {
+				var h, a, b;
+
+				a = ''; b = '';
+				for (var i = z; i < z + 10; i++) {
+					h = i.toString(16);
+					if (h.length === 1) h = '0' + h;
+					if (i < y) {
+						a += '<td><i class="ico">&#x' + n + h + '</i></td>';
+						b += '<td>' + n + h + '</td>';
+					}
+					else {
+						a += '<td></td>';
+						b += '<td></td>';
+					}
+				}
+				a = '<tr>' + a + '</tr>';
+				b = '<tr>' + b + '</tr>';
+				table.append(a + b);
+			}
+
+			write($('table:eq(0)'), 'e1', 0, 10);
+			write($('table:eq(0)'), 'e1', 10, 12);
+
+			write($('table:eq(1)'), 'e2', 0, 5);
+
+			write($('table:eq(2)'), 'e3', 0, 7);
+
+			write($('table:eq(3)'), 'e4', 0, 6);
+
+			write($('table:eq(4)'), 'e5', 0, 9);
+
+			write($('table:eq(5)'), 'e6', 0, 10);
+			write($('table:eq(5)'), 'e6', 10, 20);
+			write($('table:eq(5)'), 'e6', 20, 30);
+			write($('table:eq(5)'), 'e6', 30, 40);
+			write($('table:eq(5)'), 'e6', 40, 50);
+			write($('table:eq(5)'), 'e6', 50, 55);
+
+			write($('table:eq(6)'), 'e7', 0, 1);
+
+			write($('table:eq(7)'), 'e8', 0, 10);
+			write($('table:eq(7)'), 'e8', 10, 20);
+			write($('table:eq(7)'), 'e8', 20, 25);
+
+			write($('table:eq(8)'), 'e9', 0, 6);
+
+			write($('table:eq(9)'), 'ea', 0, 7);
+
+			write($('table:eq(10)'), 'eb', 0, 10);
+			write($('table:eq(10)'), 'eb', 10, 20);
+			write($('table:eq(10)'), 'eb', 20, 30);
+			write($('table:eq(10)'), 'eb', 30, 40);
+			write($('table:eq(10)'), 'eb', 40, 50);
+			write($('table:eq(10)'), 'eb', 50, 60);
+			write($('table:eq(10)'), 'eb', 60, 70);
+			write($('table:eq(10)'), 'eb', 70, 80);
+			write($('table:eq(10)'), 'eb', 80, 90);
+			write($('table:eq(10)'), 'eb', 90, 95);
+
+			write($('table:eq(11)'), 'ec', 0, 10);
+			write($('table:eq(11)'), 'ec', 10, 18);
+
+			write($('table:eq(12)'), 'ed', 0, 10);
+			write($('table:eq(12)'), 'ed', 10, 20);
+			write($('table:eq(12)'), 'ed', 20, 30);
+			write($('table:eq(12)'), 'ed', 30, 40);
+			write($('table:eq(12)'), 'ed', 40, 50);
+			write($('table:eq(12)'), 'ed', 50, 60);
+			write($('table:eq(12)'), 'ed', 60, 67);
+
+			write($('table:eq(13)'), 'ee', 0, 7);
+
+			write($('table:eq(14)'), 'ef', 0, 10);
+			write($('table:eq(14)'), 'ef', 10, 20);
+			write($('table:eq(14)'), 'ef', 20, 30);
+			write($('table:eq(14)'), 'ef', 30, 37);
+
+			write($('table:eq(15)'), 'f0', 0, 10);
+			write($('table:eq(15)'), 'f0', 10, 11);
+		});
+	</script>
+</body>
+</html>

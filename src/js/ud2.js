@@ -78,6 +78,11 @@ var ud2 = (function (window, $) {
 		CLICK = 'click',
 		// 触碰事件组合
 		EVENT_DOWN = [POINTER_DOWN, TOUCH_START, MOUSE_DOWN].join(' '),
+		// 定位常量
+		POS_CENTER = 'center', POS_FULL = 'fullscreen',
+		POS_TOPLEFT = 'top-left', POS_TOPRIGHT = 'top-right',
+		POS_BOTTOMLEFT = 'bottom-left', POS_BOTTOMRIGHT = 'bottom-right',
+		POS_TOPCENTER = 'top-center', POS_BOTTOMCENTER = 'bottom-center',
 		// 键盘编码
 		KEYCODE = {
 			'A': 65, 'B': 66, 'C': 67, 'D': 68, 'E': 69, 'F': 70, 'G': 71,
@@ -96,14 +101,14 @@ var ud2 = (function (window, $) {
 			'F1': 112, 'F2': 113, 'F3': 114, 'F4': 115, 'F5': 116, 'F6': 117,
 			'F7': 118, 'F8': 119, 'F9': 120, 'F10': 121, 'F11': 122, 'F12': 123
 		},
-		// 触碰事件
-		// EVENT_DOWN = [POINTER_DOWN, TOUCH_START, MOUSE_DOWN].join(' '),
 		// 状态名称
 		STATE_NAME = ['normal', 'info', 'success', 'warning', 'danger'],
 		// 索引功能选择器字段
 		SELECTOR_TAB = '[type="checkbox"]',
 		// 隐藏域选择器字段
 		SELECTOR_HIDDEN = '[type="hidden"]',
+		// 定位默认长度
+		NORMAL_LENGTH = 12,
 
 		// 用于克隆的空jQuery对象
 		$div = $('<div />'),
@@ -1394,7 +1399,7 @@ var ud2 = (function (window, $) {
 	};
 	// 用于快捷键绑定的事件处理
 	// userOptions[object]: 用户参数
-	// - (?) defaultOn[bool]: 是否默认开启事件，默认为true
+	// - (?) autoOn[bool]: 是否默认开启事件，默认为true
 	// return[event] => 返回一个事件公开方法对象
 	var eventKeyShortcut = function (userOptions) {
 
@@ -1403,13 +1408,13 @@ var ud2 = (function (window, $) {
 		var // 事件对象
 			eventObj = {},
 			// 默认开启
-			defaultOn,
+			autoOn,
 			// 默认项
 			options = getOptions({
 				// 默认开启
-				defaultOn: true
+				autoOn: true
 			}, userOptions, function (options) {
-				defaultOn = options.defaultOn;
+				autoOn = options.autoOn;
 			}),
 			// 快捷键组
 			keyGroup = {},
@@ -1487,7 +1492,7 @@ var ud2 = (function (window, $) {
 
 		// 初始化
 		(function init() {
-			if (defaultOn) eventBind();
+			if (autoOn) eventBind();
 		}());
 
 		// #endregion
@@ -1505,6 +1510,10 @@ var ud2 = (function (window, $) {
 		// #endregion
 
 	};
+
+	// #endregion
+
+	// #region ud2 内容控件
 
 	// 滚动条控件及滚动事件
 	// 用于为元素生成滚动条及滚动事件
@@ -2275,15 +2284,26 @@ var ud2 = (function (window, $) {
 	// ud2库样式对象
 	var style = (function () {
 		var // 样式对象
-				styles = {},
-				// 样式名称集合
-				stylesName = ['normal', 'info', 'success', 'warning', 'danger'],
-				// 默认图标
-				ico = ['', '\ued20', '\ued1e', '\ued21', '\ued1f'],
-				// 迭代变量
-				i = 0, len = stylesName.length;
+			styles = {},
+			// 样式名称集合
+			stylesName = ['normal', 'info', 'success', 'warning', 'danger'],
+			// 默认图标
+			ico = ['', '\ued20', '\ued1e', '\ued21', '\ued1f'],
+			// 迭代变量
+			i = 0, len = stylesName.length;
 		for (; i < len; i++) styles[stylesName[i]] = { name: stylesName[i], no: i, ico: ico[i] };
 		return styles;
+	}());
+	// ud2库颜色对象
+	var color = (function () {
+		var // 颜色对象
+			colors = {},
+			// 颜色样式名称集合
+			stylesName = ['red', 'orange', 'green', 'blue', 'yellow', 'teal', 'pink', 'violet', 'purple', 'brown', 'dark', 'grey', 'white'],
+			// 迭代变量
+			i = 0, len = stylesName.length;
+		for (; i < len; i++) colors[stylesName[i]] = { name: 'c-' + stylesName[i], id: stylesName[i] };
+		return colors;
 	}());
 
 	// ud2库公开对象
@@ -2709,11 +2729,6 @@ var ud2 = (function (window, $) {
 
 		var // className存于变量
 			cls = collection.className,
-			// 定位常量
-			POS_CENTER = 'center', POS_FULL = 'fullscreen', POS_TOPLEFT = 'top-left', POS_TOPRIGHT = 'top-right',
-			POS_BOTTOMLEFT = 'bottom-left', POS_BOTTOMRIGHT = 'bottom-right',
-			// 定位默认长度
-			NORMAL_LENGTH = 12,
 			// 对话框基础内容对象
 			$dialogBaseContent = $('<div class="' + cls + '-built"><table><tr><td></td></tr></table></div>'),
 			// 对话框基础页脚内容对象
@@ -3130,16 +3145,231 @@ var ud2 = (function (window, $) {
 	createControl('message', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className;
+			cls = collection.className,
+			// 漂浮消息容器，装载处于显示状态的漂浮消息
+			showBox = {};
+		// 建立容器
+		showBox[POS_TOPLEFT] = [];
+		showBox[POS_TOPCENTER] = [];
+		showBox[POS_TOPRIGHT] = [];
+		showBox[POS_BOTTOMLEFT] = [];
+		showBox[POS_BOTTOMCENTER] = [];
+		showBox[POS_BOTTOMRIGHT] = [];
 
+		// 重写集合初始化方法
 		collection.init = function (control) {
 
+			// #region 私有字段
 
+			var //　位置   信息      样式   默认开启及关闭   关闭时间
+				position, message, msgSC, autoSwitch, closeTime,
+				// 获取用户自定义项
+				options = control.getOptions([
+					'position', 'message', 'style', 'autoSwitch', 'closeTime'
+				], function (options) {
+					// 初始化是否默认开启及关闭
+					autoSwitch = options.autoSwitch === void 0 ? true : !!options.autoSwitch;
+					// 初始化位置
+					position = options.position || POS_TOPCENTER;
+					if (position !== POS_TOPCENTER && position !== POS_BOTTOMCENTER && position !== POS_TOPLEFT
+						&& position !== POS_TOPRIGHT && position !== POS_BOTTOMLEFT && position !== POS_BOTTOMRIGHT) {
+						position = POS_TOPCENTER;
+					}
+					// 初始化消息内容
+					if (control.origin.length) {
+						message = options.message || control.origin.text() || '未知消息';
+						control.origin.remove();
+					} else {
+						message = options.message || '未知消息';
+					}
+					// 初始化样式
+					msgSC = options.style || '';
+					// 初始化关闭时间
+					closeTime = options.closeTime || 5000;
+				}),
+				// 控件结构
+				template = '<div class="message-content">' + message + '</div><a class="message-close"></a>',
+				// 获取初始化的控件对象
+				current = control.current,
+				// 控件对象
+				$message = current.html(template),
+				// 关闭按钮
+				$close = $message.children('.message-close'),
+				// 显示状态
+				isOpen = false,
+				// 关闭定时器
+				closeTimer = null,
+				// 关闭按钮事件对象
+				eventClose,
+				// 回调	
+				controlCallbacks = {
+					// 开启回调
+					open: fnNoop,
+					// 关闭回调
+					close: fnNoop
+				};
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 获取浮动消息内容对象
+			// return[jquery]: 返回该控件对象
+			function getContent() {
+				return $message;
+			}
+			// 开启浮动消息控件
+			// return[ud2.message]: 返回该控件对象
+			function open() {
+				var w, h, css, len, tb;
+
+				if (!isOpen) {
+					w = $message.outerWidth();
+					h = $message.outerHeight();
+
+					len = showBox[position].length;
+					isOpen = true;
+					showBox[position].push(control.public);
+
+					tb = NORMAL_LENGTH + len * (h + NORMAL_LENGTH);
+					switch (position) {
+						case POS_TOPCENTER: { css = { top: tb, left: '50%', marginLeft: -w / 2 }; break; }
+						case POS_TOPLEFT: { css = { top: tb, left: NORMAL_LENGTH }; break; }
+						case POS_TOPRIGHT: { css = { top: tb, right: NORMAL_LENGTH }; break; }
+						case POS_BOTTOMCENTER: { css = { bottom: tb, left: '50%', marginLeft: -w / 2 }; break; }
+						case POS_BOTTOMLEFT: { css = { bottom: tb, left: NORMAL_LENGTH }; break; }
+						case POS_BOTTOMRIGHT: { css = { bottom: tb, right: NORMAL_LENGTH }; break; }
+					}
+					
+					control.public.data = { tb: tb };
+					$message.css(css).addClass('on');
+					controlCallbacks.open.call(control.public);
+				}
+
+				return control.public;
+			}
+			// 关闭浮动消息控件
+			// return[ud2.message]: 返回该控件对象
+			function close() {
+				var h, index, len, i, top, topNow;
+
+				if (isOpen) {
+					if (closeTimer !== null) window.clearTimeout(closeTimer);
+					h = $message.outerHeight();
+					index = showBox[position].indexOf(control.public);
+					len = showBox[position].length;
+					isOpen = false;
+					for (i = index; i < len; i++) {
+						top = showBox[position][i].data.tb;
+						topNow = top - h - NORMAL_LENGTH;
+						showBox[position][i].data.tb = topNow;
+						if (position === POS_TOPLEFT || position === POS_TOPRIGHT || position === POS_TOPCENTER) {
+							showBox[position][i].getContent().css('top', topNow);
+						}
+						else {
+							showBox[position][i].getContent().css('bottom', topNow);
+						}
+					}
+
+					showBox[position].splice(index, 1);
+					$message.removeClass('on');
+					controlCallbacks.close.call(control.public);
+				}
+
+				return control.public;
+			}
+			// 移除浮动消息控件
+			function remove() {
+				if (isOpen) {
+					close();
+					window.setTimeout(remove, 310);
+					return;
+				}
+				$message.remove();
+				eventClose.off();
+				callbacks.pageResize.remove(resize);
+				control.remove();
+			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置开启回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.message]: 返回该控件对象
+			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
+			// 设置关闭回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.message]: 返回该控件对象
+			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
+
+			// #endregion
+
+			// #region 样式与事件处理
+
+			// 窗口尺寸发生改变时，重置宽度
+			function resize() {
+				if (isOpen && (position === POS_TOPCENTER || position === POS_BOTTOMCENTER)) {
+					$message.css('marginLeft', -$message.outerWidth() / 2);
+				}
+			}
+			// 事件处理
+			function bindEvent() {
+				eventClose = event($close).setTap(function () { remove(); });
+				callbacks.pageResize.add(resize);
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 向文档中添加控件
+				$message.addClass('message');
+				$body.append($message);
+
+				// 添加样式
+				if (msgSC !== '') $message.addClass(msgSC.name ? msgSC.name : msgSC);
+				// 是否自动开启
+				if (autoSwitch) {
+					window.setTimeout(function () { open(); }, 10);
+					closeTimer = window.setTimeout(function () { remove(); }, closeTime);
+				}
+
+				// 事件绑定
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			// 返回
+			return extendObjects(control.public, {
+				getContent: getContent,
+				open: open,
+				close: close,
+				remove: remove,
+				setOpen: setOpen,
+				setClose: setClose
+			});
+
+			// #endregion
 
 		};
-
+		// 信息浮动消息控件
+		constructor.info = function (text) { constructor({ message: text, style: style.info }); };
+		// 警告浮动消息控件
+		constructor.warning = function (text) { constructor({ message: text, style: style.warning }); };
+		// 成功浮动消息控件
+		constructor.success = function (text) { constructor({ message: text, style: style.success }); };
+		// 危险浮动消息控件
+		constructor.danger = function (text) { constructor({ message: text, style: style.danger }); };
 	});
-
 
 	// 选择控件
 	createControl('select', function (collection, constructor) {
@@ -4306,7 +4536,7 @@ var ud2 = (function (window, $) {
 				event($prev).setTap(prev);
 				event($next).setTap(next);
 				eventMouseWheel($value).setDown(next).setUp(prev);
-				eventKeyObj = eventKeyShortcut({ defaultOn: false })
+				eventKeyObj = eventKeyShortcut({ autoOn: false })
 					.add(KEYCODE.UP, prev)
 					.add(KEYCODE.DOWN, next)
 					.add(KEYCODE.ENTER, function () { $value.blur(); });
@@ -4696,7 +4926,7 @@ var ud2 = (function (window, $) {
 				event($power).setTap(toggle);
 				event($left, { stopPropagation: true }).setDown(updateHandleInfoSize).setPan(leftMove).setUp(leftUp);
 				event($right, { stopPropagation: true }).setDown(updateHandleInfoSize).setPan(rightMove).setUp(rightUp);
-				eventKeyObj = eventKeyShortcut({ defaultOn: false }).add(KEYCODE.ENTER, function () { $value.blur(); });
+				eventKeyObj = eventKeyShortcut({ autoOn: false }).add(KEYCODE.ENTER, function () { $value.blur(); });
 				// 页面尺寸发生改变时，重新计算手柄位置
 				callbacks.pageResize.add(function () {
 					updateHandleInfoSize();
@@ -5289,7 +5519,7 @@ var ud2 = (function (window, $) {
 			// 事件绑定
 			function bindEvent() {
 				event($power).setTap(toggle);
-				eventKeyObj = eventKeyShortcut({ defaultOn: false })
+				eventKeyObj = eventKeyShortcut({ autoOn: false })
 					.add(KEYCODE.ENTER, function () { $value.blur(); close(); })
 					.add(KEYCODE.LEFT, function () { convertDate(dataDate.value.setDate(dataDate.value.getDate() - 1)); })
 					.add(KEYCODE.RIGHT, function () { convertDate(dataDate.value.setDate(dataDate.value.getDate() + 1)); })
@@ -5424,6 +5654,9 @@ var ud2 = (function (window, $) {
 
 	// 返回控件
 	return extendObjects(ud2, {
+		// 公开库基础样式
+		style: style,
+		color: color,
 		// 公共对象
 		common: {
 			// 键盘代码
@@ -5433,9 +5666,7 @@ var ud2 = (function (window, $) {
 		event: event,
 		eventMouseWheel: eventMouseWheel,
 		eventKeyShortcut: eventKeyShortcut,
-		scroll: scroll,
-		// 公开库基础样式
-		style: style,
+		scroll: scroll,	
 		// 类型处理
 		type: type
 	});

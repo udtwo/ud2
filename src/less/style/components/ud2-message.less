@@ -1,8 +1,26 @@
 ﻿/**
  * ud2-message.less
- * 消息控件的默认样式
+ * 浮动消息控件的默认样式
  */
 
 // 导入必要的文件
 @import "../../common/import.less";
 
+.ud2-message {
+	position: fixed;
+	z-index: @MaxZIndex + 2;
+	opacity: 0;
+	visibility: hidden;
+	max-width: 80%;
+	
+	.transition('visibility .3s, opacity .3s, top ease-out .3s, bottom ease-out .3s');
+
+	&.on {
+		visibility: visible;
+		opacity: 1;
+	}
+
+	.message-content {
+		.textOverflow();
+	}
+}

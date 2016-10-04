@@ -16,12 +16,92 @@
 	<fieldset>
 		<legend>样式</legend>
 		<div>
-			<div class="ud2-message"></div>
+
+			<h5>默认</h5>
+			<button class="btn a">默认浮动消息</button>
+
+			<hr class="hr hr-dotted" />
+
+			<h5>内置功能浮动消息</h5>
+			<button class="btn b">信息型浮动消息</button>
+			<button class="btn b">警告型浮动消息</button>
+			<button class="btn b">成功型浮动消息</button>
+			<button class="btn b">危险型浮动消息</button>
+
+			<hr class="hr hr-dotted" />
+
+			<h5>颜色</h5>
+			<button class="btn btn-solid c">白色</button>
+			<button class="btn btn-solid c c-grey">灰色</button>
+			<button class="btn btn-solid c c-dark">深色</button>
+			<button class="btn btn-solid c c-blue">蓝色</button>
+			<button class="btn btn-solid c c-orange">橙色</button>
+			<button class="btn btn-solid c c-green">绿色</button>
+			<button class="btn btn-solid c c-red">红色</button>
+			<button class="btn btn-solid c c-yellow">黄色</button>
+			<button class="btn btn-solid c c-teal">天蓝</button>
+			<button class="btn btn-solid c c-violet">紫蓝</button>
+			<button class="btn btn-solid c c-purple">紫色</button>
+			<button class="btn btn-solid c c-pink">粉色</button>
+			<button class="btn btn-solid c c-brown">棕色</button>
+
+			<hr class="hr hr-dotted" />
+
+			<h5>位置</h5>
+			<button class="btn d">左上</button>
+			<button class="btn d">中上</button>
+			<button class="btn d">又上</button>
+			<button class="btn d">左下</button>
+			<button class="btn d">中下</button>
+			<button class="btn d">右下</button>
+			
 		</div>
 	</fieldset>
 
 	<script>
+		ud2.ready(function () {
+			ud2.event('.a').setTap(function () {
+				ud2.message({ message: '这是一个默认的浮动消息' });
+			});
 
+			ud2.event('.b').setTap(function () {
+				switch (this.index('.b')) {
+					case 0: { ud2.message.info('这是一个信息型浮动消息'); break; }
+					case 1: { ud2.message.warning('这是一个警告型浮动消息'); break; }
+					case 2: { ud2.message.success('这是一个成功型浮动消息'); break; }
+					case 3: { ud2.message.danger('这是一个危险型浮动消息'); break; }
+				}
+			});
+
+			ud2.event('.c').setTap(function () {
+				switch (this.index('.c')) {
+					case 0: { ud2.message({ message: "这是一个白色浮动消息" }); break; }
+					case 1: { ud2.message({ message: "这是一个灰色浮动消息", style: ud2.color.grey }); break; }
+					case 2: { ud2.message({ message: "这是一个深色浮动消息", style: ud2.color.dark }); break; }
+					case 3: { ud2.message({ message: "这是一个蓝色浮动消息", style: ud2.color.blue }); break; }
+					case 4: { ud2.message({ message: "这是一个橙色浮动消息", style: ud2.color.orange }); break; }
+					case 5: { ud2.message({ message: "这是一个绿色浮动消息", style: ud2.color.green }); break; }
+					case 6: { ud2.message({ message: "这是一个红色浮动消息", style: ud2.color.red }); break; }
+					case 7: { ud2.message({ message: "这是一个黄色浮动消息", style: ud2.color.yellow }); break; }
+					case 8: { ud2.message({ message: "这是一个天蓝色浮动消息", style: ud2.color.teal }); break; }
+					case 9: { ud2.message({ message: "这是一个紫蓝色浮动消息", style: ud2.color.violet }); break; }
+					case 10: { ud2.message({ message: "这是一个紫色浮动消息", style: ud2.color.purple }); break; }
+					case 11: { ud2.message({ message: "这是一个粉色浮动消息", style: ud2.color.pink }); break; }
+					case 12: { ud2.message({ message: "这是一个棕色浮动消息", style: ud2.color.brown }); break; }
+				}
+			});
+
+			ud2.event('.d').setTap(function () {
+				switch (this.index('.d')) {
+					case 0: { ud2.message({ message: "这是一个左上浮动消息", style: ud2.color.yellow, position: 'top-left' }); break; }
+					case 1: { ud2.message({ message: "这是一个中上浮动消息", style: ud2.color.teal, position: 'top-center' }); break; }
+					case 2: { ud2.message({ message: "这是一个右上浮动消息", style: ud2.color.violet, position: 'top-right' }); break; }
+					case 3: { ud2.message({ message: "这是一个左下浮动消息", style: ud2.color.purple, position: 'bottom-left' }); break; }
+					case 4: { ud2.message({ message: "这是一个中下浮动消息", style: ud2.color.pink, position: 'bottom-center' }); break; }
+					case 5: { ud2.message({ message: "这是一个右下浮动消息", style: ud2.color.brown, position: 'bottom-right' }); break; }
+				}
+			});
+		});
 	</script>
 
 </body>

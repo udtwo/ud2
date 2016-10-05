@@ -5001,6 +5001,7 @@ var ud2 = (function (window, $) {
 			// 当前时间
 			TIME = new Date();
 
+		// 重写集合初始化方法
 		collection.init = function (control) {
 
 			// #region 私有字段
@@ -5579,22 +5580,25 @@ var ud2 = (function (window, $) {
 	});
 
 	// 文件上传控件
-	createControl('file', function (collection) {
+	createControl('file', function (collection, constructor) {
 
 		var // className存于变量
 			cls = collection.className,
 			// 错误常量
 			ERR_LENGTH = 'length-error', ERR_TYPE = 'type-error', ERR_SIZE = 'size-error',
-			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error';
+			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error',
+			// 样式常量
+			STYLE_DEFAULT = 'default', STYLE_SIMPLE = 'simple', STYLE_CUSTOM = 'custom';
 
+		// 重写集合初始化方法
 		collection.init = function (control) {
 
 			// #region 私有字段
 
-			var // 最大长度 最大文件尺寸(KB) 可重命名 重命名最大名称长度 文件过滤 文件上传URL
-				maxlength, maxsize, rename, renameLength, filter, urlUpload,
+			var // 最大长度 最大文件尺寸(KB) 可重命名 重命名最大名称长度 文件过滤 文件上传URL 样式
+				maxlength, maxsize, rename, renameLength, filter, urlUpload, style,
 				// 获取用户自定义项
-				options = control.getOptions(['maxlength', 'maxsize', 'rename', 'renamLength', 'urlUpload', 'filter'], function (options) {
+				options = control.getOptions(['maxlength', 'maxsize', 'rename', 'renamLength', 'urlUpload', 'filter', 'style'], function (options) {
 					var // 文件后缀
 						ext = '(png|jpg|gif|bmp|svg|ico|html|js|cs|vb|css|less|scss|sass|mp3|mp4|wav|avi|ogg|mov|wmv|webm|flv|swf|txt|pdf|doc|docx|xls|xlsx|ppt|pptx|ett|wpt|dpt|rar|zip|iso)',
 						files = new RegExp('^(' + ext + ',)*' + ext + '$'),
@@ -5616,6 +5620,9 @@ var ud2 = (function (window, $) {
 					for (i = 0; i < len; i++) filter[filter[i]] = filter[i];
 					// 初始化文件上传URL
 					urlUpload = options.urlUpload || '';
+					// 初始化样式
+					style = options.style;
+					if (style !== STYLE_DEFAULT && style !== STYLE_SIMPLE && style !== STYLE_CUSTOM) style = STYLE_DEFAULT;
 				}),
 				// 控件结构
 				template = '<input type="file" multiple />',
@@ -5736,7 +5743,7 @@ var ud2 = (function (window, $) {
 			function xhrSetting(file) {
 				var data = new FormData(), url = urlUpload;
 				data.append('file', file);
-	
+
 				// 判断是否支持重命名
 				if (rename) url += '?name=' + file.newname + '&tick=' + new Date().getTime();
 
@@ -5761,15 +5768,25 @@ var ud2 = (function (window, $) {
 					setDoneNumIncrease();
 					isSuccess = controlCallbacks.done.call(control.public, data, file);
 					if (isSuccess === void 0) isSuccess = true;
-					if (!isSuccess) setErrorNumIncrease();
+					if (!isSuccess) {
+						setErrorNumIncrease();
+						controlCallbacks.error.call(ctrl.public, ERR_SERVER_RETURN, file.name);
+					}
 					fileFunction.done(isSuccess, file);
-					if (getDoneNum() === upfiles.length) controlCallbacks.complete.call(control.public);
+					if (getDoneNum() === upfiles.length) {
+						upState = 2;
+						controlCallbacks.complete.call(control.public);
+					}
 				}).fail(function (data) {
 					setDoneNumIncrease();
 					setErrorNumIncrease();
 					controlCallbacks.fail.call(control.public, data, file);
 					fileFunction.fail(file);
-					if (getDoneNum() === upfiles.length) controlCallbacks.complete.call(control.public);
+					controlCallbacks.error.call(ctrl.public, ERR_SERVER, file.name);
+					if (getDoneNum() === upfiles.length) {
+						upState = 2;
+						controlCallbacks.complete.call(control.public);
+					}
 				});
 			}
 			// 设置完成文件数量递增
@@ -5785,17 +5802,38 @@ var ud2 = (function (window, $) {
 
 			// #region 公共方法
 
+			// 获取控件内容对象
+			// return[jQuery]: 控件内容对象
+			function getContent() {
+				return $file;
+			}
+			// 获取控件重命名相关设置状态
+			// return[object]: 重命名相关设置
+			function getRenameState() {
+				return {
+					state: rename,
+					length: renameLength
+				};
+			}
 			// 获取上传文件集合
+			// return[array]: 文件对象组
 			function getUpfiles() {
 				return upfiles;
 			}
 			// 获取完成文件数量
+			// return[number]: 获取完成上传数量
 			function getDoneNum() {
 				return upDownNum;
 			}
 			// 获取失败文件数量
+			// return[number]: 获取上传失败数量
 			function getErrorNum() {
 				return upErrorNum;
+			}
+			// 获取当前控件状态
+			// return[number]: 当前控件状态
+			function getUpState() {
+				return upState;
 			}
 			// 为按钮绑定文件添加功能
 			// fileAdd[jQuery]: 文件添加按钮
@@ -5828,8 +5866,9 @@ var ud2 = (function (window, $) {
 			function bindUploadBtn(fileUpload) {
 				fileUpload = convertToJQ(fileUpload);
 				event(fileUpload, { stopPropagation: true }).setTap(function () {
-					var data;
+					var data, i, len;
 					if (upState !== 0 || upfiles.length === 0) return;
+					upState = 1;
 					data = new FormData(), i = 0, len = upfiles.length;
 					for (; i < len; i++) xhrSetting(upfiles[i]);
 					fileFunction.upload.call(this);
@@ -5865,7 +5904,7 @@ var ud2 = (function (window, $) {
 			function bindFileProgress(fn) { fileFunction.progress = fn; return fileStyle; }
 			// 为文件完成功能绑定处理方法
 			// fn[function]: 处理方法
-			function bindFileDown(fn) { fileFunction.done = fn; return fileStyle; }
+			function bindFileDone(fn) { fileFunction.done = fn; return fileStyle; }
 			// 为文件失败功能绑定处理方法
 			// fn[function]: 处理方法
 			function bindFileFail(fn) { fileFunction.fail = fn; return fileStyle; }
@@ -5946,37 +5985,226 @@ var ud2 = (function (window, $) {
 				}
 				// 事件绑定
 				bindEvent();
+
+				// 更新返回对象
+				updateControlPublic();
+				// 默认样式
+				if (style === STYLE_DEFAULT) constructor.default(control.public);
 			}());
 
 			// #endregion
 
 			// #region 返回
 
+			// 更新返回对象
+			function updateControlPublic() {
+				extendObjects(control.public, {
+					style: extendObjects(fileStyle, {
+						filesHandler: filesHandler,
+						fileAddBtn: bindFileAddBtn,
+						fileRemoveBtn: bindFileRemoveBtn,
+						uploadBtn: bindUploadBtn,
+						clearBtn: bindClearBtn,
+						fileAddFn: bindFileAdd,
+						fileRemoveFn: bindFileRemove,
+						uploadFn: bindFileUpload,
+						clearFn: bindFileClear,
+						progressFn: bindFileProgress,
+						doneFn: bindFileDone,
+						failFn: bindFileFail
+					}),
+					getContent: getContent,
+					getUpState: getUpState,
+					getRenameState: getRenameState,
+					getUpfiles: getUpfiles,
+					getDoneNum: getDoneNum,
+					getErrorNum: getErrorNum,
+					setError: setError,
+					setComplete: setComplete,
+					setDone: setDone,
+					setFail: setFail
+				});
+			}
 			// 返回
-			return extendObjects(control.public, {
-				style: extendObjects(fileStyle, {
-					FileAddBtn: bindFileAddBtn,
-					FileRemoveBtn: bindFileRemoveBtn,
-					UploadBtn: bindUploadBtn,
-					ClearBtn: bindClearBtn,
-					FileAddFn: bindFileAdd,
-					FileRemoveFn: bindFileRemove,
-					UploadFn: bindFileUpload,
-					ClearFn: bindFileClear,
-					ProgressFn: bindFileProgress,
-					DownFn: bindFileDown,
-					FailFn: bindFileFail
-				}),
-				getUpfiles: getUpfiles,
-				getDoneNum: getDoneNum,
-				getErrorNum: getErrorNum,
-				setError: setError,
-				setComplete: setComplete,
-				setDone: setDone,
-				setFail: setFail
-			});
+			return control.public;
 
 			// #endregion
+
+		};
+		// 文件上传控件 - 默认样式
+		// (control) 传入默认控件
+		constructor.default = function (control) {
+			var // 容器对象
+				$default, $fileEmpty, $fileDrag, $fileList, $fileTools, $fileAdd, $fileAddBox,
+				// 重命名状态 文件集合对象
+				rename, upfiles, style;
+
+			// 不存在父对象时，重新创建
+			if (!control || !control.type || control.type !== 'file') {
+				return ud2.file.create.apply(constructor, arguments);
+			}
+
+			// 文件添加处理方法
+			function fileAdd(file) {
+				var // 显示图片容器
+					$box = $('<div class="' + cls + '-full-figure">'
+						+ '<div class="' + cls + '-full-img"><img ondragstart="return false;" /></div>' + (rename.state ? '<div class="' + cls + '-full-rename"><input type="text" value="' + file.name.substring(0, rename.length) + '" maxlength="' + rename.length + '" /></div>' : '<div>' + file.name + '</div>')
+						+ '<div class="' + cls + '-full-close"></div><div class="' + cls + '-full-progress"></div></div>'),
+					// 输入框
+					$boxInput = $box.find('input'),
+					// 关闭按钮
+					$boxClose = $box.children('.' + cls + '-full-close'),
+					// 文件读取对象
+					reader;
+
+				// 判断待上传文件框是否为空
+				if (upfiles.length === 1) {
+					$fileEmpty.fadeOut(200);
+					$fileList.fadeIn(200);
+					$fileTools.fadeIn(200);
+				}
+
+				// 图片处理方式
+				if (/^image\/(png|jpeg|gif|bmp|svg)/.test(file.type)) {
+					reader = new FileReader();
+					reader.readAsDataURL(file);
+					reader.addEventListener('loadend', function () {
+						$box.find('img').attr('src', reader.result);
+					});
+				} else {
+					$box.find('img').attr('src', 'data:image/svg+xml;base64,77u/PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCINCgkgdmlld0JveD0iMCAwIDEzOCAxMTgiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDEzOCAxMTg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+DQoJLnB7ZmlsbDojZmZmO30NCjwvc3R5bGU+DQoJPHBhdGggY2xhc3M9InAiIGQ9Ik05MS42LDQzLjJjLTEuMi0xLjctMy0zLjctNC45LTUuNmMtMS45LTEuOS0zLjktMy42LTUuNi00LjljLTIuOS0yLjEtNC4zLTIuNC01LjEtMi40SDQ4LjUNCgkJYy0yLjUsMC00LjUsMi00LjUsNC41djQ4LjJjMCwyLjUsMiw0LjUsNC41LDQuNWg0MS4xYzIuNSwwLDQuNS0yLDQuNS00LjVWNDguM0M5NCw0Ny41LDkzLjgsNDYuMSw5MS42LDQzLjJ6IE04NC4zLDQwLjINCgkJYzEuNywxLjcsMy4xLDMuMyw0LjEsNC41aC04LjZ2LTguNkM4MSwzNy4xLDgyLjUsMzguNSw4NC4zLDQwLjJMODQuMyw0MC4yeiBNOTAuNCw4My4xYzAsMC41LTAuNCwwLjktMC45LDAuOUg0OC41DQoJCWMtMC41LDAtMC45LTAuNC0wLjktMC45VjM0LjljMC0wLjUsMC40LTAuOSwwLjktMC45YzAsMCwyNy43LDAsMjcuNywwdjEyLjVjMCwxLDAuOCwxLjgsMS44LDEuOGgxMi41VjgzLjF6Ii8+DQoJPHBhdGggY2xhc3M9InAiIGQ9Ik04MS41LDc2LjloLTI1Yy0xLDAtMS44LTAuOC0xLjgtMS44YzAtMSwwLjgtMS44LDEuOC0xLjhoMjVjMSwwLDEuOCwwLjgsMS44LDEuOA0KCQlDODMuMyw3Ni4xLDgyLjUsNzYuOSw4MS41LDc2Ljl6Ii8+DQoJPHBhdGggY2xhc3M9InAiIGQ9Ik04MS41LDY5LjdoLTI1Yy0xLDAtMS44LTAuOC0xLjgtMS44YzAtMSwwLjgtMS44LDEuOC0xLjhoMjVjMSwwLDEuOCwwLjgsMS44LDEuOA0KCQlDODMuMyw2OC45LDgyLjUsNjkuNyw4MS41LDY5Ljd6Ii8+DQoJPHBhdGggY2xhc3M9InAiIGQ9Ik04MS41LDYyLjZoLTI1Yy0xLDAtMS44LTAuOC0xLjgtMS44YzAtMSwwLjgtMS44LDEuOC0xLjhoMjVjMSwwLDEuOCwwLjgsMS44LDEuOA0KCQlDODMuMyw2MS44LDgyLjUsNjIuNiw4MS41LDYyLjZ6Ii8+DQo8L3N2Zz4=');
+					$box.find('img').css('background', '#3f99d5');
+				}
+
+				// 建立互相引用关系
+				$box.data('file', file);
+				file.element = $box;
+				style.fileRemoveBtn($boxClose, file);
+
+				// 如果支持重命名则开启重命名
+				if (rename.state) {
+					file.newname = file.name;
+					$boxInput.on(EVENT_DOWN, function (event) {
+						event.preventDefault();
+						$(this).select();
+					}).on('blur', function () {
+						file.newname = $(this).val();
+					});
+				}
+
+				// 放入列表
+				$fileAddBox.before($box);
+				window.setTimeout(function () { $box.addClass(cls + '-full-figure-on'); }, 150);
+			}
+			// 文件删除处理方法
+			function fileRemove(file) {
+				var index = upfiles.indexOf(file);
+				upfiles.splice(index, 1);
+				file.element.removeClass(cls + '-full-figure-on');
+				window.setTimeout(function () { file.element.remove(); }, 100);
+				if (upfiles.length === 0) {
+					$fileEmpty.show();
+					$fileList.hide();
+					$fileTools.hide();
+				}
+			}
+			// 文件清空处理方法
+			function clear() {
+				$fileList.children().not('[' + cls + '-add]').remove();
+				$fileEmpty.show();
+				$fileList.hide();
+				$fileTools.hide();
+			}
+			// 文件进度处理方法
+			function progress(file, progressNum) {
+				var $progress = file.element.find('.' + cls + '-full-progress');
+				$progress.css('width', progressNum + '%');
+				$progress.html(progressNum + '%');
+			}
+			// 文件上传处理方法
+			function upload(file) {
+				$fileList.find('[' + cls + '-add]').hide();
+				$fileList.find('.' + cls + '-full-close').hide();
+				$fileList.find('.' + cls + '-full-figure input').attr('readonly', 'readonly');
+				$fileTools.html('文件开始上传...');
+			}
+			// 文件上传完毕处理方法
+			function done(state, file) {
+				if (state) {
+					file.element.addClass('success');
+				} else {
+					file.element.addClass('fail');
+				}
+				uploadStateView();
+			}
+			// 文件上传失败处理方法
+			function fail() {
+				file.element.addClass('fail');
+				uploadStateView();
+			}
+			// 上传状态显示
+			function uploadStateView() {
+				if (control.getDoneNum() === upfiles.length) {
+					$fileTools.html('<span class="c-success">全部文件已上传完毕，共 ' + control.getDoneNum() + ' 个' + (control.getErrorNum() !== 0 ? '，失败 ' + control.getErrorNum() + ' 个' : '') + '</span>');
+				} else {
+					$fileTools.html('已上传文件 ' + control.getDoneNum() + ' 个' + (control.getErrorNum() !== 0 ? '，失败 ' + control.getErrorNum() + ' 个' : ''));
+				}
+			}
+
+			// 事件绑定
+			function bindEvent() {
+				$default.on('dragenter', function () {
+					if (control.getUpState() !== 0) return;
+					$default.addClass('ud2-file-full-dragenter');
+				});
+				$fileDrag.on('dragleave', function () {
+					if (control.getUpState() !== 0) return;
+					$default.removeClass('ud2-file-full-dragenter');
+				}).on('dragover', function (event) {
+					if (control.getUpState() !== 0) return;
+					event.preventDefault();
+					$default.addClass('ud2-file-full-dragenter');
+				}).on('drop', function (event) {
+					if (control.getUpState() !== 0) return;
+					event.preventDefault();
+					event = event.originalEvent;
+					var files = event.dataTransfer && event.dataTransfer.files
+						|| event.target && event.target.files;
+					style.filesHandler(files);
+					$default.removeClass('ud2-file-full-dragenter');
+				});
+			}
+
+			// 初始化
+			(function init() {
+				style = control.style;
+				rename = control.getRenameState();
+				upfiles = control.getUpfiles();
+
+				$default = $div.clone().addClass(cls + '-full');
+				$fileEmpty = $('<div class="' + cls + '-full-nofile"><button class="btn btn-solid c-blue" ud2-file-add><i class="ico ico-group-file"></i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em></div>');
+				$fileDrag = $('<div class="' + cls + '-full-drag">请松开鼠标按钮，文件将进入待上传队列</div>');
+				$fileList = $('<div class="' + cls + '-full-list"><div class="' + cls + '-full-add" ud2-file-add><div><i class="ico ico-hollow-plus"></i><em>继续添加文件</em></div></div></div>');
+				$fileTools = $('<div class="' + cls + '-full-tools"><button class="btn btn-solid">确定上传</button><button class="btn btn-solid">清空列表</button></div>');
+				$default.append($fileList).append($fileEmpty).append($fileDrag).append($fileTools);
+				$fileAdd = $default.find('[' + cls + '-add]');
+				$fileAddBox = $fileList.find('[' + cls + '-add]');
+				control.getContent().append($default);
+
+				style
+					.fileAddBtn($fileAdd)
+					.uploadBtn($fileTools.children().eq(0))
+					.clearBtn($fileTools.children().eq(1))
+					.fileAddFn(fileAdd).fileRemoveFn(fileRemove).clearFn(clear).progressFn(progress).uploadFn(upload)
+					.doneFn(done).failFn(fail);
+
+				bindEvent();
+
+			}());
+
+			// 返回
+			delete control.style;
+			return control;
 
 		};
 

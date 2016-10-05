@@ -123,7 +123,7 @@ var ud2 = (function (window, $) {
 		attrTranslateRegex = /(^[a-z0-9]{1,}|[A-Z][a-z0-9]{0,})/g,
 		// 用于存放通过属性名称转换后得到的结果的数组
 		// 目的是为了减少正则匹配的调用，以便减少不必要的系统资源损失
-		attrTranslateGroup = [],
+		attrTranslateGroup = {},
 
 		// 标记页面是否加载完成
 		pageLoaded = false,
@@ -414,7 +414,6 @@ var ud2 = (function (window, $) {
 		if (len === 2) {
 			arr = args[0];
 			callbacks = args[1];
-
 			if (type.isArray(arr) && type.isFunction(callbacks)) {
 				options = {};
 				arr.forEach(function (name) {
@@ -2409,7 +2408,7 @@ var ud2 = (function (window, $) {
 					// 获取新的属性名
 					name = (function () {
 						if (!attrTranslateGroup[name]) {
-							attrTranslateGroup[name] = name.match(attrTranslateRegex).join(joinStr).toLowerCase();
+							attrTranslateGroup[name] = (name.match(attrTranslateRegex).join(joinStr)).toString().toLowerCase();
 						}
 						return attrTranslateGroup[name];
 					})();
@@ -2762,8 +2761,8 @@ var ud2 = (function (window, $) {
 				title = options[0] || '';
 				content = options[1] || '';
 
-				if (len === 3){
-					if (type.isFunction(options[2])){ // sendFn
+				if (len === 3) {
+					if (type.isFunction(options[2])) { // sendFn
 						sendFn = options[2];
 					}
 					else { // icoStyle
@@ -2771,12 +2770,12 @@ var ud2 = (function (window, $) {
 					}
 				}
 
-				if (len === 4){
-					if (type.isFunction(options[2]) && type.isFunction(options[3])){
+				if (len === 4) {
+					if (type.isFunction(options[2]) && type.isFunction(options[3])) {
 						sendFn = options[2];
 						cancelFn = options[3];
 					}
-					else if (type.isObject(options[2]) &&type.isFunction(options[3])) {
+					else if (type.isObject(options[2]) && type.isFunction(options[3])) {
 						icoStyle = options[2];
 						sendFn = options[3];
 					}
@@ -2798,7 +2797,7 @@ var ud2 = (function (window, $) {
 						sendFn = options[4];
 					}
 				}
-				
+
 				if (len === 6) {
 					ico = options[2];
 					icoStyle = options[3];
@@ -2859,7 +2858,7 @@ var ud2 = (function (window, $) {
 					// 初始化标题及内容
 					title = options.title || '未定义标题';
 					content = options.content || null;
-					
+
 					// 初始化尺寸
 					size = getCoordinate(options.size, 400, 300);
 					// 初始化位置
@@ -3146,9 +3145,10 @@ var ud2 = (function (window, $) {
 
 		var // className存于变量
 			cls = collection.className,
-			// 漂浮消息容器，装载处于显示状态的漂浮消息
+			// 漂浮消息集合，装载处于显示状态的漂浮消息
 			showBox = {};
-		// 建立容器
+
+		// 建立集合
 		showBox[POS_TOPLEFT] = [];
 		showBox[POS_TOPCENTER] = [];
 		showBox[POS_TOPRIGHT] = [];
@@ -3240,7 +3240,7 @@ var ud2 = (function (window, $) {
 						case POS_BOTTOMLEFT: { css = { bottom: tb, left: NORMAL_LENGTH }; break; }
 						case POS_BOTTOMRIGHT: { css = { bottom: tb, right: NORMAL_LENGTH }; break; }
 					}
-					
+
 					control.public.data = { tb: tb };
 					$message.css(css).addClass('on');
 					controlCallbacks.open.call(control.public);
@@ -3395,7 +3395,7 @@ var ud2 = (function (window, $) {
 				// 组标记  禁用状态  组内选项集合
 				label, isDisabled, options = [],
 				// 选项组对象
-				groupObj = { select: null }, 
+				groupObj = { select: null },
 				// 参数对象 选项内容对象
 				argObj, $group;
 
@@ -3693,13 +3693,13 @@ var ud2 = (function (window, $) {
 				// 检测传入参数的数据类型是否符合，且当前选项对象是否未绑定选项控件对象
 				if (whichSelect && whichSelect.type && whichSelect.type === TYPE_SELECT
 					&& !optionObj.select) {
-					
+
 					// 如果是默认分组下，绑定到选项控件的默认分组，且将选项内容对象加入到控件中
 					// 如果是在选项组下，则只绑定选项对象与选项控件的关系
 					if (isDefaultGroup) {
 						optionObj.select = whichSelect;
 						whichSelect.options.push(optionObj);
-						whichSelect.optionsDefault.push(optionObj);	
+						whichSelect.optionsDefault.push(optionObj);
 						len = whichSelect.optionsDefault.length;
 
 						if (len === 1) {
@@ -3797,7 +3797,7 @@ var ud2 = (function (window, $) {
 				$option = $a.clone()
 					.html(label)
 					.attr('title', label)
-					.attr(cls+ '-value', value)
+					.attr(cls + '-value', value)
 					.addClass(cls + '-option');
 				// 设置禁用状态
 				if (isDisabled) $option.attr(cls + '-disabled', 'true');
@@ -3808,7 +3808,7 @@ var ud2 = (function (window, $) {
 				event($option).setTap(function () {
 					if (!optionObj.disabled()
 						&& (!optionObj.group || optionObj.group && !optionObj.group.disabled())) {
-						if (optionObj.select) {	
+						if (optionObj.select) {
 							optionObj.select.valOption(optionObj);
 							if (!optionObj.select.multiple()) optionObj.select.close();
 						}
@@ -4153,7 +4153,7 @@ var ud2 = (function (window, $) {
 					// 判断是否存在于选项控件中，不存在则直接跳出
 					if (isHave === -1) return control.public;
 					// 获取当前选项对象是否已经被选上
-					isHave = optionValueCollection.indexOf(option); 
+					isHave = optionValueCollection.indexOf(option);
 					// 判断选项控件是否为多选
 					if (isMultiple) {
 						if (isSelectedExist
@@ -4196,7 +4196,7 @@ var ud2 = (function (window, $) {
 							$btn.attr(cls + '-value', true).html(option.label());
 						}
 					}
-					
+
 					controlCallbacks.change.call(control.public, val());
 					return control.public;
 				}
@@ -4522,7 +4522,7 @@ var ud2 = (function (window, $) {
 			// #region 回调方法
 
 			// 设置值改变回调函数
-			// 所回调的函数 this 指向事件触发的控件对象
+			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[number]: 当前事件对象，方便链式调用
 			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
@@ -4850,17 +4850,17 @@ var ud2 = (function (window, $) {
 			// #region 回调方法
 
 			// 设置开启回调函数
-			// 所回调的函数 this 指向事件触发的控件对象
+			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
 			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
 			// 设置关闭回调函数
-			// 所回调的函数 this 指向事件触发的控件对象
+			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
 			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
 			// 设置值改变回调函数
-			// 所回调的函数 this 指向事件触发的控件对象
+			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[range]: 当前事件对象，方便链式调用
 			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
@@ -5163,7 +5163,7 @@ var ud2 = (function (window, $) {
 					// 存储通过正则对当前控件值进行格式化后获取的年月日值
 					y, m, d;
 
-				if (text) {	
+				if (text) {
 					if (formatRegCreate().test(text)) {
 						y = getYTDValue(0) || dataDate.now.getFullYear();
 						m = getYTDValue(1) || 1;
@@ -5183,7 +5183,7 @@ var ud2 = (function (window, $) {
 							d = dataDate.now.getDate();
 						}
 					}
-					
+
 					dataDate.setDateValue(y, m - 1, d);
 					dataDate.selectReset();
 				}
@@ -5449,7 +5449,7 @@ var ud2 = (function (window, $) {
 					isOpen = false;
 					$date.removeClass('on');
 					$power.removeClass(prefixLibName + 'ctrl-power-on');
-					
+
 					if (!noUpdate) {
 						val = $value.val();
 						if (val === '') convertDate();
@@ -5492,17 +5492,17 @@ var ud2 = (function (window, $) {
 			// #region 回调方法
 
 			// 设置开启回调函数
-			// 所回调的函数 this 指向事件触发的控件对象
+			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.date]: 返回日期控件
 			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
 			// 设置关闭回调函数
-			// 所回调的函数 this 指向事件触发的控件对象
+			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.date]: 返回日期控件
 			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
 			// 设置开启回调函数
-			// 所回调的函数 this 指向事件触发的控件对象
+			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.date]: 返回日期控件
 			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
@@ -5526,7 +5526,7 @@ var ud2 = (function (window, $) {
 					.add(KEYCODE.UP, function () { convertDate(dataDate.value.setDate(dataDate.value.getDate() - 7)); })
 					.add(KEYCODE.DOWN, function () { convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7)); });
 
-				$value.bind('focus', inputFocus);
+				$value.on('focus', inputFocus);
 			}
 
 			// #endregion
@@ -5577,13 +5577,406 @@ var ud2 = (function (window, $) {
 		};
 
 	});
+
 	// 文件上传控件
 	createControl('file', function (collection) {
 
 		var // className存于变量
-			cls = collection.className;
+			cls = collection.className,
+			// 错误常量
+			ERR_LENGTH = 'length-error', ERR_TYPE = 'type-error', ERR_SIZE = 'size-error',
+			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error';
 
 		collection.init = function (control) {
+
+			// #region 私有字段
+
+			var // 最大长度 最大文件尺寸(KB) 可重命名 重命名最大名称长度 文件过滤 文件上传URL
+				maxlength, maxsize, rename, renameLength, filter, urlUpload,
+				// 获取用户自定义项
+				options = control.getOptions(['maxlength', 'maxsize', 'rename', 'renamLength', 'urlUpload', 'filter'], function (options) {
+					var // 文件后缀
+						ext = '(png|jpg|gif|bmp|svg|ico|html|js|cs|vb|css|less|scss|sass|mp3|mp4|wav|avi|ogg|mov|wmv|webm|flv|swf|txt|pdf|doc|docx|xls|xlsx|ppt|pptx|ett|wpt|dpt|rar|zip|iso)',
+						files = new RegExp('^(' + ext + ',)*' + ext + '$'),
+						i, len;
+
+					// 初始化最大文件量
+					maxlength = parseInt(options.maxlength) || 20;
+					// 初始化最大文件尺寸
+					maxsize = parseInt(options.maxsize) || 2048;
+					// 初始化是否启用重命名
+					rename = options.rename !== 'false' && !!options.rename;
+					// 初始化启用重命名的最大名称长度
+					renameLength = parseInt(options.renameLength) || 50;
+					// 初始化文件过滤
+					filter = options.filter || '';
+					filter = files.test(filter) ? filter : 'gif,jpg,png';
+					filter = filter === 'all' ? files.split('|') : filter.split(',');
+					len = filter.length;
+					for (i = 0; i < len; i++) filter[filter[i]] = filter[i];
+					// 初始化文件上传URL
+					urlUpload = options.urlUpload || '';
+				}),
+				// 控件结构
+				template = '<input type="file" multiple />',
+				// 获取初始化的控件对象
+				current = control.current,
+				// 控件对象
+				$file = current.html(template),
+				// 文件输入对象 
+				$input = $file.children('input'),
+				// 待上传的文件集合
+				upfiles = [],
+				// 控件状态
+				// 0 未上传  1 上传中  2 已完成
+				upState = 0,
+				// 上传完成统计
+				upDownNum = 0,
+				// 上传失败统计
+				upErrorNum = 0,
+				// 样式相关操作集合
+				fileStyle = {},
+				// 文件相关操作回调函数
+				fileFunction = {
+					// 文件添加
+					add: $.noop,
+					// 文件移出
+					remove: $.noop,
+					// 文件上传
+					upload: $.noop,
+					// 文件清空
+					clear: $.noop,
+					// 文件上传进度
+					progress: $.noop,
+					// 文件上传完成
+					done: $.noop,
+					// 文件上传失败
+					fail: $.noop
+				},
+				// 回调函数
+				controlCallbacks = {
+					// 发生错误
+					error: function (errType, userArg) {
+						switch (errType) {
+							case ERR_LENGTH: ud2.message.danger('您选择的文件数量已经超过最大个数限制，该限制为 ' + maxlength + ' 个'); break;
+							case ERR_TYPE: ud2.message.danger('您选择的文件类型不符合要求，请您重新选择文件'); break;
+							case ERR_SIZE: ud2.message.danger('您选择的文件超出 ' + maxsize + 'KB 限制，尺寸不符的文件：' + userArg.join('、')); break;
+							case ERR_REPEAT: ud2.message.warning('您选择的文件已存在于列表中，重复的文件：' + userArg.join('、')); break;
+							case ERR_SERVER: ud2.message.danger('您的文件 ' + userArg + ' 已被阻止，请检查您的文件'); break;
+							case ERR_SERVER_RETURN: ud2.message.danger('文件 ' + userArg + ' 被服务器退回，请检查您的文件是否符合要求'); break;
+						}
+					},
+					// 全部上传完成
+					complete: $.noop,
+					// 单个文件上传完成
+					// 此回调函数在设置时需要回传服务器的返回结果true返回上传服务器成功，false返回上传服务器失败
+					done: $.noop,
+					// 单个文件上传失败
+					fail: $.fail
+				};
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 检测文件类型
+			// files[file]: 选择文件集合
+			// return[bool]: 返回类型检测状态  false 未通过检测  true 通过检测
+			function typeCheck(files) {
+				var errNum = 0, ext, i = 0, len = files.length;
+
+				// 迭代
+				for (; i < len; i++) {
+					// 当前文件扩展名
+					ext = files[i].name.split('.');
+					ext = ext[ext.length - 1].toLowerCase();
+					if (!ext || filter[ext] === void 0) { return false; }
+				}
+
+				return true;
+			}
+			// 文件处理并加入到待上传列表
+			// files[file]: 选择文件集合
+			function filesHandler(files) {
+				var i = 0, len = files.length;
+				if (len + upfiles.length > maxlength) {
+					controlCallbacks.error.call(control.public, ERR_LENGTH);
+				}
+				else if (!typeCheck(files)) {
+					controlCallbacks.error.call(control.public, ERR_TYPE);
+				}
+				else {
+					var errFile = [], repeatFile = [], up = 0;
+					for (; i < len; i++) {
+						if (files[i].size > maxsize * 1024) {
+							errFile.push(files[i].name);
+						}
+						else {
+							if (upfiles.some(function (file) { return file.name === files[i].name && file.size === files[i].size; })) {
+								repeatFile.push(files[i].name);
+							} else {
+								upfiles.push(files[i]);
+								fileFunction.add(files[i]);
+								up++;
+							}
+						}
+					}
+
+					if (repeatFile.length > 0) {
+						controlCallbacks.error.call(control.public, ERR_REPEAT, repeatFile);
+					}
+
+					if (errFile.length > 0) {
+						controlCallbacks.error.call(control.public, ERR_SIZE, errFile);
+					}
+				}
+			}
+			// 控件XML HTTP REQUEST设置
+			// file[file]: 文件对象
+			function xhrSetting(file) {
+				var data = new FormData(), url = urlUpload;
+				data.append('file', file);
+	
+				// 判断是否支持重命名
+				if (rename) url += '?name=' + file.newname + '&tick=' + new Date().getTime();
+
+				$.ajax({
+					'type': 'POST',
+					'url': url,
+					'data': data,
+					'contentType': false,
+					'processData': false,
+					'xhr': function () {
+						var xhr = $.ajaxSettings.xhr();
+						if (xhr.upload) {
+							xhr.upload.addEventListener('progress', function (event) {
+								var progress = parseInt(event.loaded / event.total * 100);
+								fileFunction.progress(file, progress);
+							}, false);
+						}
+						return xhr;
+					}
+				}).done(function (data) {
+					var isSuccess;
+					setDoneNumIncrease();
+					isSuccess = controlCallbacks.done.call(control.public, data, file);
+					if (isSuccess === void 0) isSuccess = true;
+					if (!isSuccess) setErrorNumIncrease();
+					fileFunction.done(isSuccess, file);
+					if (getDoneNum() === upfiles.length) controlCallbacks.complete.call(control.public);
+				}).fail(function (data) {
+					setDoneNumIncrease();
+					setErrorNumIncrease();
+					controlCallbacks.fail.call(control.public, data, file);
+					fileFunction.fail(file);
+					if (getDoneNum() === upfiles.length) controlCallbacks.complete.call(control.public);
+				});
+			}
+			// 设置完成文件数量递增
+			function setDoneNumIncrease() {
+				upDownNum++;
+			}
+			// 设置失败文件数量递增
+			function setErrorNumIncrease() {
+				upErrorNum++;
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 获取上传文件集合
+			function getUpfiles() {
+				return upfiles;
+			}
+			// 获取完成文件数量
+			function getDoneNum() {
+				return upDownNum;
+			}
+			// 获取失败文件数量
+			function getErrorNum() {
+				return upErrorNum;
+			}
+			// 为按钮绑定文件添加功能
+			// fileAdd[jQuery]: 文件添加按钮
+			// return[ud2.file]: 返回该控件对象
+			function bindFileAddBtn(fileAdd) {
+				fileAdd = convertToJQ(fileAdd);
+				event(fileAdd, { stopPropagation: true }).setTap(function () {
+					// 判断控件状态，只允许控件在等待上传状态下进行操作
+					if (upState !== 0) return;
+					$input.trigger('click');
+				});
+				return fileStyle;
+			}
+			// 为按钮绑定文件删除功能
+			// fileClose[jQuery]: 文件删除按钮
+			// file[file]: 待删除的文件
+			// return[ud2.file]: 返回该控件对象
+			function bindFileRemoveBtn(fileRemove, file) {
+				fileRemove = convertToJQ(fileRemove);
+				event(fileRemove, { stopPropagation: true }).setTap(function () {
+					// 判断控件状态，只允许控件在等待上传状态下进行操作
+					if (upState !== 0) return;
+					fileFunction.remove.call(this, file);
+				});
+				return fileStyle;
+			}
+			// 为按钮绑定文件上传功能
+			// fileUpload[jQuery]: 文件上传按钮
+			// return[ud2.file]: 返回该控件对象
+			function bindUploadBtn(fileUpload) {
+				fileUpload = convertToJQ(fileUpload);
+				event(fileUpload, { stopPropagation: true }).setTap(function () {
+					var data;
+					if (upState !== 0 || upfiles.length === 0) return;
+					data = new FormData(), i = 0, len = upfiles.length;
+					for (; i < len; i++) xhrSetting(upfiles[i]);
+					fileFunction.upload.call(this);
+				});
+				return fileStyle;
+			}
+			// 为按钮绑定待文件清空功能
+			// fileClear[jQuery]: 文件清空按钮
+			// return[ud2.file]: 返回该控件对象
+			function bindClearBtn(fileClear) {
+				fileClear = convertToJQ(fileClear);
+				event(fileClear, { stopPropagation: true }).setTap(function () {
+					if (upState !== 0) return;
+					upfiles.length = 0;
+					fileFunction.clear.call(this);
+				});
+				return fileStyle;
+			}
+			// 为文件添加功能绑定处理方法
+			// fn[function]: 处理方法
+			function bindFileAdd(fn) { fileFunction.add = fn; return fileStyle; }
+			// 为文件删除功能绑定处理方法
+			// fn[function]: 处理方法
+			function bindFileRemove(fn) { fileFunction.remove = fn; return fileStyle; }
+			// 为文件上传功能绑定处理方法
+			// fn[function]: 处理方法
+			function bindFileUpload(fn) { fileFunction.upload = fn; return fileStyle; }
+			// 为文件清空功能绑定处理方法
+			// fn[function]: 处理方法
+			function bindFileClear(fn) { fileFunction.clear = fn; return fileStyle; }
+			// 为文件进度函数功能绑定处理方法
+			// fn[function]: 处理方法
+			function bindFileProgress(fn) { fileFunction.progress = fn; return fileStyle; }
+			// 为文件完成功能绑定处理方法
+			// fn[function]: 处理方法
+			function bindFileDown(fn) { fileFunction.done = fn; return fileStyle; }
+			// 为文件失败功能绑定处理方法
+			// fn[function]: 处理方法
+			function bindFileFail(fn) { fileFunction.fail = fn; return fileStyle; }
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置文件选取错误回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// - fn(errType, userArg)
+			//   errType[string]: 错误类型
+			//   userArg[object]: 用户参数
+			// return[ud2.file]: 返回该控件对象
+			function setError(fn) { controlCallbacks.error = fn; return control.public; }
+			// 设置全部上传完成回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.file]: 返回该控件对象
+			function setComplete(fn) { controlCallbacks.complete = fn; return control.public; }
+			// 设置单个上传完成回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// - fn(data, file)
+			//   data[string]: 服务器回传数据
+			//   file[file]: 回传数据所属的上传文件
+			// return[ud2.file]: 返回该控件对象
+			function setDone(fn) { controlCallbacks.done = fn; return control.public; }
+			// 设置单个上传失败回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// - fn(data, file)
+			//   data[string]: 服务器回传数据
+			//   file[file]: 回传数据所属的上传文件
+			// return[ud2.file]: 返回该控件对象
+			function setFail(fn) { controlCallbacks.fail = fn; return control.public; }
+
+			// #endregion
+
+			// #region 事件绑定
+
+			// 文件输入框选择回调
+			function inputChange() {
+				filesHandler(this.files);
+				inputClear();
+			}
+			// 清除文件输入框的值
+			function inputClear() {
+				var $form;
+				if ($input.val() !== '') {
+					if ($input.parent().get(0).nodeName.toLowerCase() !== 'form') {
+						$form = $('<form />');
+						$input.wrap($form);
+					}
+					$form = $input.parent();
+					$form.get(0).reset();
+				}
+			}
+			// 事件绑定
+			function bindEvent() {
+				// 文件编辑回调
+				$input.on('change', inputChange);
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 控件初始化
+				if (control.origin.length) {
+					control.origin.after($file);
+					control.origin.remove();
+					control.transferStyles();
+					control.transferAttrs({ accept: $input, attrReg: 'name|tabindex' });
+				}
+				// 事件绑定
+				bindEvent();
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			// 返回
+			return extendObjects(control.public, {
+				style: extendObjects(fileStyle, {
+					FileAddBtn: bindFileAddBtn,
+					FileRemoveBtn: bindFileRemoveBtn,
+					UploadBtn: bindUploadBtn,
+					ClearBtn: bindClearBtn,
+					FileAddFn: bindFileAdd,
+					FileRemoveFn: bindFileRemove,
+					UploadFn: bindFileUpload,
+					ClearFn: bindFileClear,
+					ProgressFn: bindFileProgress,
+					DownFn: bindFileDown,
+					FailFn: bindFileFail
+				}),
+				getUpfiles: getUpfiles,
+				getDoneNum: getDoneNum,
+				getErrorNum: getErrorNum,
+				setError: setError,
+				setComplete: setComplete,
+				setDone: setDone,
+				setFail: setFail
+			});
+
+			// #endregion
 
 		};
 
@@ -5610,7 +6003,7 @@ var ud2 = (function (window, $) {
 
 			// 当用户触碰屏幕且未触碰任何有价值(无效触碰)控件时，执行页面触碰按下的事件回调
 			// 用途是解决部分控件当触碰控件外时执行相应回调方法
-			$dom.bind(EVENT_DOWN, function (event) {
+			$dom.on(EVENT_DOWN, function (event) {
 				var typeName = 'ctrlCloseEvent', type = event.type, domType = $dom.data(typeName);
 				if (!domType || type === domType) {
 					$dom.data(typeName, type);
@@ -5666,7 +6059,7 @@ var ud2 = (function (window, $) {
 		event: event,
 		eventMouseWheel: eventMouseWheel,
 		eventKeyShortcut: eventKeyShortcut,
-		scroll: scroll,	
+		scroll: scroll,
 		// 类型处理
 		type: type
 	});

@@ -1,0 +1,127 @@
+﻿/**
+ * table.less
+ * 表格的默认样式
+ */
+
+// 导入必要的文件
+@import "../../common/import.less";
+
+/**
+ * 表格样式
+ */
+// 表格默认样式
+.table {
+	width: 100%;
+	border-radius: @BorderRadius;
+	border: 1px solid @ColorWhiteBorder;
+	border-collapse: separate;
+	border-spacing: 0;
+	background: @ColorWhite;
+	overflow: hidden;
+
+	> caption {
+		padding: .5em 0;
+		font-size: larger;
+		font-weight: 800;
+
+		&.left {
+			text-align: left;
+		}
+
+		&.right {
+			text-align: right;
+		}
+	}
+	
+	// 所有单元格的默认样式
+	> * > tr {
+		> td, > th {
+			padding: .5em;
+			line-height: 1.4;
+		}
+	}
+	// 表格头及其内部元素样式
+	> thead {
+		background: @ColorWhiteDeeper;
+		border-bottom: 2px solid @ColorWhiteBorder;
+
+		> tr {
+			> td, > th {
+				&:not(:last-child) {
+					border-right: 1px solid @ColorWhiteBorder;
+				}
+
+				border-bottom: 1px solid @ColorWhiteBorder;
+			}
+		}
+	}
+	// 表格主体、表格尾及其内部元素样式
+	> tbody, > tfoot {
+		> tr {
+			> td, > th {
+				border-bottom: 1px solid @ColorWhiteBackLight;
+
+				&:not(:last-child) {
+					border-right: 1px solid @ColorWhiteBackLight;
+				}
+			}
+		}
+	}
+	// 去除最后一行单元格的下边框
+	> :last-child {
+		> tr:last-child {
+			> td, > th {
+				border-bottom: 0;
+			}
+		}
+	}
+
+	&.sm {
+		font-size: @BaseFontSize - @CtrlSizeGradient;
+	}
+
+	&.lg {
+		font-size: @BaseFontSize + @CtrlSizeGradient;
+	}
+}
+// 表格无圆角
+.table-square {
+	border-radius: 0;
+}
+// 表格单元格信息样式
+.table tr.info > td, .table tr.info > th, .table td.info, .table th.info {
+	color: @ColorBlue;
+	background: @ColorBlueBackLight;
+}
+// 表格单元格成功样式
+.table tr.success > td, .table tr.success > th,.table td.success, .table th.success {
+	color: @ColorGreen;
+	background: @ColorGreenBackLight;
+}
+// 表格单元格警告样式
+.table tr.warning > td, .table tr.warning > th,.table td.warning, .table th.warning {
+	color: @ColorOrange;
+	background: @ColorOrangeBackLight;
+}
+// 表格单元格危险样式
+.table tr.danger > td, .table tr.danger > th,.table td.danger, .table th.danger {
+	color: @ColorRed;
+	background: @ColorRedBackLight;
+}
+// 表格各行换色
+.table.table-striped {
+	> tbody > tr:nth-child(even) {
+		> td, > th {
+
+			background: lighten(@ColorWhiteBackLight, 3%);
+		}
+	}
+}
+// 表格行 hover 效果
+.table.table-hover {
+	> tbody > tr:not(.nohover):hover {
+		> td, > th {
+			background: lighten(@ColorWhiteBackLight, 1.5%);
+		}
+	}
+}

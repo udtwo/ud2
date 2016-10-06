@@ -51,6 +51,7 @@ module.exports = function (grunt) {
 						'src/less/style/base/ico.less',
 						'src/less/style/base/loading.less',
 						'src/less/style/base/form.less',
+						'src/less/style/base/table.less',
 						'src/less/style/base/message.less',
 
 						'src/less/style/components/ud2-scroll.less',

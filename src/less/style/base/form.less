@@ -25,6 +25,27 @@
 		opacity: @OpacityNoImport;
 	}
 }
+// 方形样式(强制)
+.square {
+	border-radius: 0 !important;
+}
+// 圆角按钮
+.btn.round {
+	border-radius: @CtrlHeight / 2;
+
+	&.sm {
+		border-radius: (@CtrlHeight - @CtrlSizeGradient) / 2
+	}
+
+	&.lg {
+		border-radius: (@CtrlHeight + @CtrlSizeGradient) / 2
+	}
+}
+// 消息圆角方案
+.message.round {
+	border-radius: @BaseSize * 2.5;
+}
+
 
 /**
  * 按钮样式
@@ -52,22 +73,7 @@
 .btn-solid {
 	background: @ColorWhite;
 }
-// 方形按钮
-.btn-square {
-	border-radius: 0;
-}
-// 圆按钮
-.btn-round {
-	border-radius: @CtrlHeight / 2;
 
-	&.sm {
-		border-radius: (@CtrlHeight - @CtrlSizeGradient) / 2
-	}
-
-	&.lg {
-		border-radius: (@CtrlHeight + @CtrlSizeGradient) / 2
-	}
-}
 // 图标圆按钮
 .btn-icoround {
 	width: @CtrlHeight;
@@ -460,6 +466,12 @@ textarea.textbox {
 		border-top-right-radius: 0;
 		border-bottom-right-radius: 0;
 	}
+
+	// 取消圆角样式
+	&.square > * {
+		border-radius: 0;
+	}
+
 	// 控件的小尺寸方案
 	&.sm > * {
 		font-size: @BaseFontSize - @CtrlSizeGradient;

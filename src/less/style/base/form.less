@@ -23,6 +23,10 @@
 	&[disabled], &[readonly], &.disabled {
 		cursor: default;
 		opacity: @OpacityNoImport;
+
+		&:hover, &:focus {
+			border-color: @ColorWhiteBorder;
+		}
 	}
 }
 // 方形样式(强制)
@@ -52,20 +56,17 @@
  */
 // 按钮默认样式
 .btn {
-	background: @ColorWhiteDeeper;
-	border-color: @ColorWhiteBorder;
 	cursor: pointer;
 	text-align: center;
 	white-space: nowrap;
 	.userSelect();
 
-	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):not(.disabled):hover, 
-	&:not([disabled]):not(.disabled):focus {
+	// 设置按钮被hover的外观变化
+	&:hover, &:focus {
 		border-color: @ColorWhiteBackDark;
 	}
-	// 设置按钮被 active 的外观变化
-	&:not([disabled]):not(.disabled):active {
+	// 设置按钮被active的外观变化
+	&:active {
 		background: @ColorWhiteDeepest;
 	}
 }
@@ -90,19 +91,26 @@
 	}
 }
 // 按钮颜色函数
-.btn-color(@Text, @TextDark, @Border, @Back) {
+.btn-color(@Text, @Border, @Back) {
 	color: @Text;
 	background: @Back;
 	border-color: @Border;
-	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):not(.disabled):hover, 
-	&:not([disabled]):not(.disabled):focus {
+	// 设置按钮被hover的外观变化
+	&:hover, &:focus {
 		border-color: @Text;
 	}
-	// 设置按钮被 active 的外观变化
-	&:not([disabled]):not(.disabled):active {
-		color: @TextDark;
+	// 设置按钮被active的外观变化
+	&:active {
 		background: darken(@Back, 10%);
+	}
+	// 擦出掉带有disabled属性的元素特定样式
+	&[disabled], &.disabled {
+		&:hover, &:focus {
+			border-color: @Border;
+		}
+		&:active {
+			background: @Back;
+		}
 	}
 }
 // 按钮实心颜色函数
@@ -110,66 +118,71 @@
 	color: @ColorWhite;
 	border-color: @Back;
 	background: @Back;
-	// 设置按钮被 hover 的外观变化
-	&:not([disabled]):not(.disabled):hover,
-	&:not([disabled]):not(.disabled):focus {
+	// 设置按钮被hover的外观变化
+	&:hover, &:focus {
 		border-color: @Hover;
 		background: @Hover;
 	}
-	// 设置按钮被 active 的外观变化
-	&:not([disabled]):not(.disabled):active {
-		color: @ColorWhite;
+	// 设置按钮被active的外观变化
+	&:active {
 		border-color: @Active;
 		background: @Active;
+	}
+	// 擦出掉带有disabled属性的元素特定样式
+	&[disabled], &.disabled {
+		&:hover, &:focus, &:active {
+			border-color: @Back;
+			background: @Back;
+		}
 	}
 }
 // 红色按钮颜色样式
 .btn.c-red, .btn.danger, .group.danger > .btn {
-	.btn-color(@ColorRed, @ColorRedDeepest, @ColorRedBorder, @ColorRedBackLight);
+	.btn-color(@ColorRed, @ColorRedBorder, @ColorRedBackLight);
 }
 // 橙色按钮颜色样式
 .btn.c-orange, .btn.warning, .group.warning > .btn {
-	.btn-color(@ColorOrange, @ColorOrangeDeepest, @ColorOrangeBorder, @ColorOrangeBackLight);
+	.btn-color(@ColorOrange, @ColorOrangeBorder, @ColorOrangeBackLight);
 }
 // 绿色按钮颜色样式
 .btn.c-green, .btn.success, .group.success > .btn {
-	.btn-color(@ColorGreen, @ColorGreenDeepest, @ColorGreenBorder, @ColorGreenBackLight);
+	.btn-color(@ColorGreen, @ColorGreenBorder, @ColorGreenBackLight);
 }
 // 蓝色按钮颜色样式
 .btn.c-blue, .btn.info, .group.info > .btn {
-	.btn-color(@ColorBlue, @ColorBlueDeepest, @ColorBlueBorder, @ColorBlueBackLight);
+	.btn-color(@ColorBlue, @ColorBlueBorder, @ColorBlueBackLight);
 }
 // 黄色按钮颜色样式
 .btn.c-yellow {
-	.btn-color(@ColorYellow, @ColorYellowDeepest, @ColorYellowBorder, @ColorYellowBackLight);
+	.btn-color(@ColorYellow, @ColorYellowBorder, @ColorYellowBackLight);
 }
 // 天蓝色按钮颜色样式
 .btn.c-teal {
-	.btn-color(@ColorTeal, @ColorTealDeepest, @ColorTealBorder, @ColorTealBackLight);
+	.btn-color(@ColorTeal, @ColorTealBorder, @ColorTealBackLight);
 }
 // 紫蓝色按钮颜色样式
 .btn.c-violet {
-	.btn-color(@ColorViolet, @ColorVioletDeepest, @ColorVioletBorder, @ColorVioletBackLight);
+	.btn-color(@ColorViolet, @ColorVioletBorder, @ColorVioletBackLight);
 }
 // 紫色按钮颜色样式
 .btn.c-purple {
-	.btn-color(@ColorPurple, @ColorPurpleDeepest, @ColorPurpleBorder, @ColorPurpleBackLight);
+	.btn-color(@ColorPurple, @ColorPurpleBorder, @ColorPurpleBackLight);
 }
 // 粉色按钮颜色样式
 .btn.c-pink {
-	.btn-color(@ColorPink, @ColorPinkDeepest, @ColorPinkBorder, @ColorPinkBackLight);
+	.btn-color(@ColorPink, @ColorPinkBorder, @ColorPinkBackLight);
 }
 // 棕色按钮颜色样式
 .btn.c-brown {
-	.btn-color(@ColorBrown, @ColorBrownDeepest, @ColorBrownBorder, @ColorBrownBackLight);
+	.btn-color(@ColorBrown, @ColorBrownBorder, @ColorBrownBackLight);
 }
 // 灰色按钮颜色样式
 .btn.c-grey {
-	.btn-color(@ColorGrey, @ColorGreyDeepest, @ColorGreyBorder, @ColorGreyBackLight);
+	.btn-color(@ColorGrey, @ColorGreyBorder, @ColorGreyBackLight);
 }
 // 深色按钮颜色样式
 .btn.c-dark {
-	.btn-color(@ColorDark, @ColorDarkDeepest, @ColorDarkBorder, @ColorDarkBackLight);
+	.btn-color(@ColorDark, @ColorDarkBorder, @ColorDarkBackLight);
 }
 // 红色实心按钮颜色样式
 .btn.btn-solid.c-red,
@@ -277,14 +290,20 @@
 	.userSelect('text');
 
 	// 设置输入框被hover的外观变化
-	&:not([disabled]):not(.disabled):not([readonly]):hover {
+	&:hover {
 		border-color: @ColorWhiteBackDark;
 	}
 
 	// 设置输入框被focus的外观变化
-	&:not([disabled]):not(.disabled):not([readonly]):focus {
+	&:focus {
 		background: @ColorWhiteDeeper;
 		border-color: @ColorWhiteBackDark;
+	}
+
+	&[disabled], &[readonly], &.disabled {
+		&:hover, &:focus {
+			background: @ColorWhite;
+		}
 	}
 }
 // 设置多行输入框默认样式
@@ -308,15 +327,23 @@ textarea.textbox {
 	color: @Color;
 	border-color: @Color;
 
-	&:not([disabled]):not(.disabled):not([readonly]):hover {
+	&:hover {
 		border-color: @Color;
 		background: @Background;
 	}
 
-	&:not([disabled]):not(.disabled):not([readonly]):focus {
+	&:focus {
 		border-color: @ColorDeepest;
-		box-shadow: inset 0 0 3px @Color;
 		background: @Background;
+		box-shadow: inset 0 0 3px @Color;
+	}
+
+	&[disabled], &[readonly], &.disabled { 
+		&:hover, &:focus {
+			border-color: @Color;
+			background: @ColorWhite;
+			box-shadow: none;
+		}
 	}
 }
 // 控件组内的输入框颜色函数
@@ -324,14 +351,21 @@ textarea.textbox {
 	color: @Text;
 	border-color: @Border;
 	// 设置输入框被hover的外观变化
-	&:not([disabled]):not(.disabled):not([readonly]):hover {
+	&:hover {
 		border-color: @BorderChange;
 	}
 
 	// 设置输入框被focus的外观变化
-	&:not([disabled]):not(.disabled):not([readonly]):focus {
+	&:focus {
 		background: @Background;
 		border-color: @BorderChange;
+	}
+
+	&[disabled], &[readonly], &.disabled { 
+		&:hover, &:focus {
+			border-color: @Border;
+			background: @ColorWhite;
+		}
 	}
 }
 // 信息状态输入框样式
@@ -386,11 +420,11 @@ textarea.textbox {
 	.appearance();
 	
 	// 滑动样式
-	&:not(:disabled):hover {
+	&:hover {
 		border-width: 2px;
 		border-color: @ColorBlue;
 	}
-	&:not(:disabled):focus {
+	&:focus {
 		box-shadow: 0 0 0 1px @ColorBlueBorder;
 	}
 	// 选中样式
@@ -404,6 +438,11 @@ textarea.textbox {
 	&:disabled, &.disabled {
 		cursor: default;
 		opacity: @OpacityNoImport;
+
+		&:hover {
+			border-width: 1px;
+			border-color: @ColorWhiteBackDark;
+		}
 	}
 }
 // 单选样式

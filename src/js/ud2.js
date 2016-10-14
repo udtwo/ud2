@@ -2578,76 +2578,77 @@ var ud2 = (function (window, $) {
 	// return[function]: 创建控件的构造函数 
 	var createControl = function (name, callbacks) {
 		var // 获取一个空控件集合对象
-			ctrlCollection = controlCollection(name),
-			// 用于创建控件的构造函数
-			constructor = function () {
-				return create.apply(constructor, arguments);
-			},
-			// 用于创建控件的方法
-			// 只接受创建一个控件
-			create = function () {
-				var // 获取一个空控件对象
-					ctrl = control.call(ctrlCollection, name),
-					// 获取当前方法的参数集合
-					args = arguments,
-					// 获取参数数量
-					len = args.length,
-					// 控件公共属性
-					id, origin, userOptions;
+			ctrlCollection = controlCollection(name);
 
-				// 检测长度
-				switch (len) {
-					// ()
-					case 0: {
-						return create.call(constructor, void 0, void 0, {});
-					}
-						// (ctrlID)、(origin)、(userOptions)
-					case 1: {
-						if (type.isString(args[0]))
-							return create.call(constructor, args[0], void 0, void 0);
-						if (type.isJQuery(args[0]))
-							return create.call(constructor, void 0, args[0], void 0);
-						if (type.isObject(args[0]))
-							return create.call(constructor, void 0, void 0, args[0]);
-						return create.call(constructor);
-					}
-						// (ctrlID, origin)、(ctrlID, userOptions)、(origin, userOptions)
-					case 2: {
-						if (type.isString(args[0]) && (type.isJQuery(args[1]) || type.isString(args[1])))
-							return create.call(constructor, args[0], args[1], void 0);
-						if (type.isString(args[0]) && type.isObject(args[1]))
-							return create.call(constructor, args[0], void 0, args[1]);
-						if (type.isJQuery(args[0]) && type.isObject(args[1]))
-							return create.call(constructor, void 0, args[0], args[1]);
-						break;
-					}
-						// (ctrlID, origin, userOptions)
-					case 3: {
-						id = type.isString(args[0]) && args[0].length > 0 ? args[0] : createControlID();
-						// 如果传入的jQuery对象长度大于1，则默认选择第一个元素做为origin
-						origin = convertToJQ(args[1]).first();
-						userOptions = type.isObject(args[2]) ? args[2] : {};
-						break;
-					}
+		// 用于创建控件的构造函数
+		function constructor() {
+			return create.apply(constructor, arguments);
+		}
+		// 用于创建控件的方法
+		// 只接受创建一个控件
+		// ()
+		// (ctrlID)、(origin)、(userOptions)
+		// (ctrlID, origin)、(ctrlID, userOptions)、(origin, userOptions)
+		// (ctrlID, origin, userOptions)
+		function create () {
+			var // 获取一个空控件对象
+				ctrl = control.call(ctrlCollection, name),
+				// 获取当前方法的参数集合
+				args = arguments,
+				// 获取参数数量
+				len = args.length,
+				// 控件公共属性
+				id, origin, userOptions;
+
+			// 检测长度
+			switch (len) {
+				case 0: {
+					return create.call(constructor, void 0, void 0, {});
 				}
+				case 1: {
+					if (type.isString(args[0]))
+						return create.call(constructor, args[0], void 0, void 0);
+					if (type.isJQuery(args[0]))
+						return create.call(constructor, void 0, args[0], void 0);
+					if (type.isObject(args[0]))
+						return create.call(constructor, void 0, void 0, args[0]);
+					return create.call(constructor);
+				}
+				case 2: {
+					if (type.isString(args[0]) && (type.isJQuery(args[1]) || type.isString(args[1])))
+						return create.call(constructor, args[0], args[1], void 0);
+					if (type.isString(args[0]) && type.isObject(args[1]))
+						return create.call(constructor, args[0], void 0, args[1]);
+					if (type.isJQuery(args[0]) && type.isObject(args[1]))
+						return create.call(constructor, void 0, args[0], args[1]);
+					break;
+				}
+				case 3: {
+					id = type.isString(args[0]) && args[0].length > 0 ? args[0] : createControlID();
+					// 如果传入的jQuery对象长度大于1，则默认选择第一个元素做为origin
+					origin = convertToJQ(args[1]).first();
+					userOptions = type.isObject(args[2]) ? args[2] : {};
+					break;
+				}
+			}
 
-				// 向控件扩展必要属性
-				extendObjects(ctrl, { origin: origin, userOptions: userOptions });
-				extendObjects(ctrl.public, { id: id });
+			// 向控件扩展必要属性
+			extendObjects(ctrl, { origin: origin, userOptions: userOptions });
+			extendObjects(ctrl.public, { id: id });
 
-				// 向集合添加当前控件
-				ctrlCollection.public.push(ctrl.public);
-				ctrlCollection.public[id] = ctrl.public;
-				ctrl.current
-					.attr(libName, name)
-					.attr(libName + '-id', id)
-					.attr(ctrlCollection.className + '-ready', true)
-					.addClass(ctrlCollection.className);
+			// 向集合添加当前控件
+			ctrlCollection.public.push(ctrl.public);
+			ctrlCollection.public[id] = ctrl.public;
+			ctrl.current
+				.attr(libName, name)
+				.attr(libName + '-id', id)
+				.attr(ctrlCollection.className + '-ready', true)
+				.addClass(ctrlCollection.className);
 
-				// 创建对象后，返回ctrl.public对象
-				// 此处的ctrl.public对象内的属性为控件的公共属性
-				return ctrlCollection.init(ctrl) || ctrl.public;
-			};
+			// 创建对象后，返回ctrl.public对象
+			// 此处的ctrl.public对象内的属性为控件的公共属性
+			return ctrlCollection.init(ctrl) || ctrl.public;
+		}
 
 		// 执行创建控件回调，初始化控件
 		callbacks(ctrlCollection, constructor);
@@ -2721,7 +2722,7 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
-	// #region ud2 表单控件
+	// #region ud2 控件
 
 	// 对话框控件
 	createControl('dialog', function (collection, constructor) {

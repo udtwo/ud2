@@ -29,7 +29,8 @@ module.exports = function (grunt) {
 				},
 				files: {
 					'dist/js/ud2.js': [
-						'src/js/ud2.js'
+						'src/js/ud2.js',
+						'src/js/ud2.dataTable.js'
 					]
 				}
 			}
@@ -94,7 +95,7 @@ module.exports = function (grunt) {
 		watch: {
 			'watch-ud2': {
 				// 监测的文件
-				files: ['src/js/ud2.js'],
+				files: ['src/js/**'],
 				// 执行任务
 				tasks: ['uglify:script-ud2']
 			},

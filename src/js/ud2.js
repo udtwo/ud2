@@ -381,11 +381,6 @@ var ud2 = (function (window, $) {
 
 		return support;
 	}());
-
-	// #endregion
-
-	// #region ud2 库私有方法
-
 	// 对象扩展
 	// 将扩展对象属性添加到原对象中
 	// origin[object]: 原对象
@@ -399,6 +394,11 @@ var ud2 = (function (window, $) {
 		}
 		return origin;
 	}
+
+	// #endregion
+
+	// #region ud2 库私有方法
+
 	// 获取控件自定义项
 	// 调用此方法须通过call、apply方法传入control对象或调用对象
 	// (optNameArr, callbacks) 通过属性名数组，获取数组内的全部名称对应的属性，获取数序为control.userOptions、ud2-前缀元素属性、元素属性
@@ -6276,6 +6276,12 @@ var ud2 = (function (window, $) {
 
 	// 返回控件
 	return extendObjects(ud2, {
+		// 对象扩展方法
+		extend: extendObjects,
+		// 公共支持情况及类型处理
+		type: type,
+		form: form,
+		support: support,
 		// 公开库基础样式
 		style: style,
 		color: color,
@@ -6288,9 +6294,7 @@ var ud2 = (function (window, $) {
 		event: event,
 		eventMouseWheel: eventMouseWheel,
 		eventKeyShortcut: eventKeyShortcut,
-		scroll: scroll,
-		// 类型处理
-		type: type
+		scroll: scroll
 	});
 
 	// #endregion

@@ -173,6 +173,12 @@ var ud2 = (function (window, $) {
 		function isString(typeValue) {
 			return isType("String")(typeValue);
 		}
+		// 判断传入参数是否为一个布尔值boolean 
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值表示传入的typeValue参数是否为布尔值
+		function isBoolean(typeValue) {
+			return isType("Boolean")(typeValue);
+		}
 		// 判断传入参数是否为一个数字Number
 		// typeValue[object]: 判断变量
 		// return[bool]: 返回一个布尔值，此布尔值表示传入的typeValue参数是否为数字
@@ -197,13 +203,21 @@ var ud2 = (function (window, $) {
 		function isArray(typeValue) {
 			return Array.isArray(typeValue);
 		}
+		// 判断传入参数是否为一个时间对象
+		// typeValue[object]: 判断变量
+		// return[bool]: 返回一个布尔值，此布尔值标识传入的typeValue参数是否为时间对象
+		function isDatetime(typeValue) {
+			return typeValue instanceof Date;
+		}
 		// 返回对象
 		return {
 			isType: isType,
 			isObject: isObject,
 			isFunction: isFunction,
 			isString: isString,
+			isBoolean: isBoolean,
 			isNumber: isNumber,
+			isDatetime: isDatetime,
 			isNaturalNumber: isNaturalNumber,
 			isJQuery: isJQuery,
 			isArray: isArray

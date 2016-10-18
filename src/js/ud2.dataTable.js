@@ -46,6 +46,7 @@
 	// 表示数据表列的架构 
 	ud2.creater('column', function (options) {
 
+		// 参数初始化
 		!options && (options = {});
 
 		var // 列对象
@@ -72,8 +73,8 @@
 		// - return[string]: 返回当前的数据类型
 		// (text) 设置数据类型
 		// - text[string]: 设置数据类型
-		// - return[ud2.dataTable]: 返回该控件对象
-		var typeOperater = ud2.propertier(function () {
+		// - return[ud2.dataTable.column]: 返回该控件对象
+		var typeOperate = ud2.propertier(function () {
 			return dataType;
 		}, function (text) {
 			if (text && type[text]) dataType = type[text];
@@ -84,8 +85,8 @@
 		// - return[string]: 返回当前的数据类型
 		// (isAllowNull) 设置是否允许为空
 		// - isAllowNull[string]: 设置当前的数据类型
-		// - return[ud2.dataTable]: 返回该控件对象
-		var allowNullOperater = ud2.propertier(function () {
+		// - return[ud2.dataTable.column]: 返回该控件对象
+		var allowNullOperate = ud2.propertier(function () {
 			return allowNull;
 		}, function (isAllowNull) {
 			allowNull = !!isAllowNull;
@@ -96,23 +97,40 @@
 		// - return[string]: 返回当前是否为只读列
 		// (isReadonly) 设置是否为只读列
 		// - isAllowNull[string]: 设置当前列是否为只读列
-		// - return[ud2.dataTable]: 返回该控件对象
-		var readonlyOperater = ud2.propertier(function () {
+		// - return[ud2.dataTable.column]: 返回该控件对象
+		var readonlyOperate = ud2.propertier(function () {
 			return readonly;
 		}, function (isReadonly) {
 			readonly = !!isReadonly;
 			return columnObj;
 		});
+		// 获取或设置是否为默认值
+		// () 获取是否为默认值
+		// - return[string]: 返回当前列的默认值
+		// (value) 设置是否为默认值
+		// - value[object]: 设置当前列的默认值
+		// - return[ud2.dataTable.column]: 返回该控件对象
+		var defaultValueOperate = ud2.propertier(function () {
+			return defaultValue;
+		}, function (value) {
+			if (dataType === type.string && ud2.type.isString(value)
+				|| dataType === type.boolean && ud2.type.isBoolean(value)
+				|| dataType === type.number && ud2.type.isNumber(value)
+				|| dataType === type.datetime && ud2.type.isDatetime(value)) {
+				if (dataType === type.string && defaultValue.length > maxLength) defaultValue = defaultValue.substring(0, maxLength);
+				defaultValue = value;
+			}
+			return columnObj;
+		});
 
 		// 返回
 		return ud2.extend(columnObj, {
-			type: typeOperater,
-			allowNull: allowNullOperater,
-			readonly: readonlyOperater
+			type: typeOperate,
+			allowNull: allowNullOperate,
+			readonly: readonlyOperate
 		});
 
 	}, constructor);
-	
 	// 标识数据表行的架构
 	ud2.creater('row', function () {
 

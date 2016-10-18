@@ -509,6 +509,14 @@ var ud2 = (function (window, $) {
 		if (!type.isJQuery(jq)) jq = $(jq);
 		return jq;
 	}
+	// 为未命名控件生成ud2-id属性值
+	// 生成的id从编号0开始顺延
+	function createControlID() {
+		var id = 0;
+		return function () {
+			return prefixLibName + id++;
+		};
+	}
 
 	// #endregion
 
@@ -2312,7 +2320,7 @@ var ud2 = (function (window, $) {
 			ud2 = {
 				// 初始化全部未初始化的控件
 				// 在页面初始化完成后，会自动调用此方法
-				controlCreate: function () {
+				createAllControl: function () {
 					var // 获取全部标记为控件的元素
 						$ud2Controls = $('[' + libName + ']');
 
@@ -2563,15 +2571,115 @@ var ud2 = (function (window, $) {
 		// 返回集合组
 		return collection;
 	};
+	// ud2库扩展对象创建器
+	// name[string]: 将创建出的对象绑定在库的名为name属性上
+	// callbacks[function]: 创建完成后所执行的回调函数
+	// (?) parent[object]: 如存在，将绑定到该对象的name属性上，而非ud2
+	// return[object]: 返回创建完成的库扩展对象
+	var creater = function (name, createHandler, parent) {
+		// 强制createHandler的类型为function
+		if (!type.isFunction(createHandler)) createHandler = fnNoop;
 
-	// 为未命名控件生成ud2-id属性值
-	// 生成的id从编号0开始顺延
-	var createControlID = (function () {
-		var id = 0;
-		return function () {
-			return prefixLibName + id++;
-		};
-	}());
+		function constructor() {
+			return createHandler.apply(constructor, arguments);
+		}
+
+		// 将create方法绑定到扩展对象
+		constructor.create = createHandler;
+		// 向库或parent中公开
+		if (!parent) {
+			ud2[name] = constructor;
+		}
+		else {
+			parent[name] = constructor;
+		}
+
+		// 返回创建后的对象
+		return constructor;
+
+	};
+	// 创建一个控件类
+	// name[string]: 控件类名称
+	// callbacks[function]: 创建回调，用于对控件的初始化操作
+	// return[function]: 创建控件的构造函数 
+	var controlCreater = function (name, callbacks) {
+
+		var // 获取一个空控件集合对象
+			ctrlCollection = controlCollection(name),
+			// 创建一个库扩展对象
+			constructor = creater(name, function create() {
+				var // 获取一个空控件对象
+						ctrl = control.call(ctrlCollection, name),
+						// 获取当前方法的参数集合
+						args = arguments,
+						// 获取参数数量
+						len = args.length,
+						// 控件公共属性
+						id, origin, userOptions;
+
+				// 检测长度
+				switch (len) {
+					case 0: {
+						return create.call(constructor, void 0, void 0, {});
+					}
+					case 1: {
+						if (type.isString(args[0]))
+							return create.call(constructor, args[0], void 0, void 0);
+						if (type.isJQuery(args[0]))
+							return create.call(constructor, void 0, args[0], void 0);
+						if (type.isObject(args[0]))
+							return create.call(constructor, void 0, void 0, args[0]);
+						return create.call(constructor);
+					}
+					case 2: {
+						if (type.isString(args[0]) && (type.isJQuery(args[1]) || type.isString(args[1])))
+							return create.call(constructor, args[0], args[1], void 0);
+						if (type.isString(args[0]) && type.isObject(args[1]))
+							return create.call(constructor, args[0], void 0, args[1]);
+						if (type.isJQuery(args[0]) && type.isObject(args[1]))
+							return create.call(constructor, void 0, args[0], args[1]);
+						break;
+					}
+					case 3: {
+						id = type.isString(args[0]) && args[0].length > 0 ? args[0] : createControlID();
+						// 如果传入的jQuery对象长度大于1，则默认选择第一个元素做为origin
+						origin = convertToJQ(args[1]).first();
+						userOptions = type.isObject(args[2]) ? args[2] : {};
+						break;
+					}
+				}
+
+				// 向控件扩展必要属性
+				extendObjects(ctrl, { origin: origin, userOptions: userOptions });
+				extendObjects(ctrl.public, { id: id });
+
+				// 向集合添加当前控件
+				ctrlCollection.public.push(ctrl.public);
+				ctrlCollection.public[id] = ctrl.public;
+				ctrl.current
+					.attr(libName, name)
+					.attr(libName + '-id', id)
+					.attr(ctrlCollection.className + '-ready', true)
+					.addClass(ctrlCollection.className);
+
+				// 创建对象后，返回ctrl.public对象
+				// 此处的ctrl.public对象内的属性为控件的公共属性
+				return ctrlCollection.init(ctrl) || ctrl.public;
+			});
+
+		// 执行创建控件回调，初始化控件
+		callbacks(ctrlCollection, constructor);
+		// 将控件绑定在ud2对象上
+		if (ctrlCollection.name !== ctrlCollection.ctrlName) ud2[ctrlCollection.ctrlName] = constructor;
+
+		// 公开属性
+		constructor.collection = ctrlCollection.public;
+		// 返回构造函数
+		return constructor;
+
+	};
+
+	/*
 	// 创建一个控件类
 	// name[string]: 控件类名称
 	// callbacks[function]: 创建回调，用于对控件的初始化操作
@@ -2661,7 +2769,7 @@ var ud2 = (function (window, $) {
 		constructor.collection = ctrlCollection.public;
 		// 返回构造函数
 		return constructor;
-	};
+	};*/
 	// 遮罩层
 	var backmask = (function () {
 
@@ -2725,7 +2833,7 @@ var ud2 = (function (window, $) {
 	// #region ud2 控件
 
 	// 对话框控件
-	createControl('dialog', function (collection, constructor) {
+	controlCreater('dialog', function (collection, constructor) {
 
 		var // className存于变量
 			cls = collection.className,
@@ -3142,7 +3250,7 @@ var ud2 = (function (window, $) {
 
 	});
 	// 浮动消息控件
-	createControl('message', function (collection, constructor) {
+	controlCreater('message', function (collection, constructor) {
 
 		var // className存于变量
 			cls = collection.className,
@@ -3373,7 +3481,7 @@ var ud2 = (function (window, $) {
 	});
 
 	// 选择控件
-	createControl('select', function (collection, constructor) {
+	controlCreater('select', function (collection, constructor) {
 
 		var // className存于变量
 			cls = collection.className,
@@ -3390,7 +3498,8 @@ var ud2 = (function (window, $) {
 		// - name[string]: 组名称
 		// - isDisabled[bool]: 是否禁用
 		// return[ud2.select.group]: 返回选项组对象
-		constructor.group = function () {
+		creater('group', function () {
+
 			var // 参数集合        参数长度
 				args = arguments, len = args.length,
 				// 组标记  禁用状态  组内选项集合
@@ -3504,7 +3613,6 @@ var ud2 = (function (window, $) {
 				return $group;
 			}
 
-
 			// 初始化
 			(function init() {
 				// 判断传参方式，并初始化组对象
@@ -3513,7 +3621,7 @@ var ud2 = (function (window, $) {
 					isDisabled = !!argObj.isDisabled;
 				}
 				else {
-					label = args[0];
+					label = args[0] || '未命名选项组';
 					isDisabled = !!args[1];
 				}
 				// 未传递参数时，给定默认值
@@ -3538,7 +3646,8 @@ var ud2 = (function (window, $) {
 				selectIn: selectIn,
 				selectOut: selectOut
 			});
-		};
+
+		}, constructor);
 		// 选项对象
 		// (object) 通过对象参数，创建一个菜单控件选项对象
 		// - name[string]: 选项名称
@@ -3551,7 +3660,7 @@ var ud2 = (function (window, $) {
 		// - isDisabled[bool]: 是否禁用
 		// - isSelected[bool]: 是否选中
 		// return[ud2.select.option]: 返回选项对象
-		constructor.option = function () {
+		creater('option', function () {
 
 			var // 参数集合        参数长度
 				args = arguments, len = args.length,
@@ -3786,7 +3895,7 @@ var ud2 = (function (window, $) {
 					isSelected = !isDisabled && !!argObj.isSelected;
 				}
 				else {
-					label = args[0];
+					label = args[0] || '未命名选项';
 					value = args[1];
 					isDisabled = !!args[2];
 					isSelected = !isDisabled && !!args[3];
@@ -3831,7 +3940,7 @@ var ud2 = (function (window, $) {
 				selectOut: selectOut
 			});
 
-		};
+		}, constructor);
 		// 选项列表方向
 		constructor.direction = {
 			// 向上
@@ -4358,7 +4467,7 @@ var ud2 = (function (window, $) {
 
 	});
 	// 数字控件
-	createControl('number', function (collection) {
+	controlCreater('number', function (collection) {
 
 		var // className存于变量
 			cls = collection.className;
@@ -4588,7 +4697,7 @@ var ud2 = (function (window, $) {
 
 	});
 	// 范围控件
-	createControl('range', function (collection) {
+	controlCreater('range', function (collection) {
 
 		var // className存于变量
 			cls = collection.className;
@@ -4987,7 +5096,7 @@ var ud2 = (function (window, $) {
 
 	});
 	// 日期选择控件
-	createControl('date', function (collection) {
+	controlCreater('date', function (collection) {
 
 		var // className存于变量
 			cls = collection.className,
@@ -5581,7 +5690,7 @@ var ud2 = (function (window, $) {
 	});
 
 	// 文件上传控件
-	createControl('file', function (collection, constructor) {
+	controlCreater('file', function (collection, constructor) {
 
 		var // className存于变量
 			cls = collection.className,
@@ -6260,7 +6369,7 @@ var ud2 = (function (window, $) {
 		});
 
 		// 当页面读取完成时，创建全部控件
-		callbacks.pageReady.add(ud2.controlCreate);
+		callbacks.pageReady.add(ud2.createAllControl);
 	}());
 
 	//(function () {
@@ -6278,6 +6387,8 @@ var ud2 = (function (window, $) {
 	return extendObjects(ud2, {
 		// 对象扩展方法
 		extend: extendObjects,
+		creater: creater,
+		controlCreater: controlCreater,
 		// 公共支持情况及类型处理
 		type: type,
 		form: form,

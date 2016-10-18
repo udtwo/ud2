@@ -216,7 +216,7 @@ var ud2 = (function (window, $) {
 		// value[object]: 转换变量
 		// return[number(0-∞)]: 返回一个自然数
 		function toNaturalNumber(value) {
-			return isNaturalNumber(value) ? +value : 0;
+			return type.isNaturalNumber(value) ? +value : 0;
 		}
 
 		// 返回对象
@@ -393,6 +393,21 @@ var ud2 = (function (window, $) {
 			origin[i] = source[i];
 		}
 		return origin;
+	}
+	// 属性设计器
+	// getter[function]: 设置getter处理方法
+	// setter[function]: 设置setter处理方法
+	// return[function]: 属性设计器所返回的属性处理方法
+	function propertier(getter, setter) {
+		return function () {
+			var args = arguments, len = args.length;
+			if (len === 0) {
+				return getter.apply(this, args);
+			}
+			else {
+				return setter.apply(this, args);
+			}
+		};
 	}
 
 	// #endregion
@@ -6387,10 +6402,12 @@ var ud2 = (function (window, $) {
 	return extendObjects(ud2, {
 		// 对象扩展方法
 		extend: extendObjects,
+		propertier: propertier,
 		creater: creater,
 		controlCreater: controlCreater,
 		// 公共支持情况及类型处理
 		type: type,
+		convert: convert,
 		form: form,
 		support: support,
 		// 公开库基础样式

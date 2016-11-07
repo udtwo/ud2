@@ -3299,11 +3299,11 @@ var ud2 = (function (window, $) {
 
 			// #region 私有字段
 
-			var //　位置   信息      样式   默认开启及关闭   关闭时间
-				position, message, msgSC, autoSwitch, closeTime,
+			var //　位置   信息      样式   默认开启及关闭 是否可关闭 关闭时间
+				position, message, msgSC, autoSwitch, isClose, closeTime,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'position', 'message', 'style', 'autoSwitch', 'closeTime'
+					'position', 'message', 'style', 'autoSwitch', 'close', 'closeTime'
 				], function (options) {
 					// 初始化是否默认开启及关闭
 					autoSwitch = options.autoSwitch === void 0 ? true : !!options.autoSwitch;
@@ -3322,11 +3322,13 @@ var ud2 = (function (window, $) {
 					}
 					// 初始化样式
 					msgSC = options.style || '';
+					// 初始化是否可以关闭
+					isClose = options.close === void 0 ? true : !!options.close;
 					// 初始化关闭时间
 					closeTime = options.closeTime || 5000;
 				}),
 				// 控件结构
-				template = '<div class="message-content">' + message + '</div><a class="message-close"></a>',
+				template = '<div class="message-content">' + message + '</div>' + (isClose ? '<a class="message-close"></a>' : ''),
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -3382,6 +3384,10 @@ var ud2 = (function (window, $) {
 					control.public.data = { tb: tb };
 					$message.css(css).addClass('on');
 					controlCallbacks.open.call(control.public);
+
+					if (closeTime !== -1) {
+						closeTimer = window.setTimeout(function () { remove(); }, closeTime);
+					}
 				}
 
 				return control.public;
@@ -3475,7 +3481,6 @@ var ud2 = (function (window, $) {
 				// 是否自动开启
 				if (autoSwitch) {
 					window.setTimeout(function () { open(); }, 10);
-					closeTimer = window.setTimeout(function () { remove(); }, closeTime);
 				}
 
 				// 事件绑定

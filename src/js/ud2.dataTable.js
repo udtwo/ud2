@@ -55,12 +55,6 @@
 			dataType = options.dataType || type.string,
 			// 是否允许为空
 			allowNull = options.allowNull === void 0 ? true : !!options.allowNull,
-			// 是否为自动编号
-			autoIncrement = options.autoIncrement || false,
-			// 如果是自动编号，种子为1
-			autoIncrementSeed = options.autoIncrementSeed || 1,
-			// 如果是自动编号，步长为1
-			autoIncrementStep = options.autoIncrementStep || 1,
 			// 列的默认值
 			defaultValue = options.defaultValue || null,
 			// 列是否为只读列

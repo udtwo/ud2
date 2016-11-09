@@ -3514,6 +3514,18 @@ var ud2 = (function (window, $) {
 		constructor.danger = function (text) { constructor({ message: text, style: style.danger }); };
 	});
 
+	// 开关控件
+	controlCreater('switch', function (collection, constructor) {
+
+		var // className存于变量
+			cls = collection.className;
+
+		collection.init = function (control) {
+
+		};
+
+	});
+
 	// 选择控件
 	controlCreater('select', function (collection, constructor) {
 
@@ -6435,7 +6447,9 @@ var ud2 = (function (window, $) {
 		// 公共对象
 		common: {
 			// 键盘代码
-			key: KEYCODE
+			key: KEYCODE,
+			// 正则表达式
+			regex: regex
 		},
 		// 公开库事件
 		event: event,

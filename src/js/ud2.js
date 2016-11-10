@@ -5879,10 +5879,18 @@ var ud2 = (function (window, $) {
 				event($power).setTap(toggle);
 				eventKeyObj = eventKeyShortcut({ autoOn: false })
 					.add(KEYCODE.ENTER, function () { $value.blur(); close(); })
-					.add(KEYCODE.LEFT, function () { convertDate(dataDate.value.setDate(dataDate.value.getDate() - 1)); })
-					.add(KEYCODE.RIGHT, function () { convertDate(dataDate.value.setDate(dataDate.value.getDate() + 1)); })
-					.add(KEYCODE.UP, function () { convertDate(dataDate.value.setDate(dataDate.value.getDate() - 7)); })
-					.add(KEYCODE.DOWN, function () { convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7)); });
+					.add(KEYCODE.LEFT, function () {
+						if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 1));
+					})
+					.add(KEYCODE.RIGHT, function () {
+						if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 1));
+					})
+					.add(KEYCODE.UP, function () {
+						if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 7));
+					})
+					.add(KEYCODE.DOWN, function () {
+						if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7));
+					});
 
 				$value.on('focus', inputFocus);
 			}

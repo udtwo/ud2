@@ -1,0 +1,142 @@
+﻿/**
+ * ud2-power.less
+ * 数字控件的默认样式
+ */
+
+// 导入必要的文件
+@import "../../common/import.less";
+
+.ud2-switch {
+	position: relative;
+	display: inline-block;
+	width: @CtrlHeight * 2 - 4;
+	height: @CtrlHeight;
+	border-radius: @CtrlHeight;
+	background: @ColorWhiteDeepest;
+	cursor: pointer;
+	vertical-align: middle;
+	.transition('background .4s');
+	.ctrl-checkout();
+
+	&::before {
+		content: '';
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: @CtrlHeight - 4px;
+		height: @CtrlHeight - 4px;
+		border-radius: 50%;
+		z-index: 1;
+		background: @ColorWhite;
+		box-shadow: 0 0 2px fade(@ColorBlack, 20%);
+		.transition('transform .2s');
+	}
+
+	&.checked {
+		background: @ColorWhiteBackDark;
+
+		&::before {
+			.transform('translateX(100%)');
+		}
+	}
+
+	&.sm {
+		width: (@CtrlHeight - @CtrlSizeGradient) * 2 - 4px;
+		height: @CtrlHeight - @CtrlSizeGradient;
+		border-radius: @CtrlHeight - @CtrlSizeGradient;
+
+		&::before {
+			width: @CtrlHeight - @CtrlSizeGradient - 4px;
+			height: @CtrlHeight - @CtrlSizeGradient - 4px;
+		}
+	}
+
+	&.lg {
+		width: (@CtrlHeight + @CtrlSizeGradient) * 2 - 4px;
+		height: @CtrlHeight + @CtrlSizeGradient;
+		border-radius: @CtrlHeight + @CtrlSizeGradient;
+
+		&::before {
+			width: @CtrlHeight - 4px + @CtrlSizeGradient;
+			height: @CtrlHeight - 4px + @CtrlSizeGradient;
+		}
+	}
+
+	&[ud2-switch-disabled] {
+		opacity: @OpacityHover;
+		cursor: default;
+	}
+}
+
+// 红色消息颜色样式
+.ud2-switch.c-red, .ud2-switch.danger {
+	&.checked {
+		background: @ColorRed;
+	}
+}
+// 橙色消息颜色样式
+.ud2-switch.c-orange, .ud2-switch.warning {
+	&.checked {
+		background: @ColorOrange;
+	}
+}
+// 绿色消息颜色样式
+.ud2-switch.c-green, .ud2-switch.success {
+	&.checked {
+		background: @ColorGreen;
+	}
+}
+// 蓝色消息颜色样式
+.ud2-switch.c-blue, .ud2-switch.info {
+	&.checked {
+		background: @ColorBlue;
+	}
+}
+// 黄色消息颜色样式
+.ud2-switch.c-yellow {
+	&.checked {
+		background: @ColorYellow;
+	}
+}
+// 天蓝色消息颜色样式
+.ud2-switch.c-teal {
+	&.checked {
+		background: @ColorTeal;
+	}
+}
+// 紫蓝色消息颜色样式
+.ud2-switch.c-violet {
+	&.checked {
+		background: @ColorViolet;
+	}
+}
+// 紫色消息颜色样式
+.ud2-switch.c-purple {
+	&.checked {
+		background: @ColorPurple;
+	}
+}
+// 粉色消息颜色样式
+.ud2-switch.c-pink {
+	&.checked {
+		background: @ColorPink;
+	}
+}
+// 棕色消息颜色样式
+.ud2-switch.c-brown {
+	&.checked {
+		background: @ColorBrown;
+	}
+}
+// 灰色消息颜色样式
+.ud2-switch.c-grey {
+	&.checked {
+		background: @ColorGrey;
+	}
+}
+// 深色消息颜色样式
+.ud2-switch.c-dark {
+	&.checked {
+		background: @ColorDark;
+	}
+}

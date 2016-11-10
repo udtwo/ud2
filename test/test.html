@@ -10,11 +10,24 @@
 	<script src="../src/js/ud2.dataTable.js"></script>
 </head>
 <body>
-	<div ud2="switch"></div>
-
+	<input ud2="switch" value="1" /><br />
 	<script>
 		ud2.ready(function () {
-			
+			ud2.switch.collection[0].disabled(true);
+
+			ud2.switch({disabled:true}).appendTo('body');
+			ud2.switch({ color: ud2.color.red }).appendTo('body');
+			ud2.switch({ color: ud2.color.blue }).appendTo('body');
+			ud2.switch({ color: ud2.color.brown }).appendTo('body');
+			ud2.switch({ color: ud2.color.dark }).appendTo('body');
+			ud2.switch({ color: ud2.color.green }).appendTo('body');
+			ud2.switch({ color: ud2.color.grey }).appendTo('body');
+			ud2.switch({ color: ud2.color.orange }).appendTo('body');
+			ud2.switch({ color: ud2.color.pink }).appendTo('body');
+			ud2.switch({ color: ud2.color.purple }).appendTo('body');
+			ud2.switch({ color: ud2.color.teal }).appendTo('body');
+			ud2.switch({ color: ud2.color.violet }).appendTo('body');
+			ud2.switch({ color: ud2.color.yellow }).appendTo('body');
 		});
 	</script>
 </body>

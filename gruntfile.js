@@ -60,6 +60,7 @@ module.exports = function (grunt) {
 						'src/less/style/components/common.less',
 						'src/less/style/components/ud2-dialog.less',
 						'src/less/style/components/ud2-message.less',
+						'src/less/style/components/ud2-switch.less',
 						'src/less/style/components/ud2-date.less',
 						'src/less/style/components/ud2-select.less',
 						'src/less/style/components/ud2-number.less',

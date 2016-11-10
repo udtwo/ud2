@@ -62,7 +62,7 @@
 	vertical-align: middle;
 	outline: 5px dashed @ColorWhiteBackDark;
 	opacity: 0;
-	.transition('opacity .3s, visibility');
+	.transition(opacity .3s, visibility);
 }
 // 设置控件的无图片样式
 .ud2-file-full-nofile {
@@ -109,8 +109,8 @@
 }
 // 设置控件的图片容器样式
 .ud2-file-full-figure {
-	.transform('scale(0)');
-	.transition('transform .3s');
+	.transform(scale(0));
+	.transition(transform .3s);
 
 	input {
 		border: 0;
@@ -119,7 +119,7 @@
 	}
 
 	&.ud2-file-full-figure-on {
-		.transform('scale(1)');
+		.transform(scale(1));
 	}
 
 	&.success .ud2-file-full-progress {
@@ -157,7 +157,7 @@
 
 	&:hover div {
 		opacity: 1;
-		.transform('scale(1.2)');
+		.transform(scale(1.2));
 	}
 
 	div {
@@ -166,7 +166,7 @@
 		width: 100%;
 		margin-top: -26px;
 		opacity: @OpacityNoImport;
-		.transition('transform .2s');
+		.transition(transform .2s);
 	}
 
 	.ico, em {
@@ -224,12 +224,12 @@
 		color: @ColorRed;
 		font-size: 18px;
 		line-height: 18px;
-		.transition('transform .3s, color .3s');
+		.transition(transform .3s, color .3s);
 	}
 
 	&:hover::before {
 		color: @ColorRedDeeper;
-		.transform('rotate(90deg) scale(1.1)');
+		.transform(rotate(90deg) scale(1.1));
 	}
 
 	&:active::before {
@@ -257,5 +257,5 @@
 	line-height: 118px;
 	text-align: center;
 	background: fadeout(@ColorGreen, 20%);
-	.transition('background .3s');
+	.transition(background .3s);
 }

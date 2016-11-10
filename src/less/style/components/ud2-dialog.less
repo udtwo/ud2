@@ -15,14 +15,14 @@
 	box-shadow: 3px 3px 3px fadeout(@ColorBlack, 92%);
 	opacity: 0;
 	visibility: hidden;
-	.transform('scale(.95)');
-	.transition('transform .3s, opacity .3s, visibility .3s');
+	.transform(scale(.95));
+	.transition(transform .3s, opacity .3s, visibility .3s);
 
 	&.on {
 		opacity: 1;
 		visibility: visible;
-		.transform('scale(1)');
-		.transition('transform .3s, opacity .3s, visibility .3s');
+		.transform(scale(1));
+		.transition(transform .3s, opacity .3s, visibility .3s);
 	}
 }
 // 设置内部容器为绝对定位
@@ -37,7 +37,7 @@
 	font-weight: 800;
 	line-height: @BaseSize * 2;
 	background: @ColorWhiteDeeper;
-	.boxSizing('border-box');
+	.boxSizing(border-box);
 }
 // 对话框关闭按钮
 .ud2-dialog-close {
@@ -46,11 +46,11 @@
 	top: .75em;
 	right: .75em;
 	cursor: pointer;
-	.transition('color .3s, transform .3s');
+	.transition(color .3s, transform .3s);
 
 	&:hover {
 		color: @ColorRed;
-		.transform('rotate(90deg)');
+		.transform(rotate(90deg));
 	}
 }
 // 对话框控件身体容器样式

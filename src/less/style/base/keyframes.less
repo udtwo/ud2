@@ -1,0 +1,12 @@
+﻿// 导入必要的文件
+@import "../../common/import.less";
+
+// 顺时针旋转动画
+.keyframesItem(fx-rotate, 0%, @prefix) { @{prefix}transform: rotate(0); }
+.keyframesItem(fx-rotate, 100%, @prefix) { @{prefix}transform: rotate(1turn); }
+.keyframes(fx-rotate);
+// 逆时针旋转动画
+.keyframesItem(fx-rotate-reverse, 0%, @prefix) { @{prefix}transform: rotate(0); }
+.keyframesItem(fx-rotate-reverse, 100%, @prefix) { @{prefix}transform: rotate(-1turn); }
+.keyframes(fx-rotate-reverse);
+

@@ -11,7 +11,7 @@
 	padding-left: @CtrlPaddingLR;
 	padding-right: 2em;
 	text-align: left;
-	.boxSizing('border-box');
+	.boxSizing(border-box);
 
 	// 设置列表开启后的样式
 	&.on {
@@ -37,8 +37,8 @@
 		border-style: solid dashed dashed dashed;
 		border-color: @ColorWhiteBackDark transparent transparent transparent;
 		vertical-align: middle;
-		.transition('border-color .4s, transform .4s');
-		.transformOrigin('50% 25%');
+		.transition(border-color .4s, transform .4s);
+		.transformOrigin(50% 25%);
 	}
 }
 // 设置显示文本、图标为内联块元素
@@ -67,7 +67,7 @@
 // 设置控件上方向开启的样式方案
 .ud2-select-dir-up {
 	.ud2-ctrl-arrow {
-		.transform('rotate(180deg)');
+		.transform(rotate(180deg));
 	}
 
 	.ud2-select-list {
@@ -76,14 +76,14 @@
 
 	&.on {
 		.ud2-ctrl-arrow {
-			.transform('rotate(0)');
+			.transform(rotate(0));
 		}
 	}
 }
 // 设置控件下方向开启的样式方案
 .ud2-select-dir-down {
 	.ud2-ctrl-arrow {
-		.transform('rotate(0)');
+		.transform(rotate(0));
 	}
 
 	.ud2-select-list {
@@ -92,7 +92,7 @@
 
 	&.on {
 		.ud2-ctrl-arrow {
-			.transform('rotate(180deg)');
+			.transform(rotate(180deg));
 		}
 	}
 }
@@ -110,7 +110,7 @@
 
 	div, div::before, a {
 		display: block;
-		.boxSizing('border-box');
+		.boxSizing(border-box);
 	}
 
 	div::before, a {
@@ -144,7 +144,7 @@
 		top: .65em;
 		font-size: 1.2em;
 		opacity: 0;
-		.transition('right .3s, opacity .3s, color .3s');
+		.transition(right .3s, opacity .3s, color .3s);
 	}
 
 	// 鼠标滑入样式

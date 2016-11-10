@@ -31,7 +31,7 @@
 		border: none;
 		border-radius: 0;
 		opacity: @OpacityNoImport;
-		.transition('opacity .3s, background .3s');
+		.transition(opacity .3s, background .3s);
 
 		&:hover, &:focus {
 			background: @ColorWhiteBorder;
@@ -100,12 +100,12 @@
 		font-family: 'ud2';
 		font-style: normal;
 		opacity: @OpacityNoImport;
-		.transition('transform .3s, opacity .3s');
+		.transition(transform .3s, opacity .3s);
 	}
 
 	&:hover::before {
 		opacity: 1;
-		.transform('rotate(90deg)');
+		.transform(rotate(90deg));
 	}
 }
 // 红色消息颜色样式

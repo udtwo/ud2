@@ -10,7 +10,7 @@
 .ud2-date {
 	padding-left: @CtrlPaddingLR;
 	padding-right: 2em;
-	.boxSizing('border-box');
+	.boxSizing(border-box);
 
 	// 设置控件开启样式
 	&.on {
@@ -55,7 +55,7 @@
 			cursor: pointer;
 			outline: 1px solid transparent;
 			outline-offset: -5px;
-			.transition('all .3s');
+			.transition(all .3s);
 
 			&:hover {
 				color: @ColorGreen;
@@ -119,7 +119,7 @@
 		text-align: center;
 		color: @ColorTextNoImport;
 		cursor: pointer;
-		.transition('color .3s');
+		.transition(color .3s);
 
 		&:hover {
 			color: @ColorBlue;
@@ -171,7 +171,7 @@
 
 	.ud2-date-tools-left, .ud2-date-tools-right {
 		.ico {
-			.transform('scale(.9)');
+			.transform(scale(.9));
 		}
 	}
 }
@@ -183,7 +183,7 @@
 	
 	.ud2-date-tools-left, .ud2-date-tools-right {
 		.ico {
-			.transform('scale(1.1)');
+			.transform(scale(1.1));
 		}
 	}
 }

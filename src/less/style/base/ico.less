@@ -35,29 +35,29 @@
 	// 为浏览器设置抗锯齿
 	-webkit-font-smoothing: antialiased;
 	/*-moz-osx-font-smoothing: grayscale;*/
-	.transition('transform .6s, color .3s');
+	.transition(transform .6s, color .3s);
 }
 // 图标二分之一旋转
 .ico-rotate-half {
-	.transform('rotate(180deg)');
+	.transform(rotate(180deg));
 }
 // 图标四分之一旋转
 .ico-rotate-qtr {
-	.transform('rotate(90deg)');
+	.transform(rotate(90deg));
 }
 // 图标HOVER旋转
 .ico-hover-rotate {
 	&:hover {
-		.transform('rotate(180deg) scale(1.2)');
+		.transform(rotate(180deg) scale(1.2));
 	}
 }
 // 图标旋转动画
 .ico-ani-rotate {
-	.animation('fx-rotate 1s linear infinite');
+	.animation(fx-rotate 1s linear infinite);
 }
 // 图标逆时针旋转动画
 .ico-ani-rotate-reverse {
-	.animation('fx-rotate-reverse 1s linear infinite');
+	.animation(fx-rotate-reverse 1s linear infinite);
 }
 
 /**

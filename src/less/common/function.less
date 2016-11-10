@@ -11,52 +11,106 @@
 		clear: both;
 	}
 }
-// 设定动画
+// 设置动画
 .animation(@effect) {
-	-moz-animation: e(@effect);
-	-o-animation: e(@effect);
-	-webkit-animation: e(@effect);
-	animation: e(@effect);
+	-moz-animation: @effect;
+	-o-animation: @effect;
+	-webkit-animation: @effect;
+	animation: @effect;
 }
-// 设定动画时间
+// 设置动画时间
 .animationDuration(@time: .5s) {
 	-moz-animation-duration: @time;
 	-webkit-animation-duration: @time;
 	-o-animation-duration: @time;
 	animation-duration: @time;
 }
-// 设定动画延迟
+// 设置动画延迟
 .animationDelay(@time: .5s) {
 	-moz-animation-delay: @time;
 	-o-animation-delay: @time;
 	-webkit-animation-delay: @time;
 	animation-delay: @time;
 }
-// 生成带有浏览器前缀的transform属性
+// 设置变换方案
 .transform(@effect) {
-	-moz-transform: e(@effect);
-	-ms-transform: e(@effect);
-	-o-transform: e(@effect);
-	-webkit-transform: e(@effect);
-	transform: e(@effect);
+	-moz-transform: @effect;
+	-ms-transform: @effect;
+	-o-transform: @effect;
+	-webkit-transform: @effect;
+	transform: @effect;
 }
-// 生成带有浏览器前缀的transform-origin属性
-.transformOrigin(@value){
-	-moz-transform-origin: e(@value);
-	-ms-transform-origin: e(@value);
-	-o-transform-origin: e(@value);
-	-webkit-transform-origin: e(@value);
-	transform-origin: e(@value);
+// 设置变换原点
+.transformOrigin(@value) {
+	-moz-transform-origin: @value;
+	-ms-transform-origin: @value;
+	-o-transform-origin: @value;
+	-webkit-transform-origin: @value;
+	transform-origin: @value;
 }
-// 生成带有浏览器前缀的transition属性
+// 设置变换模式
+.transformStyle(@value: preserve-3d) {
+	-webkit-transform-style: @value;
+	transform-style: @value;
+}
+// 设置过渡方案
 // 默认值为all .2s，即全部属性动画为200ms
-.transition(@effect: 'all .2s') {
-	-moz-transition: e(replace(@effect, '(transform)', '-moz-$1'));
-	-o-transition: e(replace(@effect, '(transform)', '-o-$1'));
-	-webkit-transition: e(replace(@effect, '(transform)', '-webkit-$1'));
-	transition: e(@effect);
+.transition(@effect: all .2s) {
+	-moz-transition: e(replace(%('%s', @effect), '(transform)', '-moz-$1'));
+	-o-transition: e(replace(%('%s', @effect), '(transform)', '-o-$1'));
+	-webkit-transition: e(replace(%('%s', @effect), '(transform)', '-webkit-$1'));
+	transition: @effect;
 }
-// 生成带有浏览器前缀的transition-duration属性
+// 二参数
+.transition(@e1, @e2) {
+	-moz-transition: e(replace(%('%s', @e1), '(transform)', '-moz-$1')), e(replace(%('%s', @e2), '(transform)', '-moz-$1'));
+	-o-transition: e(replace(%('%s', @e1), '(transform)', '-o-$1')), e(replace(%('%s', @e2), '(transform)', '-o-$1'));
+	-webkit-transition: e(replace(%('%s', @e1), '(transform)', '-webkit-$1')), e(replace(%('%s', @e2), '(transform)', '-webkit-$1'));
+	transition: @e1, @e2;
+}
+// 三参数
+.transition(@e1, @e2, @e3) {
+	-moz-transition: e(replace(%('%s', @e1), '(transform)', '-moz-$1')), e(replace(%('%s', @e2), '(transform)', '-moz-$1')), e(replace(%('%s', @e3), '(transform)', '-moz-$1'));
+	-o-transition: e(replace(%('%s', @e1), '(transform)', '-o-$1')), e(replace(%('%s', @e2), '(transform)', '-o-$1')), e(replace(%('%s', @e3), '(transform)', '-o-$1'));
+	-webkit-transition: e(replace(%('%s', @e1), '(transform)', '-webkit-$1')), e(replace(%('%s', @e2), '(transform)', '-webkit-$1')), e(replace(%('%s', @e3), '(transform)', '-webkit-$1'));
+	transition: @e1, @e2, @e3;
+}
+// 四参数
+.transition(@e1, @e2, @e3, @e4) {
+	-moz-transition: e(replace(%('%s', @e1), '(transform)', '-moz-$1')), e(replace(%('%s', @e2), '(transform)', '-moz-$1')), e(replace(%('%s', @e3), '(transform)', '-moz-$1')), e(replace(%('%s', @e4), '(transform)', '-moz-$1'));
+	-o-transition: e(replace(%('%s', @e1), '(transform)', '-o-$1')), e(replace(%('%s', @e2), '(transform)', '-o-$1')), e(replace(%('%s', @e3), '(transform)', '-o-$1')), e(replace(%('%s', @e4), '(transform)', '-o-$1'));
+	-webkit-transition: e(replace(%('%s', @e1), '(transform)', '-webkit-$1')), e(replace(%('%s', @e2), '(transform)', '-webkit-$1')), e(replace(%('%s', @e3), '(transform)', '-webkit-$1')), e(replace(%('%s', @e4), '(transform)', '-webkit-$1'));
+	transition: @e1, @e2, @e3, @e4;
+}
+// 五参数
+.transition(@e1, @e2, @e3, @e4, @e5) {
+	-moz-transition: e(replace(%('%s', @e1), '(transform)', '-moz-$1')), e(replace(%('%s', @e2), '(transform)', '-moz-$1')), e(replace(%('%s', @e3), '(transform)', '-moz-$1')), e(replace(%('%s', @e4), '(transform)', '-moz-$1')), e(replace(%('%s', @e5), '(transform)', '-moz-$1'));
+	-o-transition: e(replace(%('%s', @e1), '(transform)', '-o-$1')), e(replace(%('%s', @e2), '(transform)', '-o-$1')), e(replace(%('%s', @e3), '(transform)', '-o-$1')), e(replace(%('%s', @e4), '(transform)', '-o-$1')), e(replace(%('%s', @e5), '(transform)', '-o-$1'));
+	-webkit-transition: e(replace(%('%s', @e1), '(transform)', '-webkit-$1')), e(replace(%('%s', @e2), '(transform)', '-webkit-$1')), e(replace(%('%s', @e3), '(transform)', '-webkit-$1')), e(replace(%('%s', @e4), '(transform)', '-webkit-$1')), e(replace(%('%s', @e5), '(transform)', '-webkit-$1'));
+	transition: @e1, @e2, @e3, @e4, @e5;
+}
+// 六参数
+.transition(@e1, @e2, @e3, @e4, @e5, @e6) {
+	-moz-transition: e(replace(%('%s', @e1), '(transform)', '-moz-$1')), e(replace(%('%s', @e2), '(transform)', '-moz-$1')), e(replace(%('%s', @e3), '(transform)', '-moz-$1')), e(replace(%('%s', @e4), '(transform)', '-moz-$1')), e(replace(%('%s', @e5), '(transform)', '-moz-$1')), e(replace(%('%s', @e6), '(transform)', '-moz-$1'));
+	-o-transition: e(replace(%('%s', @e1), '(transform)', '-o-$1')), e(replace(%('%s', @e2), '(transform)', '-o-$1')), e(replace(%('%s', @e3), '(transform)', '-o-$1')), e(replace(%('%s', @e4), '(transform)', '-o-$1')), e(replace(%('%s', @e5), '(transform)', '-o-$1')), e(replace(%('%s', @e6), '(transform)', '-o-$1'));
+	-webkit-transition: e(replace(%('%s', @e1), '(transform)', '-webkit-$1')), e(replace(%('%s', @e2), '(transform)', '-webkit-$1')), e(replace(%('%s', @e3), '(transform)', '-webkit-$1')), e(replace(%('%s', @e4), '(transform)', '-webkit-$1')), e(replace(%('%s', @e5), '(transform)', '-webkit-$1')), e(replace(%('%s', @e6), '(transform)', '-webkit-$1'));
+	transition: @e1, @e2, @e3, @e4, @e5, @e6;
+}
+// 七参数
+.transition(@e1, @e2, @e3, @e4, @e5, @e6, @e7) {
+	-moz-transition: e(replace(%('%s', @e1), '(transform)', '-moz-$1')), e(replace(%('%s', @e2), '(transform)', '-moz-$1')), e(replace(%('%s', @e3), '(transform)', '-moz-$1')), e(replace(%('%s', @e4), '(transform)', '-moz-$1')), e(replace(%('%s', @e5), '(transform)', '-moz-$1')), e(replace(%('%s', @e6), '(transform)', '-moz-$1')), e(replace(%('%s', @e7), '(transform)', '-moz-$1'));
+	-o-transition: e(replace(%('%s', @e1), '(transform)', '-o-$1')), e(replace(%('%s', @e2), '(transform)', '-o-$1')), e(replace(%('%s', @e3), '(transform)', '-o-$1')), e(replace(%('%s', @e4), '(transform)', '-o-$1')), e(replace(%('%s', @e5), '(transform)', '-o-$1')), e(replace(%('%s', @e6), '(transform)', '-o-$1')), e(replace(%('%s', @e7), '(transform)', '-o-$1'));
+	-webkit-transition: e(replace(%('%s', @e1), '(transform)', '-webkit-$1')), e(replace(%('%s', @e2), '(transform)', '-webkit-$1')), e(replace(%('%s', @e3), '(transform)', '-webkit-$1')), e(replace(%('%s', @e4), '(transform)', '-webkit-$1')), e(replace(%('%s', @e5), '(transform)', '-webkit-$1')), e(replace(%('%s', @e6), '(transform)', '-webkit-$1')), e(replace(%('%s', @e7), '(transform)', '-webkit-$1'));
+	transition: @e1, @e2, @e3, @e4, @e5, @e6, @e7;
+}
+// 八参数
+.transition(@e1, @e2, @e3, @e4, @e5, @e6, @e7, @e8) {
+	-moz-transition: e(replace(%('%s', @e1), '(transform)', '-moz-$1')), e(replace(%('%s', @e2), '(transform)', '-moz-$1')), e(replace(%('%s', @e3), '(transform)', '-moz-$1')), e(replace(%('%s', @e4), '(transform)', '-moz-$1')), e(replace(%('%s', @e5), '(transform)', '-moz-$1')), e(replace(%('%s', @e6), '(transform)', '-moz-$1')), e(replace(%('%s', @e7), '(transform)', '-moz-$1')), e(replace(%('%s', @e8), '(transform)', '-moz-$1'));
+	-o-transition: e(replace(%('%s', @e1), '(transform)', '-o-$1')), e(replace(%('%s', @e2), '(transform)', '-o-$1')), e(replace(%('%s', @e3), '(transform)', '-o-$1')), e(replace(%('%s', @e4), '(transform)', '-o-$1')), e(replace(%('%s', @e5), '(transform)', '-o-$1')), e(replace(%('%s', @e6), '(transform)', '-o-$1')), e(replace(%('%s', @e7), '(transform)', '-o-$1')), e(replace(%('%s', @e8), '(transform)', '-o-$1'));
+	-webkit-transition: e(replace(%('%s', @e1), '(transform)', '-webkit-$1')), e(replace(%('%s', @e2), '(transform)', '-webkit-$1')), e(replace(%('%s', @e3), '(transform)', '-webkit-$1')), e(replace(%('%s', @e4), '(transform)', '-webkit-$1')), e(replace(%('%s', @e5), '(transform)', '-webkit-$1')), e(replace(%('%s', @e6), '(transform)', '-webkit-$1')), e(replace(%('%s', @e7), '(transform)', '-webkit-$1')), e(replace(%('%s', @e8), '(transform)', '-webkit-$1'));
+	transition: @e1, @e2, @e3, @e4, @e5, @e6, @e7, @e8;
+}
+// 设置过渡持续时间
 .transitionDuration(@time: .2s) {
 	-moz-transition-duration: @time;
 	-o-transition-duration: @time;
@@ -65,13 +119,13 @@
 }
 // 生成带有浏览器前缀的appearance属性
 // 默认值为none，即取消浏览器的默认系统外观
-// HACK: appearance 目前只支持部分浏览器，webkit(chrome、safari) 与 moz(firefox)
+// HACK: appearance 目前只支持部分浏览器，webkit(chrome、safari)与moz(firefox)
 .appearance(@value: none) {
-	-moz-appearance: e(@value);
-	-webkit-appearance: e(@value);
+	-moz-appearance: @value;
+	-webkit-appearance: @value;
 }
-// 生成带有浏览器前缀的 text-overflow 属性
-// 默认值为 ellipsis，即文本超出范围则用'...'来代替多余文本
+// 生成带有浏览器前缀的text-overflow属性
+// 默认值为ellipsis，即文本超出范围则用'...'来代替多余文本
 .textOverflow() {
 	white-space: nowrap;
 	overflow: hidden;
@@ -79,30 +133,30 @@
 	-o-text-overflow: ellipsis;
 	text-overflow: ellipsis;
 }
-// 生成带有浏览器前缀的 box-sizing 属性
-// 默认值为 content-box，即盒子运算方式为 width、padding、border 分开运算
-.boxSizing(@value: 'content-box') {
-	-moz-box-sizing: e(@value);
-	-webkit-box-sizing: e(@value);
-	box-sizing: e(@value);
+// 生成带有浏览器前缀的box-sizing属性
+// 默认值为content-box，即盒子运算方式为width、padding、border分开运算
+.boxSizing(@value: content-box) {
+	-moz-box-sizing: @value;
+	-webkit-box-sizing: @value;
+	box-sizing: @value;
 }
-// 生成带有浏览器前缀的 user-select 属性
-// 默认值为 none，即元素的选择方式为空
-.userSelect(@value: 'none') {
-	-moz-user-select: e(@value);
-	-webkit-user-select: e(@value);
-	-ms-user-select: e(@value);
-	user-select: e(@value);
+// 生成带有浏览器前缀的user-select属性
+// 默认值为none，即元素的选择方式为空
+.userSelect(@value: none) {
+	-moz-user-select: @value;
+	-webkit-user-select: @value;
+	-ms-user-select: @value;
+	user-select: @value;
 }
-// 生成带有浏览器前缀的 text-size-adjust 属性
-// 默认值为 none，即不对内部元素进行尺寸缩放
-.textSizeAdjust(@value: 'none') {
-	-moz-text-size-adjust: e(@value);
-	-webkit-text-size-adjust: e(@value);
-	-ms-text-size-adjust: e(@value);
-	text-size-adjust: e(@value);
+// 生成带有浏览器前缀的text-size-adjust属性
+// 默认值为none，即不对内部元素进行尺寸缩放
+.textSizeAdjust(@value: none) {
+	-moz-text-size-adjust: @value;
+	-webkit-text-size-adjust: @value;
+	-ms-text-size-adjust: @value;
+	text-size-adjust: @value;
 }
-// 修复 transform、animation 导致的元素闪烁
+// 修复transform、animation导致的元素闪烁
 .repairFlicker() {
 	-moz-backface-visibility: hidden;
 	-webkit-backface-visibility: hidden;
@@ -111,6 +165,58 @@
 	-moz-perspective: 0;
 	-ms-perspective: 0;
 	perspective: 0;
+}
+// 设置透视距离
+.perspective(@dist: 2000px) {
+	-moz-perspective: @dist;
+	-ms-perspective: @dist;
+	-webkit-perspective: @dist;
+	perspective: @dist;
+}
+
+// 设置动画帧
+.keyframes(@name, @point1: 0%, @point2: 100%, @point3: '', @point4: '', @point5: '', @point6: '', @point7: '', @point8: '', @point9: '', @point10: '', @point11: '', @point12: '', @point13: '', @point14: '', @point15: '', @point16: '') {
+	@bracketClose: '}';
+	@endClose: e(%('%s.%s', @bracketClose, @name));
+
+	.empty() {}
+	.keyframesItem('', '', '') {}
+	.vendor-keyframes(@prefix: '', @prehack: @bracketClose) {
+		@beginString: ~'@{prehack}@@{prefix}keyframes @{name}{@{point1}';
+		@{beginString} { .keyframesItem(@name, @point1, e(@prefix)); }
+		
+		.keyframes-point(@name, @point2, @prefix);
+		.keyframes-point(@name, @point3, @prefix);
+		.keyframes-point(@name, @point4, @prefix);
+		.keyframes-point(@name, @point5, @prefix);
+		.keyframes-point(@name, @point6, @prefix);
+		.keyframes-point(@name, @point7, @prefix);
+		.keyframes-point(@name, @point8, @prefix);
+		.keyframes-point(@name, @point9, @prefix);
+		.keyframes-point(@name, @point10, @prefix);
+		.keyframes-point(@name, @point11, @prefix);
+		.keyframes-point(@name, @point12, @prefix);
+		.keyframes-point(@name, @point13, @prefix);
+		.keyframes-point(@name, @point14, @prefix);
+		.keyframes-point(@name, @point15, @prefix);
+		.keyframes-point(@name, @point16, @prefix);
+	}
+
+	.keyframes-point(@name, @point, @prefix) when not (@point = '') {
+		@pointSelector: ~'@{point}'; // cleaning selector from possible quotes
+		@{pointSelector} {
+			.keyframesItem(@name, @point, e(@prefix)); // applying styles provided
+		}
+	}
+
+	.vendor-keyframes('-webkit-', '');
+	.vendor-keyframes('-moz-');
+	.vendor-keyframes('-o-');
+	.vendor-keyframes();
+
+	@{endClose}{
+		animation: @name 1s linear infinite;
+	}
 }
 
 // 滚动条样式

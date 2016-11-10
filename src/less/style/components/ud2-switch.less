@@ -15,7 +15,7 @@
 	background: @ColorWhiteDeepest;
 	cursor: pointer;
 	vertical-align: middle;
-	.transition('background .4s');
+	.transition(background .4s);
 	.ctrl-checkout();
 
 	&::before {
@@ -29,14 +29,14 @@
 		z-index: 1;
 		background: @ColorWhite;
 		box-shadow: 0 0 2px fade(@ColorBlack, 20%);
-		.transition('transform .2s');
+		.transition(transform .2s);
 	}
 
 	&.checked {
 		background: @ColorWhiteBackDark;
 
 		&::before {
-			.transform('translateX(100%)');
+			.transform(translateX(100%));
 		}
 	}
 

@@ -9,4 +9,11 @@
 .keyframesItem(fx-rotate-reverse, 0%, @prefix) { @{prefix}transform: rotate(0); }
 .keyframesItem(fx-rotate-reverse, 100%, @prefix) { @{prefix}transform: rotate(-1turn); }
 .keyframes(fx-rotate-reverse);
-
+// 显示动画
+.keyframesItem(fx-show, 0%, @prefix) { opacity: 0; }
+.keyframesItem(fx-show, 100%, @prefix) { opacity: 1; }
+.keyframes(fx-show);
+// 隐藏动画
+.keyframesItem(fx-hide, 0%, @prefix) { opacity: 1; }
+.keyframesItem(fx-hide, 100%, @prefix) { opacity: 0; }
+.keyframes(fx-hide);

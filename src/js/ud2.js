@@ -916,6 +916,7 @@ var ud2 = (function (window, $) {
 			// eventStart事件触发函数
 			// event[eventObject]: 事件对象
 			function eventStart(event) {
+				event.preventDefault();
 				if (stopPropagation) event.stopPropagation();
 
 				var // 事件类型

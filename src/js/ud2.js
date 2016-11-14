@@ -1078,7 +1078,6 @@ var ud2 = (function (window, $) {
 					// 获取触点移动绝对长度
 					absMove = { x: Math.abs(move.x), y: Math.abs(move.y) };
 
-
 				// 如果抬起的是第一次按压的触点
 				if (first.id === id) { interval = new Date() - first.time; first.id = null; first.time = null; }
 
@@ -1723,13 +1722,6 @@ var ud2 = (function (window, $) {
 
 		// #region 私有方法
 
-		// 重计算滚动条滚动位置
-		function recountPosition() {
-			getScrollData();
-			translateMove(scrollData.now.x, scrollData.now.y);
-
-			return scrollObj;
-		}
 		// 重新计算滚动对象及外层对象高度，且初始化滚动条数据
 		function getScrollData() {
 			var // 外层盒子高度
@@ -1976,6 +1968,15 @@ var ud2 = (function (window, $) {
 
 		// #region 公共方法
 
+		// 重计算滚动条滚动位置
+		// (?) time[number]: 滚动条重置动画时间
+		function recountPosition(time) {
+			time = parseInt(time) || 0;
+			getScrollData();
+			translateMove(scrollData.now.x, scrollData.now.y, time);
+
+			return scrollObj;
+		}
 		// 获取滚动条内容区域对象
 		// return[jQuery]: 返回内容区域对象
 		function getContent() {

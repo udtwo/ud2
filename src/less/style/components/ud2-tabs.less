@@ -1,0 +1,415 @@
+﻿/**
+ * ud2-tabs.less
+ * 选项组控件的默认样式
+ */
+
+// 导入必要的文件
+@import "../../common/import.less";
+
+@TabNormalSize: @BaseSize * 3.6;
+@TabNormalBackground: lighten(@ColorWhiteDeeper, 2%);
+@TabNormalFontColor: lighten(@ColorText, 14%);
+@TabNormalHeight: 300px;
+
+// 选项组控件主容器
+.ud2-tabs {
+	display: block;
+	width: 100%;
+	height: @TabNormalHeight;
+	overflow: hidden;
+
+	&.ud2-tabs-full {
+		height: 100%;
+	}
+}
+// 设定容器的定位方式为相对定位
+.ud2-tabs, .ud2-tabs-menu-list, .ud2-tabs-menu-item, .ud2-tabs-tab {
+	position: relative;
+}
+// 设置容器的定位方式为绝对定位
+.ud2-tabs-bar, .ud2-tabs-main, .ud2-tabs-menu, .ud2-tabs-menu-list, .ud2-tabs-menu-item i, .ud2-tabs-tab i {
+	position: absolute;
+}
+// 设定容器的盒运算方式
+.ud2-tabs-tab, .ud2-tabs-main {
+	.boxSizing(border-box);
+}
+
+// 选项集合容器
+.ud2-tabs-bar {
+	z-index: 2;
+	overflow: hidden;
+}
+// 目录容器
+.ud2-tabs-menu {
+	z-index: 4;
+	width: @TabNormalSize;
+	height: @TabNormalSize;
+
+	&.on {
+		.ud2-tabs-menu-btn {
+			background: @CtrlIcoColor;
+
+			&::before {
+				color: @ColorWhite;
+			}
+		}
+
+		.ud2-tabs-menu-list {
+			opacity: 1;
+			visibility: visible;
+			.transform(translateY(0));
+		}
+	}
+}
+// 目录按钮
+.ud2-tabs-menu-btn {
+	width: 100%;
+	height: 100%;
+	background: @TabNormalBackground;
+	line-height: @TabNormalSize;
+	text-align: center;
+	cursor: pointer;
+	overflow: hidden;
+	.transition(background .3s);
+
+	&:hover {
+		color: @ColorBlue;
+		background: @ColorBlueBackLight;
+	}
+
+	&::before {
+		content: '\e105';
+		display: inline-block;
+		font-family: ud2;
+		font-size: @BaseFontSize + @CtrlSizeGradient;
+		.transition(transform .3s, color .3s);
+	}
+}
+// 目录列表
+.ud2-tabs-menu-list {
+	width: 200px; 
+	border: 2px solid @CtrlIcoColor;
+	padding: @BaseSize / 2 @BaseSize;
+	background: @ColorWhite;
+	overflow: hidden;
+	visibility: hidden;
+	opacity: 0;
+	.boxSizing(border-box);
+	.transition(transform .2s, opacity .2s, visibility .2s);
+}
+// 目录项
+.ud2-tabs-menu-item {
+	display: block;
+	border-bottom: 1px solid @ColorWhiteBackLight;
+
+	span, i {
+		cursor: pointer;
+		.transition(transform .2s, color .2s, font-weight .2s);
+	}
+
+	span {
+		display: block;
+		margin-right: 1.6em;
+		.textOverflow();
+
+		&:hover {
+			color: @ColorTeal;
+		}
+	}
+
+	i {
+		top: .45em;
+		right: 0;
+		color: @ColorWhiteBackDark;
+
+		&:hover {
+			color: @ColorRed;
+		}
+	}
+
+	&.on span {
+		color: @ColorBlue;
+		font-weight: 800;
+	}
+}
+// 目录列表是空的
+.ud2-tabs-menu-list.empty::before {
+	content: attr(ud2-tabs-empty);
+	position: absolute;
+	top: 40%; left: 0; right: 0;
+	text-align: center;
+	color: @ColorTextNoImport;
+}
+// 选项容器
+.ud2-tabs-tab {
+	height: @TabNormalSize;
+	line-height: @TabNormalSize;
+	color: @TabNormalFontColor;
+	background: @TabNormalBackground;
+	cursor: pointer;
+	
+	.transition(background .2s, color .2s);
+	
+	i {
+		top: 1em;
+		right: .8em;
+		color: @ColorWhiteBackDark;
+		font-size: .9em;
+		line-height: 1;
+
+		&:hover {
+			color: @ColorRed;
+		}
+	}
+
+	span {
+		display: block;
+		padding: 0 .7em;
+		.textOverflow();
+	}
+
+	span:not(:only-child) {
+		padding-right: 2.2em;
+	}
+
+	&.on {
+		color: @ColorText;
+		background: @ColorWhiteDeeper;
+	}
+}
+// 选项内容集合容器
+.ud2-tabs-main {
+	z-index: 3;
+	background: @ColorWhiteDeeper;
+}
+// 选项内容容器
+.ud2-tabs-content {
+	display: none;
+	padding: 1em;
+	.boxSizing(border-box);
+
+	&.on {
+		display: block;
+	}
+
+	&, &.iframe iframe {
+		width: 100%;
+		height: 100%;
+	}
+
+	&.iframe iframe {
+		border: 0;
+	}
+}
+
+// 选项容器在顶部或底部时的高度
+.ud2-tabs-top, .ud2-tabs-bottom {
+	.ud2-tabs-bar {
+		left: 0;
+		right: @TabNormalSize + @CtrlSizeGradient;
+		height: @TabNormalSize;
+
+		&:first-child {
+			right: 0;
+		}
+	}
+
+	.ud2-tabs-tab {
+		float: left;
+		max-width: 150px;
+		margin-right: @CtrlSizeGradient;
+
+		&:last-child {
+			margin-right: 0;
+		}
+	}
+
+	.ud2-tabs-menu-list {
+		height: @TabNormalHeight - @TabNormalSize;
+	}
+
+	.ud2-tabs-main {
+		left: 0;
+		right: 0;
+	}
+
+	// 选项集合内容器，用于标记内元素宽高的和
+	.ud2-tabs-bar-inner {
+		min-width: 100%;
+		height: 100%;
+	}
+}
+// 选项容器在左侧或右侧时的高度
+.ud2-tabs-left, .ud2-tabs-right {
+	.ud2-tabs-bar {
+		top: 0;
+		bottom: @TabNormalSize + @CtrlSizeGradient;
+		width: @TabNormalSize * 3.5;
+
+		&:first-child {
+			bottom: 0;
+		}
+	}
+
+	.ud2-tabs-tab {
+		width: @TabNormalSize * 3.5;
+		margin-bottom: @CtrlSizeGradient;
+	}
+
+	.ud2-tabs-menu {
+		width: @TabNormalSize * 3.5;
+	}
+
+	.ud2-tabs-menu-list {
+		height: @TabNormalHeight;
+	}
+
+	.ud2-tabs-main {
+		top: 0;
+		bottom: 0;
+	}
+
+	// 选项集合内容器，用于标记内元素宽高的和
+	.ud2-tabs-bar-inner {
+		width: 100%;
+		min-height: 100%;
+	}
+}
+
+// 选项卡在顶部样式
+.ud2-tabs-top {
+	.ud2-tabs-bar {
+		top: 0;
+	}
+
+	.ud2-tabs-main {
+		top: @TabNormalSize;
+		bottom: 0;
+	}
+
+	.ud2-tabs-menu {
+		top: 0;
+		right: 0;
+	}
+
+	.ud2-tabs-tab, .ud2-tabs-menu-btn {
+		border-top-left-radius: @BorderRadius;
+		border-top-right-radius: @BorderRadius;
+	}
+
+	.ud2-tabs-menu.on .ud2-tabs-menu-btn::before {
+		.transform(rotate(180deg));
+	}
+
+	.ud2-tabs-menu-list {
+		top: @TabNormalSize; 
+		right: 0;
+		.transform(translateY(3%) translateZ(0));
+	}
+}
+// 选项集合容器的底部样式
+.ud2-tabs-bottom {
+	.ud2-tabs-bar {
+		bottom: 0;
+	}
+
+	.ud2-tabs-main {
+		top: 0;
+		bottom: @TabNormalSize;
+	}
+
+	.ud2-tabs-menu {
+		bottom: 0;
+		right: 0;
+	}
+
+	.ud2-tabs-tab, .ud2-tabs-menu-btn {
+		border-bottom-left-radius: @BorderRadius;
+		border-bottom-right-radius: @BorderRadius;
+	}
+
+	.ud2-tabs-menu-btn::before {
+		.transform(rotate(180deg));
+	}
+
+	.ud2-tabs-menu.on .ud2-tabs-menu-btn::before {
+		.transform(rotate(360deg));
+	}
+
+	.ud2-tabs-menu-list {
+		bottom: @TabNormalSize; 
+		right: 0;
+		.transform(translateY(-3%) translateZ(0));
+	}
+}
+// 选项集合容器的左侧样式
+.ud2-tabs-left {
+	.ud2-tabs-bar {
+		left: 0;
+	}
+
+	.ud2-tabs-main {
+		left: @TabNormalSize * 3.5;
+		right: 0;
+	}
+
+	.ud2-tabs-menu {
+		bottom: 0;
+		left: 0;
+	}
+
+	.ud2-tabs-tab, .ud2-tabs-menu-btn {
+		border-top-left-radius: @BorderRadius;
+		border-bottom-left-radius: @BorderRadius;
+	}
+
+	.ud2-tabs-menu-btn::before {
+		.transform(rotate(-90deg));
+	}
+
+	.ud2-tabs-menu.on .ud2-tabs-menu-btn::before {
+		.transform(rotate(90deg));
+	}
+
+	.ud2-tabs-menu-list {
+		bottom: 0; 
+		left: @TabNormalSize * 3.5;
+		.transform(translateX(3%) translateZ(0));
+	}
+}
+// 选项集合容器的右侧样式
+.ud2-tabs-right {
+	.ud2-tabs-bar {
+		right: 0;
+	}
+
+	.ud2-tabs-main {
+		left: 0;
+		right: @TabNormalSize * 3.5;
+	}
+
+	.ud2-tabs-menu {
+		bottom: 0;
+		right: 0;
+	}
+
+	.ud2-tabs-tab, .ud2-tabs-menu-btn {
+		border-top-right-radius: @BorderRadius;
+		border-bottom-right-radius: @BorderRadius;
+	}
+
+	.ud2-tabs-menu-btn::before {
+		.transform(rotate(90deg));
+	}
+
+	.ud2-tabs-menu.on .ud2-tabs-menu-btn::before {
+		.transform(rotate(270deg));
+	}
+
+	.ud2-tabs-menu-list {
+		bottom: 0; 
+		right: @TabNormalSize * 3.5;
+		.transform(translateX(-3%) translateZ(0));
+	}
+}

@@ -1,6 +1,6 @@
 ﻿/**
- * ud2-power.less
- * 数字控件的默认样式
+ * ud2-switch.less
+ * 开关控件的默认样式
  */
 
 // 导入必要的文件
@@ -65,6 +65,16 @@
 	&[ud2-switch-disabled] {
 		opacity: @OpacityHover;
 		cursor: default;
+
+		&::after {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0; 
+			right: 0;
+			bottom: 0;
+			.background-striped(30px);
+		}
 	}
 }
 

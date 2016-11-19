@@ -6,6 +6,10 @@
 // 导入必要的文件
 @import "../../common/import.less";
 
+[ud2='tabs']:not([ud2-tabs-ready]) {
+	display: none;
+}
+
 // 为控件设置基础样式
 .ud2-select, .ud2-number, .ud2-range, .ud2-date {
 	.ctrl-js();
@@ -39,7 +43,7 @@
 		overflow: hidden;
 		line-height: @LineHeight;
 		font-size: 1em;
-		color: darken(@ColorBlueBorder, 20%);
+		color: @CtrlIcoColor;
 		cursor: pointer;
 		.transition(right .2s, color ease-in .2s);
 
@@ -49,7 +53,7 @@
 		}
 		// 设置滑入状态
 		&:hover {
-			color: darken(@ColorBlueBorder, 40%);
+			color: @CtrlIcoHoverColor;
 		}
 	}
 	// 设置开关按钮的关闭样式

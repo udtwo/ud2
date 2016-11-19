@@ -23,7 +23,7 @@
 	&[disabled], &[readonly], &.disabled {
 		cursor: default;
 		opacity: @OpacityNoImport;
-
+		
 		&:hover, &:focus {
 			border-color: @ColorWhiteBorder;
 		}
@@ -93,7 +93,7 @@
 // 按钮颜色函数
 .btn-color(@Text, @Border, @Back) {
 	color: @Text;
-	background: @Back;
+	background-color: @Back;
 	border-color: @Border;
 	// 设置按钮被hover的外观变化
 	&:hover, &:focus {
@@ -101,7 +101,7 @@
 	}
 	// 设置按钮被active的外观变化
 	&:active {
-		background: darken(@Back, 10%);
+		background-color: darken(@Back, 10%);
 	}
 	// 擦出掉带有disabled属性的元素特定样式
 	&[disabled], &.disabled {
@@ -109,7 +109,7 @@
 			border-color: @Border;
 		}
 		&:active {
-			background: @Back;
+			background-color: @Back;
 		}
 	}
 }
@@ -117,22 +117,23 @@
 .btn-fullcolor(@Back, @Hover, @Active) {
 	color: @ColorWhite;
 	border-color: @Back;
-	background: @Back;
+	background-color: @Back;
+
 	// 设置按钮被hover的外观变化
 	&:hover, &:focus {
 		border-color: @Hover;
-		background: @Hover;
+		background-color: @Hover;
 	}
 	// 设置按钮被active的外观变化
 	&:active {
 		border-color: @Active;
-		background: @Active;
+		background-color: @Active;
 	}
 	// 擦出掉带有disabled属性的元素特定样式
 	&[disabled], &.disabled {
 		&:hover, &:focus, &:active {
 			border-color: @Back;
-			background: @Back;
+			background-color: @Back;
 		}
 	}
 }

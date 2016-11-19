@@ -103,6 +103,12 @@ var ud2 = (function (window, $) {
 		},
 		// 状态名称
 		STATE_NAME = ['normal', 'info', 'success', 'warning', 'danger'],
+		// 样式名称
+		STYLE_SIMPLE = 'simple',
+		STYLE_STANDARD = 'standard',
+		STYLE_CUSTOM = 'custom',
+		// 空页
+		EMPTY_PAGE = 'about:blank',
 		// 索引功能选择器字段
 		SELECTOR_TAB = '[type="checkbox"]',
 		// 隐藏域选择器字段
@@ -440,17 +446,35 @@ var ud2 = (function (window, $) {
 	function getOptions() {
 		var args = arguments, len = args.length, control = this,
 			options, userOptions, arr, callbacks;
+
+		function getOption(name) {
+			var opt, i, l;
+			if (type.isArray(name)) {
+				i = 0; l = name.length;
+				for (; i < l; i++) {
+					opt = getOption(name[i]);
+					if (opt !== void 0) return opt;
+				}
+			}
+			else {
+				name = String(name);
+				opt = control.userOptions[name];
+				if (opt === void 0) opt = control.getOriginAttr(name, 1);
+				if (opt === void 0) opt = control.getOriginAttr(name);
+				return opt;
+			}
+		}
+
 		if (len === 2) {
 			arr = args[0];
 			callbacks = args[1];
 			if (type.isArray(arr) && type.isFunction(callbacks)) {
 				options = {};
+
 				arr.forEach(function (name) {
-					var opt = control.userOptions[name];
-					if (opt === void 0) opt = control.getOriginAttr(name, 1);
-					if (opt === void 0) opt = control.getOriginAttr(name);
-					options[name] = opt;
+					options[type.isArray(name) ? name[0] : name] = getOption(name);
 				});
+
 				callbacks(options);
 				return options;
 			}
@@ -546,6 +570,29 @@ var ud2 = (function (window, $) {
 			return prefixLibName + id++;
 		};
 	}
+	// 生成控件可支持的样式枚举
+	// [...string]: 可支持的样式名称
+	function createStyle() {
+		var arr = arguments, len = arr.length, i = 0, style = {};
+		for (; i < len; i++) {
+			style[arguments[i]] = arguments[i];
+		}
+		return style;
+	}
+	// 属性值的布尔检测
+	// val[object]: 待检测的值
+	// defaultVal[bool]: 默认为是或否
+	// return[bool]: 返回检测后的状态
+	function attrBoolCheck(val, defaultVal) {
+		if (val === void 0) {
+			return defaultVal;
+		}
+		else {
+			if (val === 'true' || val === '1') return true;
+			else if (val === 'false' || val === '0') return false;
+			return !!val;
+		}
+	}
 
 	// #endregion
 
@@ -576,7 +623,7 @@ var ud2 = (function (window, $) {
 				// swipe的最大时间间隔
 				swipeMaxTime: 500,
 				// 触点tap、press事件有效长度
-				pointerValidLength: 5
+				pointerValidLength: 10
 			}, userOptions, function (options) {
 				stopPropagation = options.stopPropagation;
 				tapMaxTime = options.tapMaxTime;
@@ -1549,6 +1596,463 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
+	// #region ud2 库公用控件
+
+	// ud2库样式对象
+	var style = (function () {
+		var // 样式对象
+			styles = {},
+			// 样式名称集合
+			stylesName = ['normal', 'info', 'success', 'warning', 'danger'],
+			// 默认图标
+			ico = ['', '\ued20', '\ued1e', '\ued21', '\ued1f'],
+			// 迭代变量
+			i = 0, len = stylesName.length;
+		for (; i < len; i++) styles[stylesName[i]] = { name: stylesName[i], no: i, ico: ico[i] };
+		return styles;
+	}());
+	// ud2库颜色对象
+	var color = (function () {
+		var // 颜色对象
+			colors = {},
+			// 颜色样式名称集合
+			stylesName = ['red', 'orange', 'green', 'blue', 'yellow', 'teal', 'pink', 'violet', 'purple', 'brown', 'dark', 'grey', 'white'],
+			// 迭代变量
+			i = 0, len = stylesName.length;
+		for (; i < len; i++) colors[stylesName[i]] = { name: 'c-' + stylesName[i], id: stylesName[i] };
+		return colors;
+	}());
+
+	// ud2库公开对象
+	// 此对象默认会成为window的属性
+	var ud2 = (function () {
+		var // 库公共对象
+			ud2 = {
+				// 初始化全部未初始化的控件
+				// 在页面初始化完成后，会自动调用此方法
+				createAllControl: function () {
+					var // 获取全部标记为控件的元素
+						$ud2Controls = $('[' + libName + ']');
+
+					// 迭代元素
+					$ud2Controls.each(function () {
+						var // 获取当前元素
+							$this = $(this),
+							// 获取控件类型
+							typeNames = getNames($this);
+
+						typeNames.forEach(function (item, index) {
+							var // 通过控件类型名称获取控件对象名称
+								controlName = getControlNameByName(item),
+								// 获取此空间是否被创建
+								isCreated = $this.attr(prefixLibName + item + '-ready'),
+								// 控件ID
+								id = $this.attr('ud2-id') || null;
+
+							if (!isCreated) {
+								if (id) ud2[controlName].create(id, $this);
+								else ud2[controlName].create($this);
+							}
+						});
+					});
+				},
+				// 库已准备完成时的回调方法
+				ready: function (fn) {
+					if (type.isFunction(fn)) {
+						callbacks.pageReady.add(fn);
+					}
+				}
+			};
+
+		return ud2;
+	}());
+
+	// 控件基类
+	// 生成的全部控件是由此继承而来
+	// type[string]: 控件类型
+	var control = function (controlType) {
+		var // 获取控件生成的所在组
+			collection = this,
+			// 用户自定义项
+			userOptions = {},
+			// 控件对象
+			control = {
+				// 控件对象公开的属性或方法
+				public: {
+					// 表示当前控件为ud2控件
+					ud2: true,
+					// 控件所在集合对象 
+					collection: collection.public,
+					// 控件类型
+					type: controlType,
+					// 将控件插入到目标元素内部的末尾位置
+					appendTo: function (jq) {
+						insertContext(jq, function ($) {
+							$.last().append(control.current);
+						});
+						return this;
+					},
+					// 将控件插入到目标元素内部的起始位置
+					prependTo: function (jq) {
+						insertContext(jq, function ($) {
+							$.last().prepend(control.current);
+						});
+						return this;
+					},
+					// 将控件插入到目标元素的前面，作为其兄弟元素
+					insertBefore: function (jq) {
+						insertContext(jq, function ($) {
+							$.last().before(control.current);
+						});
+						return this;
+					},
+					// 将控件插入到目标元素的后面，作为其兄弟元素
+					insertAfter: function (jq) {
+						insertContext(jq, function ($) {
+							$.last().after(control.current);
+						});
+						return this;
+					},
+					// 获取或设置控件样式
+					style: styleHandler
+				},
+				// 原生jQuery对象
+				origin: null,
+				// 控件jQuery对象
+				current: $div.clone(),
+				// 用户自定义项
+				userOptions: userOptions,
+				// 获取原生对象标签控件属性
+				// name[string]: 标签控件属性
+				// isNative[bool]: 是否为原生属性
+				// return[string]: 返回标签控件属性值
+				getOriginAttr: function (name, isNative) {
+					// 获取新的属性名
+					name = (function () {
+						if (!attrTranslateGroup[name]) {
+							attrTranslateGroup[name] = (name.match(attrTranslateRegex).join(joinStr)).toString().toLowerCase();
+						}
+						return attrTranslateGroup[name];
+					})();
+
+					var attr = isNative ? name : collection.className + joinStr + name;
+					return control.origin ? control.origin.attr(attr) : null;
+				},
+				// 获取控件自定义项
+				// optNameArr[array]: 自定义项名称集合
+				// callbacks[function]: 用于处理自定义项值的回调方法
+				getOptions: function () {
+					return getOptions.apply(this, arguments);
+				},
+				// 转移原标签的style、class属性到新控件的根标签
+				// options[object]: 自定义选项
+				// - {} 自定义选项 
+				//   transfer[jQuery]: 原标签jQuery对象
+				//   accept[jQuery]: 新控件根标签jQuery对象
+				transferStyles: function (options) {
+					transfer(options, function ($transfer, $accept) {
+						// 把转移者的style属性和class属性全部转移给接收者
+						$accept
+							.attr("style", $transfer.attr("style"))
+							.addClass($transfer.attr("class"));
+						// 移除转移者的style属性和class属性
+						$transfer
+							.removeAttr("style")
+							.removeClass();
+					});
+				},
+				// 转移原标签的自定义属性到新控件的相应标签中
+				// options[object]: 自定义选项
+				// - {} 自定义选项 
+				//   transfer[jQuery]: 原标签jQuery对象
+				//   accept[jQuery]: 新控件根标签jQuery对象
+				//   attrReg[string]: 自定义转移的属性名(组)
+				transferAttrs: function (options) {
+					transfer(options, function ($transfer, $accept, attrReg) {
+						var // 原对象
+							oldElement = $transfer.get(0),
+							// 新对象
+							newElement = $accept.get(0),
+							// 属性长度
+							len = oldElement ? oldElement.attributes.length : 0,
+							// 匹配可转移的属性名
+							reg = new RegExp('^(' + attrReg + ')'),
+							// 迭代
+							i = 0, j = 0, attr;
+
+						// 迭代属性
+						for (; i < len; i++) {
+							attr = oldElement.attributes[j];
+							if (reg.test(attr.name)) {
+								newElement.setAttribute(attr.name, attr.value);
+								oldElement.removeAttribute(attr.name);
+							} else {
+								j++;
+							}
+						}
+					});
+				},
+				// 控件默认样式
+				style: style.normal,
+				// 控件自动关闭执行的方法
+				autoClose: fnNoop,
+				// 控件移除
+				remove: function () {
+					var index = this.public.collection.indexOf(this), i;
+					callbacks.ctrlClose.remove(autoClose);
+					this.public.collection.splice(index, 1);
+					delete this.public.collection[this.public.id];
+					for (i in this.public) delete this.public[i];
+					for (i in this) delete this[i];
+				}
+			};
+
+		// 处理转移方法的参数
+		// options[object]: 自定义选项
+		// - {} 自定义选项 
+		//   transfer[jQuery]: 原标签jQuery对象
+		//   accept[jQuery]: 新控件根标签jQuery对象
+		//   attrReg[string]: 自定义转移的属性名(组)
+		// callbacks: 回调方法，执行具体转移的过程
+		function transfer(options, callbacks) {
+			options = options || {};
+			options.transfer = options.transfer || control.origin || null;
+			options.accept = options.accept || control.current || null;
+			options.attrReg = options.attrReg || null;
+
+			if (options.transfer && options.accept) callbacks(options.transfer, options.accept, options.attrReg);
+		}
+		// 将控件插入到页面的上下文中
+		// jq[jQuery, string]: 控件摆放的相关元素
+		// callbacks[function]: 回调方法，执行具体上下文过程
+		function insertContext(jq, callbacks) {
+			jq = convertToJQ(jq);
+			callbacks = callbacks || fnNoop;
+			callbacks(jq);
+		}
+		// 自动关闭方法
+		// target[jQuery, string]: 事件目标
+		function autoClose(target) {
+			var $parents, i, len;
+			target = convertToJQ(target);
+			$parents = target.parents();
+			if (target.get(0) === control.current.get(0)) return;
+			for (i = 0, len = $parents.length; i < len; i++) if ($parents.eq(i).get(0) === control.current.get(0)) return;
+			control.autoClose();
+		}
+		// 获取或设置控件样式
+		// () 获取控件样式
+		// - return[ud2.style.*]: 返回控件样式对象
+		// (whichStyle) 设置控件样式
+		// - whichStyle[ud2.style.*]: 控件样式对象
+		// - return[control]: 返回当前控件对象
+		function styleHandler(whichStyle) {
+			if (whichStyle !== void 0) {
+				for (var i in style) {
+					control.style === style[i] && control.current.removeClass(style[i].name);
+				}
+				control.style = whichStyle;
+				control.current.addClass(whichStyle.name);
+				return control.public;
+			}
+			else {
+				return control.style;
+			}
+		}
+
+		// 自动关闭回调
+		callbacks.ctrlClose.add(autoClose);
+
+		// 返回控件对象
+		return control;
+	};
+	// 控件对象集合基类
+	// 生成的全部控件对象集合是由此继承而来
+	var controlCollection = function (name) {
+		var // 控件集合对象
+			collection = {
+				// 控件集合对象公开对象
+				public: [],
+				// 控件集合初始化函数
+				init: fnNoop,
+				// 控件集合名称
+				name: name,
+				// 控件对象名称
+				ctrlName: getControlNameByName(name),
+				// 控件默认样式类
+				className: prefixLibName + name
+			};
+		// 返回集合组
+		return collection;
+	};
+	// ud2库扩展对象创建器
+	// name[string]: 将创建出的对象绑定在库的名为name属性上
+	// callbacks[function]: 创建完成后所执行的回调函数
+	// (?) parent[object]: 如存在，将绑定到该对象的name属性上，而非ud2
+	// return[object]: 返回创建完成的库扩展对象
+	var creater = function (name, createHandler, parent) {
+		// 强制createHandler的类型为function
+		if (!type.isFunction(createHandler)) createHandler = fnNoop;
+
+		function constructor() {
+			return createHandler.apply(constructor, arguments);
+		}
+
+		// 将create方法绑定到扩展对象
+		constructor.create = createHandler;
+		// 向库或parent中公开
+		if (!parent) {
+			ud2[name] = constructor;
+		}
+		else {
+			parent[name] = constructor;
+		}
+
+		// 返回创建后的对象
+		return constructor;
+
+	};
+	// 创建一个控件类
+	// name[string]: 控件类名称
+	// callbacks[function]: 创建回调，用于对控件的初始化操作
+	// return[function]: 创建控件的构造函数 
+	var controlCreater = function (name, callbacks) {
+
+		var // 获取一个空控件集合对象
+			ctrlCollection = controlCollection(name),
+			// 创建一个库扩展对象
+			constructor = creater(name, function create() {
+				var // 获取一个空控件对象
+						ctrl = control.call(ctrlCollection, name),
+						// 获取当前方法的参数集合
+						args = arguments,
+						// 获取参数数量
+						len = args.length,
+						// 控件公共属性
+						id, origin, userOptions;
+
+				// 检测长度
+				switch (len) {
+					case 0: {
+						return create.call(constructor, void 0, void 0, {});
+					}
+					case 1: {
+						if (type.isString(args[0]))
+							return create.call(constructor, args[0], void 0, void 0);
+						if (type.isJQuery(args[0]))
+							return create.call(constructor, void 0, args[0], void 0);
+						if (type.isObject(args[0]))
+							return create.call(constructor, void 0, void 0, args[0]);
+						return create.call(constructor);
+					}
+					case 2: {
+						if (type.isString(args[0]) && (type.isJQuery(args[1]) || type.isString(args[1])))
+							return create.call(constructor, args[0], args[1], void 0);
+						if (type.isString(args[0]) && type.isObject(args[1]))
+							return create.call(constructor, args[0], void 0, args[1]);
+						if (type.isJQuery(args[0]) && type.isObject(args[1]))
+							return create.call(constructor, void 0, args[0], args[1]);
+						break;
+					}
+					case 3: {
+						id = type.isString(args[0]) && args[0].length > 0 ? args[0] : createControlID();
+						// 如果传入的jQuery对象长度大于1，则默认选择第一个元素做为origin
+						origin = convertToJQ(args[1]).first();
+						userOptions = type.isObject(args[2]) ? args[2] : {};
+						break;
+					}
+				}
+
+				// 向控件扩展必要属性
+				extendObjects(ctrl, { origin: origin, userOptions: userOptions });
+				extendObjects(ctrl.public, { id: id });
+
+				// 向集合添加当前控件
+				ctrlCollection.public.push(ctrl.public);
+				ctrlCollection.public[id] = ctrl.public;
+				ctrl.current
+					.attr(libName, name)
+					.attr(libName + '-id', id)
+					.attr(ctrlCollection.className + '-ready', true)
+					.addClass(ctrlCollection.className);
+
+				// 创建对象后，返回ctrl.public对象
+				// 此处的ctrl.public对象内的属性为控件的公共属性
+				return ctrlCollection.init(ctrl) || ctrl.public;
+			});
+
+		// 执行创建控件回调，初始化控件
+		callbacks(ctrlCollection, constructor);
+		// 将控件绑定在ud2对象上
+		if (ctrlCollection.name !== ctrlCollection.ctrlName) ud2[ctrlCollection.ctrlName] = constructor;
+
+		// 公开属性
+		constructor.collection = ctrlCollection.public;
+		// 返回构造函数
+		return constructor;
+
+	};
+
+	// 遮罩层
+	var backmask = (function () {
+
+		var // 遮罩对象
+			backmaskObj = {},
+			// 遮罩层内容对象
+			$backmask = $('<div class="' + prefixLibName + 'backmask"></div>'),
+			// 调用者
+			callerCollection = [],
+			// 开启状态
+			openState = false;
+
+		// 添加调用者
+		function callerAdd(caller) {
+			if (callerCollection.indexOf(caller) === -1) {
+				callerCollection.push(caller);
+				return true;
+			}
+			return false;
+		}
+		// 移除调用者
+		function callerRemove(caller) {
+			var index = callerCollection.indexOf(caller);
+			if (index > -1) {
+				callerCollection.splice(index, 1);
+				return true;
+			}
+			return false;
+		}
+
+		// 开启遮罩层
+		// caller[object]: 调用遮罩层的对象
+		function open(caller) {
+			if (callerAdd(caller)) $backmask.addClass('on');
+			return backmaskObj;
+		}
+		// 关闭遮罩层
+		// caller[object]: 调用遮罩层的对象
+		function close(caller) {
+			if (callerRemove(caller) && !callerCollection.length) $backmask.removeClass('on');
+			return backmaskObj;
+		}
+
+		// 初始化
+		(function init() {
+			callbacks.pageReady.add(function () {
+				$body.append($backmask);
+			});
+		}());
+
+		// 返回
+		return extendObjects(backmaskObj, {
+			open: open,
+			close: close
+		});
+
+	}());
+
+	// #endregion
+
 	// #region ud2 内容控件
 
 	// 滚动条控件及滚动事件
@@ -1633,7 +2137,7 @@ var ud2 = (function (window, $) {
 				isSlowMovning = options.isSlowMovning;
 			}),
 			// 滚动对象
-			$scroll = convertToJQ(elements).eq(0),
+			$scroll = convertToJQ(elements),
 			// 滚动包裹容器
 			$wrapper = $div.clone().addClass(prefixLibName + 'scroll-wrapper'),
 			// 横滚动条
@@ -1667,7 +2171,7 @@ var ud2 = (function (window, $) {
 			// 当滚动完成时执行强制停止回调定时器
 			scrollEndTimer = null,
 			// 触摸启动最小长度
-			touchStartMinLength = 5,
+			touchStartMinLength = 10,
 			// 鼠标滚轮定时器
 			// 用于阻止滚轮在边缘的多次滚动
 			mouseWheelTimer = null,
@@ -2242,6 +2746,14 @@ var ud2 = (function (window, $) {
 
 		// 初始化
 		(function init() {
+			var i, l = $scroll.length;
+
+			// 超过一个元素时，则生成多个控件
+			if (l > 1) {
+				for (i = 1; i < l; i++) ud2.scroll($scroll.eq(i), userOptions);
+				$scroll = $scroll.eq(0);
+			}
+
 			// 判断传入的鼠标滚轮滚动长度是否符合要求
 			if (mouseWheelLength !== 'normal' && !type.isNaturalNumber(mouseWheelLength))
 				mouseWheelLength = 'normal';
@@ -2315,553 +2827,458 @@ var ud2 = (function (window, $) {
 
 	};
 
-	// #endregion
+	// 选项卡组控件
+	controlCreater('tabs', function (collection, constructor) {
 
-	// #region ud2 库公用控件
+		var // className存于变量
+			cls = collection.className;
 
-	// ud2库样式对象
-	var style = (function () {
-		var // 样式对象
-			styles = {},
-			// 样式名称集合
-			stylesName = ['normal', 'info', 'success', 'warning', 'danger'],
-			// 默认图标
-			ico = ['', '\ued20', '\ued1e', '\ued21', '\ued1f'],
-			// 迭代变量
-			i = 0, len = stylesName.length;
-		for (; i < len; i++) styles[stylesName[i]] = { name: stylesName[i], no: i, ico: ico[i] };
-		return styles;
-	}());
-	// ud2库颜色对象
-	var color = (function () {
-		var // 颜色对象
-			colors = {},
-			// 颜色样式名称集合
-			stylesName = ['red', 'orange', 'green', 'blue', 'yellow', 'teal', 'pink', 'violet', 'purple', 'brown', 'dark', 'grey', 'white'],
-			// 迭代变量
-			i = 0, len = stylesName.length;
-		for (; i < len; i++) colors[stylesName[i]] = { name: 'c-' + stylesName[i], id: stylesName[i] };
-		return colors;
-	}());
+		// 布局方式
+		constructor.layout = {
+			// 上方
+			top: 0,
+			// 下方
+			bottom: 1,
+			// 左侧
+			left: 2,
+			// 右侧
+			right: 3
+		};
+		// 选项页类型
+		constructor.pageType = {
+			html: 0,
+			url: 1
+		};
 
-	// ud2库公开对象
-	// 此对象默认会成为window的属性
-	var ud2 = (function () {
-		var // 库公共对象
-			ud2 = {
-				// 初始化全部未初始化的控件
-				// 在页面初始化完成后，会自动调用此方法
-				createAllControl: function () {
-					var // 获取全部标记为控件的元素
-						$ud2Controls = $('[' + libName + ']');
+		// 重写集合初始化方法
+		collection.init = function (control) {
 
-					// 迭代元素
-					$ud2Controls.each(function () {
-						var // 获取当前元素
-							$this = $(this),
-							// 获取控件类型
-							typeNames = getNames($this);
+			// #region 私有字段
 
-						typeNames.forEach(function (item, index) {
-							var // 通过控件类型名称获取控件对象名称
-								controlName = getControlNameByName(item),
-								// 获取此空间是否被创建
-								isCreated = $this.attr(prefixLibName + item + '-ready'),
-								// 控件ID
-								id = $this.attr('ud2-id') || null;
+			var // 是否有菜单工具 布局方式 选项卡可滚动 选项卡自动移动 目录自动移动  自动填满父层
+				isMenu, layout, isTabScroll, isTabAutoMove, isMenuAutoMove, isFull,
+				// 获取用户自定义项
+				options = control.getOptions([
+					'layout', ['menu', 'isMenu'], ['full', 'isFull'],
+					['tabScroll', 'isTabScroll'],
+					['tabAutoMove', 'isTabAutoMove'],
+					['menuAutoMove', 'isMenuAutoMove']
+				], function (options) {
+					// 布局方式
+					if (options.layout === 'top') layout = 0;
+					else if (options.layout === 'bottom') layout = 1;
+					else if (options.layout === 'left') layout = 2;
+					else if (options.layout === 'right') layout = 3;
+					layout = parseInt(options.layout) || 0;
+					layout = layout < 0 || layout > 3 ? 0 : layout;
+					// 初始化是否可以关闭
+					isMenu = attrBoolCheck(options.menu, true);
+					// 初始化选项卡是否可以滚动
+					isTabScroll = attrBoolCheck(options.tabScroll, true);
+					// 初始化选项卡是否可以自动移动
+					isTabAutoMove = attrBoolCheck(options.tabAutoMove, true);
+					// 初始化目录项是否可以自动移动
+					isMenuAutoMove = attrBoolCheck(options.menuAutoMove, true);
+					// 初始化是否自动填满父层
+					isFull = attrBoolCheck(options.full, false);
+				}),
+				// 控件结构
+				template = '<div class="' + cls + '-bar"><div class="' + cls + '-bar-inner"></div></div><div class="ud2-tabs-main"></div>',
+				// 获取初始化的控件对象
+				current = control.current,
+				// 控件对象
+				$tabs = current.html(template),
+				// 选项滚动容器对象
+				$tabScroll = $tabs.children('.' + cls + '-bar'),
+				// 选项容器对象
+				$tabBox = $tabs.find('.' + cls + '-bar-inner'),
+				// 内容容器对象
+				$contentBox = $tabs.find('.' + cls + '-main'),
+				// 目录对象
+				$menu = $('<div class="' + cls + '-menu"><div class="' + cls + '-menu-btn"></div><div class="ud2-tabs-menu-list empty" ud2-tabs-empty="这里是空的"><div class="ud2-tabs-menu-inner"></div></div></div>'),
+				// 目录按钮对象
+				$menuBtn = $menu.children(':first'),
+				// 目录容器对象
+				$menuBox = $menu.children(':last'),
+				// 目录滚动容器对象
+				$menuScroll = $menu.find('.' + cls + '-menu-inner'),
+				// 选项页对象集合
+				pageCollection = [],
+				// 目录列表容器滚动条对象
+				menuBoxScroll,
+				// 选项卡容器滚动条对象
+				tabBoxScroll, scrollSize = 0,
+				// 当前开启的选项页对象
+				pageOpenNow;
 
-							if (!isCreated) {
-								if (id) ud2[controlName].create(id, $this);
-								else ud2[controlName].create($this);
-							}
-						});
-					});
-				},
-				// 库已准备完成时的回调方法
-				ready: function (fn) {
-					if (type.isFunction(fn)) {
-						callbacks.pageReady.add(fn);
-					}
-				}
-			};
+			// #endregion
 
-		return ud2;
-	}());
+			// #region 私有方法
 
-	// 控件基类
-	// 生成的全部控件是由此继承而来
-	// type[string]: 控件类型
-	var control = function (controlType) {
-		var // 获取控件生成的所在组
-			collection = this,
-			// 用户自定义项
-			userOptions = {},
-			// 控件对象
-			control = {
-				// 控件对象公开的属性或方法
-				public: {
-					// 表示当前控件为ud2控件
-					ud2: true,
-					// 控件所在集合对象 
-					collection: collection.public,
-					// 控件类型
-					type: controlType,
-					// 将控件插入到目标元素内部的末尾位置
-					appendTo: function (jq) {
-						insertContext(jq, function ($) {
-							$.last().append(control.current);
-						});
-						return this;
-					},
-					// 将控件插入到目标元素内部的起始位置
-					prependTo: function (jq) {
-						insertContext(jq, function ($) {
-							$.last().prepend(control.current);
-						});
-						return this;
-					},
-					// 将控件插入到目标元素的前面，作为其兄弟元素
-					insertBefore: function (jq) {
-						insertContext(jq, function ($) {
-							$.last().before(control.current);
-						});
-						return this;
-					},
-					// 将控件插入到目标元素的后面，作为其兄弟元素
-					insertAfter: function (jq) {
-						insertContext(jq, function ($) {
-							$.last().after(control.current);
-						});
-						return this;
-					},
-					// 获取或设置控件样式
-					style: styleHandler
-				},
-				// 原生jQuery对象
-				origin: null,
-				// 控件jQuery对象
-				current: $div.clone(),
-				// 用户自定义项
-				userOptions: userOptions,
-				// 获取原生对象标签控件属性
-				// name[string]: 标签控件属性
-				// isNative[bool]: 是否为原生属性
-				// return[string]: 返回标签控件属性值
-				getOriginAttr: function (name, isNative) {
-					// 获取新的属性名
-					name = (function () {
-						if (!attrTranslateGroup[name]) {
-							attrTranslateGroup[name] = (name.match(attrTranslateRegex).join(joinStr)).toString().toLowerCase();
-						}
-						return attrTranslateGroup[name];
-					})();
-
-					var attr = isNative ? name : collection.className + joinStr + name;
-					return control.origin ? control.origin.attr(attr) : null;
-				},
-				// 获取控件自定义项
-				// optNameArr[array]: 自定义项名称集合
-				// callbacks[function]: 用于处理自定义项值的回调方法
-				getOptions: function () {
-					return getOptions.apply(this, arguments);
-				},
-				// 转移原标签的style、class属性到新控件的根标签
-				// options[object]: 自定义选项
-				// - {} 自定义选项 
-				//   transfer[jQuery]: 原标签jQuery对象
-				//   accept[jQuery]: 新控件根标签jQuery对象
-				transferStyles: function (options) {
-					transfer(options, function ($transfer, $accept) {
-						// 把转移者的style属性和class属性全部转移给接收者
-						$accept
-							.attr("style", $transfer.attr("style"))
-							.addClass($transfer.attr("class"));
-						// 移除转移者的style属性和class属性
-						$transfer
-							.removeAttr("style")
-							.removeClass();
-					});
-				},
-				// 转移原标签的自定义属性到新控件的相应标签中
-				// options[object]: 自定义选项
-				// - {} 自定义选项 
-				//   transfer[jQuery]: 原标签jQuery对象
-				//   accept[jQuery]: 新控件根标签jQuery对象
-				//   attrReg[string]: 自定义转移的属性名(组)
-				transferAttrs: function (options) {
-					transfer(options, function ($transfer, $accept, attrReg) {
-						var // 原对象
-							oldElement = $transfer.get(0),
-							// 新对象
-							newElement = $accept.get(0),
-							// 属性长度
-							len = oldElement ? oldElement.attributes.length : 0,
-							// 匹配可转移的属性名
-							reg = new RegExp('^(' + attrReg + ')'),
-							// 迭代
-							i = 0, j = 0, attr;
-
-						// 迭代属性
-						for (; i < len; i++) {
-							attr = oldElement.attributes[j];
-							if (reg.test(attr.name)) {
-								newElement.setAttribute(attr.name, attr.value);
-								oldElement.removeAttribute(attr.name);
-							} else {
-								j++;
-							}
-						}
-					});
-				},
-				// 控件默认样式
-				style: style.normal,
-				// 控件自动关闭执行的方法
-				autoClose: fnNoop,
-				// 控件移除
-				remove: function () {
-					var index = this.public.collection.indexOf(this), i;
-					callbacks.ctrlClose.remove(autoClose);
-					this.public.collection.splice(index, 1);
-					delete this.public.collection[this.public.id];
-					for (i in this.public) delete this.public[i];
-					for (i in this) delete this[i];
-				}
-			};
-
-		// 处理转移方法的参数
-		// options[object]: 自定义选项
-		// - {} 自定义选项 
-		//   transfer[jQuery]: 原标签jQuery对象
-		//   accept[jQuery]: 新控件根标签jQuery对象
-		//   attrReg[string]: 自定义转移的属性名(组)
-		// callbacks: 回调方法，执行具体转移的过程
-		function transfer(options, callbacks) {
-			options = options || {};
-			options.transfer = options.transfer || control.origin || null;
-			options.accept = options.accept || control.current || null;
-			options.attrReg = options.attrReg || null;
-
-			if (options.transfer && options.accept) callbacks(options.transfer, options.accept, options.attrReg);
-		}
-		// 将控件插入到页面的上下文中
-		// jq[jQuery, string]: 控件摆放的相关元素
-		// callbacks[function]: 回调方法，执行具体上下文过程
-		function insertContext(jq, callbacks) {
-			jq = convertToJQ(jq);
-			callbacks = callbacks || fnNoop;
-			callbacks(jq);
-		}
-		// 自动关闭方法
-		// target[jQuery, string]: 事件目标
-		function autoClose(target) {
-			var $parents, i, len;
-			target = convertToJQ(target);
-			$parents = target.parents();
-			if (target.get(0) === control.current.get(0)) return;
-			for (i = 0, len = $parents.length; i < len; i++) if ($parents.eq(i).get(0) === control.current.get(0)) return;
-			control.autoClose();
-		}
-		// 获取或设置控件样式
-		// () 获取控件样式
-		// - return[ud2.style.*]: 返回控件样式对象
-		// (whichStyle) 设置控件样式
-		// - whichStyle[ud2.style.*]: 控件样式对象
-		// - return[control]: 返回当前控件对象
-		function styleHandler(whichStyle) {
-			if (whichStyle !== void 0) {
-				for (var i in style) {
-					control.style === style[i] && control.current.removeClass(style[i].name);
-				}
-				control.style = whichStyle;
-				control.current.addClass(whichStyle.name);
-				return control.public;
-			}
-			else {
-				return control.style;
-			}
-		}
-
-		// 自动关闭回调
-		callbacks.ctrlClose.add(autoClose);
-
-		// 返回控件对象
-		return control;
-	};
-	// 控件对象集合基类
-	// 生成的全部控件对象集合是由此继承而来
-	var controlCollection = function (name) {
-		var // 控件集合对象
-			collection = {
-				// 控件集合对象公开对象
-				public: [],
-				// 控件集合初始化函数
-				init: fnNoop,
-				// 控件集合名称
-				name: name,
-				// 控件对象名称
-				ctrlName: getControlNameByName(name),
-				// 控件默认样式类
-				className: prefixLibName + name
-			};
-		// 返回集合组
-		return collection;
-	};
-	// ud2库扩展对象创建器
-	// name[string]: 将创建出的对象绑定在库的名为name属性上
-	// callbacks[function]: 创建完成后所执行的回调函数
-	// (?) parent[object]: 如存在，将绑定到该对象的name属性上，而非ud2
-	// return[object]: 返回创建完成的库扩展对象
-	var creater = function (name, createHandler, parent) {
-		// 强制createHandler的类型为function
-		if (!type.isFunction(createHandler)) createHandler = fnNoop;
-
-		function constructor() {
-			return createHandler.apply(constructor, arguments);
-		}
-
-		// 将create方法绑定到扩展对象
-		constructor.create = createHandler;
-		// 向库或parent中公开
-		if (!parent) {
-			ud2[name] = constructor;
-		}
-		else {
-			parent[name] = constructor;
-		}
-
-		// 返回创建后的对象
-		return constructor;
-
-	};
-	// 创建一个控件类
-	// name[string]: 控件类名称
-	// callbacks[function]: 创建回调，用于对控件的初始化操作
-	// return[function]: 创建控件的构造函数 
-	var controlCreater = function (name, callbacks) {
-
-		var // 获取一个空控件集合对象
-			ctrlCollection = controlCollection(name),
-			// 创建一个库扩展对象
-			constructor = creater(name, function create() {
-				var // 获取一个空控件对象
-						ctrl = control.call(ctrlCollection, name),
-						// 获取当前方法的参数集合
-						args = arguments,
-						// 获取参数数量
-						len = args.length,
-						// 控件公共属性
-						id, origin, userOptions;
-
-				// 检测长度
-				switch (len) {
+			// 设置列表方向
+			// direction[ud2.select.direction]: 方向值
+			function setLayout(layoutNo) {
+				// 移除旧CSS属性
+				if (layout === 0) $tabs.removeClass(cls + '-top');
+				if (layout === 1) $tabs.removeClass(cls + '-bottom');
+				if (layout === 2) $tabs.removeClass(cls + '-left');
+				if (layout === 3) $tabs.removeClass(cls + '-right');
+				layout = layoutNo;
+				// 加入新CSS属性
+				switch (layout) {
 					case 0: {
-						return create.call(constructor, void 0, void 0, {});
+						$tabs.addClass(cls + '-top');
+						break;
 					}
 					case 1: {
-						if (type.isString(args[0]))
-							return create.call(constructor, args[0], void 0, void 0);
-						if (type.isJQuery(args[0]))
-							return create.call(constructor, void 0, args[0], void 0);
-						if (type.isObject(args[0]))
-							return create.call(constructor, void 0, void 0, args[0]);
-						return create.call(constructor);
+						$tabs.addClass(cls + '-bottom');
+						break;
 					}
 					case 2: {
-						if (type.isString(args[0]) && (type.isJQuery(args[1]) || type.isString(args[1])))
-							return create.call(constructor, args[0], args[1], void 0);
-						if (type.isString(args[0]) && type.isObject(args[1]))
-							return create.call(constructor, args[0], void 0, args[1]);
-						if (type.isJQuery(args[0]) && type.isObject(args[1]))
-							return create.call(constructor, void 0, args[0], args[1]);
+						$tabs.addClass(cls + '-left');
 						break;
 					}
 					case 3: {
-						id = type.isString(args[0]) && args[0].length > 0 ? args[0] : createControlID();
-						// 如果传入的jQuery对象长度大于1，则默认选择第一个元素做为origin
-						origin = convertToJQ(args[1]).first();
-						userOptions = type.isObject(args[2]) ? args[2] : {};
+						$tabs.addClass(cls + '-right');
+						break;
+					}
+				}
+				recountScrollSize();
+			}
+			// 重新计算滚动区域尺寸
+			function recountScrollSize(size) {
+				if (size === void 0) {
+					scrollSize = 0;
+					pageCollection.forEach(function (element) {
+						if (layout === 0 || layout === 1)
+							element.size = element.getTab().outerWidth();
+						else
+							element.size = element.getTab().outerHeight();
+						scrollSize += element.size;
+					});
+					
+				}
+				else {
+					scrollSize += size;
+					if (layout === 0 || layout === 1) {
+						$tabBox.width(scrollSize + pageCollection.length * 2);
+					}
+					else {
+						$tabBox.height(scrollSize + pageCollection.length * 2);
+					}
+				}
+			}
+			// 重新计算并移动滚动区域
+			function moveScroll(obj) {
+				var pos, menuPos;
+				if (isTabScroll && isTabAutoMove) {
+					tabBoxScroll.recountPosition();
+
+					if (obj.getTab().prev().length !== 0) {
+						pos = obj.getTab().prev().position();
+					}
+					else {
+						pos = obj.getTab().position();
+					}
+
+					if (layout === 0 || layout === 1) {
+						tabBoxScroll.move(pos.left, 0, 300);
+					}
+					else {
+						tabBoxScroll.move(0, pos.top, 300);
+					}
+				}
+
+				if (isMenu && isMenuAutoMove) {
+					menuBoxScroll.recountPosition();
+
+					if (obj.getTabLink().prev().length !== 0) {
+						menuPos = obj.getTabLink().prev().position();
+					}
+					else {
+						menuPos = obj.getTabLink().position();
+					}
+
+					menuBoxScroll.move(0, menuPos.top - 5, 300);
+				}
+			}
+			// 通过name属性获取选项页对象
+			function getPageObjByName(name) {
+				var f = pageCollection.filter(function (element) {
+					return element.name === name;
+				});
+				return f && f[0];
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 选项页添加
+			// (object) 通过参数对象，创建一个内容对象
+			// (name, type, title, content, isCloseBtn, isOpen) 通过参数创建一个内容对象
+			// - name[string]: 选项页名称
+			// - type[ud2.tabs.pageType]: 选项页类型
+			// - content[string]: 选项页内容
+			// - isCloseBtn[bool]: 是否包含关闭按钮
+			// - isOpen[bool]: 是否添加后开启
+			// return[ud2.tabs]: 返回该控件对象
+			function pageAdd() {
+				var // 参数集合        参数长度
+					args = arguments, len = args.length,
+					// 类型 标题  详情      是否包含关闭按钮 是否默认开启 页名称
+					type, title, content, isCloseBtn, isOpen, name,
+					// 选项卡对象 内容对象 菜单项
+					$tab, $content, $tabLink,
+					// 内容对象
+					pageObj = {}, size,
+					// 参数对象
+					argObj;
+
+				// 判断传参方式，并初始化参数
+				if (len === 1 && type.isObject(argObj = args[0], argObj)) {
+					type = argObj.type && (argObj.type === 1 || argObj.type === 'url') ? 1 : 0;
+					name = argObj.name;
+					title = argObj.title || '未命名标题';
+					content = argObj.content || (type === 1 ? EMPTY_PAGE : '');
+					isCloseBtn = attrBoolCheck(argObj.isCloseBtn, true);
+					isOpen = attrBoolCheck(argObj.isOpen, false);
+				}
+				else {
+					type = args[0] && (args[0] === 1 || args[0] === 'url') ? 1 : 0;
+					name = args[1];
+					title = args[2] || '未命名标题';
+					content = args[3] || (type === 1 ? EMPTY_PAGE : '');
+					isCloseBtn = attrBoolCheck(args[4], true);
+					isOpen = attrBoolCheck(args[5], false);
+				}
+
+				// 如存在此名称，直接跳出
+				if (getPageObjByName(name)) return control.public;
+
+				// 重设置选项页对象属性
+				pageObj = {
+					name: name,
+					page: 1,
+					getSize: function () { return size; },
+					getTab: function () { return $tab; },
+					getTabLink: function () { return $tabLink; },
+					getContent: function () { return $content; },
+					setOpenState: function (state) {
+						if (state) {
+							$tab.addClass('on');
+							$content.addClass('on');
+							$tabLink.addClass('on');
+						}
+						else {
+							$tab.removeClass('on');
+							$content.removeClass('on');
+							$tabLink.removeClass('on');
+						}
+					}
+				};
+				
+				// 生成选项和内容对象
+				$tab = $('<div class="ud2-tabs-tab"><span>' + title + '</span></div>');
+				if (isCloseBtn) $tab.append('<i class="ico ico-solid-cancel"></i>');
+				switch (type) {
+					case 0: {
+						$content = $('<div class="ud2-tabs-content">' + content + '</div>');
+						break;
+					}
+					case 1: {
+						$content = $('<div class="ud2-tabs-content iframe"><iframe id="' + name + '" name="' + name + '" src="' + content + '"></iframe></div>');
 						break;
 					}
 				}
 
-				// 向控件扩展必要属性
-				extendObjects(ctrl, { origin: origin, userOptions: userOptions });
-				extendObjects(ctrl.public, { id: id });
+				// 加入到容器中
+				$tabBox.append($tab);
+				$contentBox.append($content);
+				// 重计算滚动尺寸
+				if (layout === 0 || layout === 1) size = $tab.outerWidth();
+				else size = $tab.outerHeight();	
+				recountScrollSize(size);
+				if (isTabScroll) tabBoxScroll.recountPosition();
+				// 生成菜单项
+				if (isMenu) {
+					$tabLink = $('<div class="ud2-tabs-menu-item" title="' + title + '"><span>' + title + '</span></div>');
+					if (isCloseBtn) $tabLink.append('<i class="ico ico-hollow-cancel"></i>');
+					$menuScroll.append($tabLink);
+					menuBoxScroll.recountPosition();
+				}
+				
+				// 清楚空选项情况
+				if (pageCollection.length === 0) $menuBox.removeClass('empty');
+				// 是否自动开启
+				if (pageCollection.length === 0 || isOpen) pageOpen(pageObj);
 
-				// 向集合添加当前控件
-				ctrlCollection.public.push(ctrl.public);
-				ctrlCollection.public[id] = ctrl.public;
-				ctrl.current
-					.attr(libName, name)
-					.attr(libName + '-id', id)
-					.attr(ctrlCollection.className + '-ready', true)
-					.addClass(ctrlCollection.className);
+				// 加入到选项页集合
+				pageCollection.push(pageObj);
+				pageObj.event = event($().add($tab.children('span')).add($tabLink.children('span'))).setTap(function () {
+					pageOpen(pageObj);
+					menuClose();
+				});
+				pageObj.closeEvent = event($().add($tab.find('i')).add($tabLink.find('i'))).setTap(function () {
+					pageRemove(pageObj);
+					menuClose();
+				});
 
-				// 创建对象后，返回ctrl.public对象
-				// 此处的ctrl.public对象内的属性为控件的公共属性
-				return ctrlCollection.init(ctrl) || ctrl.public;
+				// 返回
+				return control.public;
+			}
+			// 选项页移除
+			// name[string]: 待移除选项页的名称
+			// return[ud2.tabs]: 返回该控件对象
+			function pageRemove(name) {
+				var obj, index;
+				if (type.isObject(name) && name.page) obj = name;
+				else {
+					name = getPageObjByName(String(name));
+					if (name) obj = name;
+				}
+
+				if (obj) {
+					index = pageCollection.indexOf(obj);
+					if (pageOpenNow === obj) {
+						obj.setOpenState(false);
+
+						if (index > 0) {
+							pageCollection[index - 1].setOpenState(true);
+							pageOpenNow = pageCollection[index - 1];
+						}
+						else if (pageCollection.length > 1) {
+							pageCollection[1].setOpenState(true);
+							pageOpenNow = pageCollection[1];
+						}
+					}
+					pageCollection.splice(index, 1);
+					if (pageCollection.length === 0) pageOpenNow = null;
+					else moveScroll(pageOpenNow);
+
+					obj.getTab().remove();
+					obj.getContent().remove();
+					obj.getTabLink().remove();
+					obj.event.off();
+					obj.closeEvent.off();
+					recountScrollSize(-obj.getSize());
+				}
+
+				return control.public;
+			}
+			// 选项页开启
+			// name[string]: 待开启选项页的名称
+			// return[ud2.tabs]: 返回该控件对象
+			function pageOpen(name) {
+				var obj;
+				if (type.isObject(name) && name.page) obj = name;
+				else {
+					name = getPageObjByName(String(name));
+					if (name) obj = name;
+				}
+
+				if (obj){
+					if (pageOpenNow) pageOpenNow.setOpenState(false);
+					obj.setOpenState(true);
+					moveScroll(obj);
+					pageOpenNow = obj;
+				}
+
+				return control.public;
+			}
+			// 查询选项页集合中是否包含此名称
+			// name[string]: 待查询的名称
+			// return[bool]: 返回是否包含该名称
+			function hasName(name) {
+				return !!getPageObjByName(name);
+			}
+
+			// #endregion
+
+			// #region 事件处理
+
+			// 目录关闭
+			function menuClose() {
+				$menu.removeClass('on');
+			}
+			// 目录开关
+			function menuToggle() {
+				$menu.toggleClass('on');
+			}
+
+			// 事件绑定
+			function bindEvent() {
+				// 选项容器滚动条
+				var scrollOptions = {
+					barState: 2,
+					recountByResize: true,
+					isScrollMode: false
+				};
+				if (isTabScroll) {
+					if (layout === 0 || layout === 1) {
+						scrollOptions.hasHorizontal = true;
+						scrollOptions.hasVertical = false;
+					}
+					else {
+						scrollOptions.hasHorizontal = false;
+						scrollOptions.hasVertical = true;
+					}
+
+					tabBoxScroll = scroll($tabScroll, scrollOptions);
+				}
+
+				// 目录菜单
+				if (isMenu) {
+					event($menuBtn).setTap(menuToggle);
+					menuBoxScroll = scroll($menuBox, {
+						barSize: 3,
+						barColor: '#d5d5d5'
+					});
+				}
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 控件初始化
+				if (control.origin.length) {
+					control.origin.after($tabs);
+					control.origin.remove();
+					control.transferStyles();
+				}
+
+				// 设置布局
+				setLayout(layout);
+				// 如果目录存在，加入目录对象
+				if (isMenu) $tabs.prepend($menu);
+				// 是否填满父层
+				if (isFull) $tabs.addClass(cls + '-full');
+
+				// 事件绑定
+				bindEvent();
+
+			}());
+
+			// #endregion
+
+			// #region 返回
+
+			// 返回
+			return extendObjects(control.public, {
+				pageAdd: pageAdd,
+				pageRemove: pageRemove,
+				pageOpen: pageOpen,
+				hasName: hasName
 			});
 
-		// 执行创建控件回调，初始化控件
-		callbacks(ctrlCollection, constructor);
-		// 将控件绑定在ud2对象上
-		if (ctrlCollection.name !== ctrlCollection.ctrlName) ud2[ctrlCollection.ctrlName] = constructor;
+			// #endregion
 
-		// 公开属性
-		constructor.collection = ctrlCollection.public;
-		// 返回构造函数
-		return constructor;
-
-	};
-
-	/*
-	// 创建一个控件类
-	// name[string]: 控件类名称
-	// callbacks[function]: 创建回调，用于对控件的初始化操作
-	// return[function]: 创建控件的构造函数 
-	var createControl = function (name, callbacks) {
-		var // 获取一个空控件集合对象
-			ctrlCollection = controlCollection(name);
-
-		// 用于创建控件的构造函数
-		function constructor() {
-			return create.apply(constructor, arguments);
-		}
-		// 用于创建控件的方法
-		// 只接受创建一个控件
-		// ()
-		// (ctrlID)、(origin)、(userOptions)
-		// (ctrlID, origin)、(ctrlID, userOptions)、(origin, userOptions)
-		// (ctrlID, origin, userOptions)
-		function create () {
-			var // 获取一个空控件对象
-				ctrl = control.call(ctrlCollection, name),
-				// 获取当前方法的参数集合
-				args = arguments,
-				// 获取参数数量
-				len = args.length,
-				// 控件公共属性
-				id, origin, userOptions;
-
-			// 检测长度
-			switch (len) {
-				case 0: {
-					return create.call(constructor, void 0, void 0, {});
-				}
-				case 1: {
-					if (type.isString(args[0]))
-						return create.call(constructor, args[0], void 0, void 0);
-					if (type.isJQuery(args[0]))
-						return create.call(constructor, void 0, args[0], void 0);
-					if (type.isObject(args[0]))
-						return create.call(constructor, void 0, void 0, args[0]);
-					return create.call(constructor);
-				}
-				case 2: {
-					if (type.isString(args[0]) && (type.isJQuery(args[1]) || type.isString(args[1])))
-						return create.call(constructor, args[0], args[1], void 0);
-					if (type.isString(args[0]) && type.isObject(args[1]))
-						return create.call(constructor, args[0], void 0, args[1]);
-					if (type.isJQuery(args[0]) && type.isObject(args[1]))
-						return create.call(constructor, void 0, args[0], args[1]);
-					break;
-				}
-				case 3: {
-					id = type.isString(args[0]) && args[0].length > 0 ? args[0] : createControlID();
-					// 如果传入的jQuery对象长度大于1，则默认选择第一个元素做为origin
-					origin = convertToJQ(args[1]).first();
-					userOptions = type.isObject(args[2]) ? args[2] : {};
-					break;
-				}
-			}
-
-			// 向控件扩展必要属性
-			extendObjects(ctrl, { origin: origin, userOptions: userOptions });
-			extendObjects(ctrl.public, { id: id });
-
-			// 向集合添加当前控件
-			ctrlCollection.public.push(ctrl.public);
-			ctrlCollection.public[id] = ctrl.public;
-			ctrl.current
-				.attr(libName, name)
-				.attr(libName + '-id', id)
-				.attr(ctrlCollection.className + '-ready', true)
-				.addClass(ctrlCollection.className);
-
-			// 创建对象后，返回ctrl.public对象
-			// 此处的ctrl.public对象内的属性为控件的公共属性
-			return ctrlCollection.init(ctrl) || ctrl.public;
-		}
-
-		// 执行创建控件回调，初始化控件
-		callbacks(ctrlCollection, constructor);
-
-		// 将控件绑定在ud2对象上
-		ud2[name] = constructor;
-		if (ctrlCollection.name !== ctrlCollection.ctrlName) ud2[ctrlCollection.ctrlName] = constructor;
-		// 公开属性
-		constructor.create = create;
-		constructor.collection = ctrlCollection.public;
-		// 返回构造函数
-		return constructor;
-	};*/
-	// 遮罩层
-	var backmask = (function () {
-
-		var // 遮罩对象
-			backmaskObj = {},
-			// 遮罩层内容对象
-			$backmask = $('<div class="' + prefixLibName + 'backmask"></div>'),
-			// 调用者
-			callerCollection = [],
-			// 开启状态
-			openState = false;
-
-		// 添加调用者
-		function callerAdd(caller) {
-			if (callerCollection.indexOf(caller) === -1) {
-				callerCollection.push(caller);
-				return true;
-			}
-			return false;
-		}
-		// 移除调用者
-		function callerRemove(caller) {
-			var index = callerCollection.indexOf(caller);
-			if (index > -1) {
-				callerCollection.splice(index, 1);
-				return true;
-			}
-			return false;
-		}
-
-		// 开启遮罩层
-		// caller[object]: 调用遮罩层的对象
-		function open(caller) {
-			if (callerAdd(caller)) $backmask.addClass('on');
-			return backmaskObj;
-		}
-		// 关闭遮罩层
-		// caller[object]: 调用遮罩层的对象
-		function close(caller) {
-			if (callerRemove(caller) && !callerCollection.length) $backmask.removeClass('on');
-			return backmaskObj;
-		}
-
-		// 初始化
-		(function init() {
-			callbacks.pageReady.add(function () {
-				$body.append($backmask);
-			});
-		}());
-
-		// 返回
-		return extendObjects(backmaskObj, {
-			open: open,
-			close: close
-		});
-
-	}());
+		};
+		
+	});
 
 	// #endregion
 
@@ -2997,7 +3414,7 @@ var ud2 = (function (window, $) {
 				size, position, title, content, btnClose,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'size', 'position', 'title', 'content', 'btnClose'
+					'size', 'position', 'title', 'content', ['btnClose', 'isBtnClose']
 				], function (options) {
 					// 初始化标题及内容
 					title = options.title || '未定义标题';
@@ -3015,8 +3432,7 @@ var ud2 = (function (window, $) {
 					}
 
 					// 初始化关闭按钮状态
-					btnClose = options.btnClose;
-					btnClose = btnClose === void 0 ? true : btnClose === 'false' || !btnClose ? false : true;
+					btnClose = attrBoolCheck(options.btnClose, true);
 				}),
 				// 控件结构
 				template = '<div class="' + cls + '-header">' + title + '</div>'
@@ -3305,14 +3721,15 @@ var ud2 = (function (window, $) {
 
 			// #region 私有字段
 
-			var //　位置   信息      样式   默认开启及关闭 是否可关闭 关闭时间
+			var //　位置   信息      样式   默认开启及关闭 是否有关闭按钮 关闭时间
 				position, message, msgSC, autoSwitch, isClose, closeTime,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'position', 'message', 'style', 'autoSwitch', 'close', 'closeTime'
+					'position', 'message', 'style', 'autoSwitch',
+					['close', 'isClose'], 'closeTime'
 				], function (options) {
 					// 初始化是否默认开启及关闭
-					autoSwitch = options.autoSwitch === void 0 ? true : !!options.autoSwitch;
+					autoSwitch = attrBoolCheck(options.autoSwitch, true);
 					// 初始化位置
 					position = options.position || POS_TOPCENTER;
 					if (position !== POS_TOPCENTER && position !== POS_BOTTOMCENTER && position !== POS_TOPLEFT
@@ -3334,13 +3751,13 @@ var ud2 = (function (window, $) {
 					closeTime = options.closeTime || 5000;
 				}),
 				// 控件结构
-				template = '<div class="message-content">' + message + '</div>' + (isClose ? '<a class="message-close"></a>' : ''),
+				template = '<div class="message-content">' + message + '</div>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
 				$message = current.html(template),
 				// 关闭按钮
-				$close = $message.children('.message-close'),
+				$close = $('<a class="message-close"></a>'),//$message.children('.message-close'),
 				// 显示状态
 				isOpen = false,
 				// 关闭定时器
@@ -3391,7 +3808,7 @@ var ud2 = (function (window, $) {
 					$message.css(css).addClass('on');
 					controlCallbacks.open.call(control.public);
 
-					if (closeTime !== -1) {
+					if (closeTime !== -1 && autoSwitch) {
 						closeTimer = window.setTimeout(function () { remove(); }, closeTime);
 					}
 				}
@@ -3488,6 +3905,10 @@ var ud2 = (function (window, $) {
 				if (autoSwitch) {
 					window.setTimeout(function () { open(); }, 10);
 				}
+				// 是否有关闭按钮
+				if (isClose) {
+					$message.append($close);
+				}
 
 				// 事件绑定
 				bindEvent();
@@ -3535,14 +3956,13 @@ var ud2 = (function (window, $) {
 			var // 默认值(1:开启, 0:关闭) 是否禁用 开关颜色
 				value, isDisabled, color,
 				// 获取用户自定义项
-				options = control.getOptions(['value', 'disabled', 'color'], function (options) {
-
+				options = control.getOptions(['value', ['disabled', 'isDisabled'], 'color'], function (options) {
+					// 默认值
 					value = parseInt(options.value) === 1 ? 1 : 0;
-
-					isDisabled = !!options.disabled;
-
+					// 默认是否禁用
+					isDisabled = attrBoolCheck(options.disabled, false);
+					// 默认颜色
 					color = options.color || '';
-
 				}),
 				// 控件结构
 				template = '<input type="checkbox" /><input type="hidden" />',
@@ -4206,17 +4626,20 @@ var ud2 = (function (window, $) {
 			var // 最大高度(em), 控件默认文本, 多选, 菜单方向    空列表占位文本
 				maxHeight, placeholder, isMultiple, dir, emptyText,
 				// 选项
-				options = control.getOptions(['maxheight', 'placeholder', 'multiple', 'dir', 'emptyText'], function (options) {
+				options = control.getOptions([
+					'maxheight', 'placeholder',
+					['multiple', 'isMultiple'],
+					'dir', 'emptyText'
+				], function (options) {
 					// 处理最大高度
 					maxHeight = parseInt(options.maxheight);
 					if (isNaN(maxHeight) || maxHeight === 0) maxHeight = 20;
 					// 处理默认文本
 					placeholder = options.placeholder || '请选择以下项目';
 					// 处理是否多选
-					isMultiple = !!options.multiple;
+					isMultiple = attrBoolCheck(options.multiple, false);
 					// 处理菜单方向
-					dir = options.dir === 'up' || options.dir === constructor.direction.up
-						? constructor.direction.up : constructor.direction.down;
+					dir = options.dir === 'up' || options.dir === 1 ? 1 : 0;
 					// 空列表占位文本
 					emptyText = options.emptyText || '当前列表未包含任何项';
 				}),
@@ -4241,7 +4664,7 @@ var ud2 = (function (window, $) {
 				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 列表滚动条
-				listScroll = null,
+				listScroll,
 				// 组集合
 				groupCollection = [],
 				// 无组选项集合
@@ -4293,13 +4716,13 @@ var ud2 = (function (window, $) {
 			}
 			// 解析选项控件全部组
 			function analysisGroups() {
-				var $groups = control.origin.children('optgroup');
-
+				var $groups = control.origin.children('optgroup, [' + cls + '-optgroup]');
 				analysisOptions();
 				for (var i = 0, l = $groups.length, group; i < l; i++) {
 					var $group = $groups.eq(i),
-						name = $group.attr('label') || '',
-						disabled = !!($group.attr('disabled') && $group.attr('disabled') !== 'false');
+						name = $group.attr('label') || $group.attr(cls + '-label') || '',
+						disabled = !!($group.attr('disabled') !== void 0 && $group.attr('disabled') !== 'false'
+							|| $group.attr(cls + '-disabled') !== void 0 && $group.attr(cls + '-disabled') !== 'false');
 					group = constructor.group(name, disabled);
 					groupAdd(group);
 					analysisOptions(group, $group);
@@ -4310,14 +4733,16 @@ var ud2 = (function (window, $) {
 			// $group[jQuery]: 待解析的选项组内容对象
 			function analysisOptions(group, $group) {
 				var noGroup = group === void 0,
-					$options = noGroup ? control.origin.children('option') : $group.children('option');
+					$options = noGroup ? control.origin.children('option, [' + cls + '-option]') : $group.children('option, [' + cls + '-option]');
 
 				for (var i = 0, l = $options.length, option; i < l; i++) {
 					var $select = $options.eq(i),
 						name = $options.eq(i).html(),
-						val = $options.eq(i).val(),
-						disabled = !!($options.eq(i).attr('disabled') && $options.eq(i).attr('disabled') !== 'false'),
-						selected = !!($options.eq(i).attr('selected') && $options.eq(i).attr('selected') !== 'false');
+						val = $options.eq(i).val() || $options.eq(i).attr('value'),
+						disabled = !!($options.eq(i).attr('disabled') !== void 0 && $options.eq(i).attr('disabled') !== 'false'
+							|| $options.eq(i).attr(cls + '-disabled') !== void 0 && $options.eq(i).attr(cls + '-disabled') !== 'false'),
+						selected = !!($options.eq(i).attr('selected') !== void 0 && $options.eq(i).attr('selected') !== 'false'
+							|| $options.eq(i).attr(cls + '-selected') !== void 0 && $options.eq(i).attr(cls + '-selected') !== 'false');
 
 					option = constructor.option(name, val, disabled, selected);
 					if (noGroup) {
@@ -4379,7 +4804,7 @@ var ud2 = (function (window, $) {
 			// () 获取列表方向
 			// - return[string]: 方向状态码
 			// (direction) 设置列表方向
-			// - direction[ud2.select.direction]: 方向值
+			// - direction[ud2.select.direction]: 方向状态
 			// - return[ud2.select]: 返回该控件对象
 			function directionOperate(direction) {
 				if (direction !== void 0) {
@@ -4959,7 +5384,9 @@ var ud2 = (function (window, $) {
 			var // 双手柄, 步长, 步长位数, 最小值, 最大值, 左值, 右值
 				both, step, stepDigit, min, max, valueLeft, valueRight,
 				// 获取用户自定义项
-				options = control.getOptions(['both', 'min', 'max', 'value', 'step'], function (options) {
+				options = control.getOptions([
+					['both', 'isBoth'], 'min', 'max', 'value', 'step'
+				], function (options) {
 					var v;
 					// 处理步长
 					step = parseFloat(options.step);
@@ -4975,7 +5402,7 @@ var ud2 = (function (window, $) {
 					valueLeft = v[0];
 					valueRight = v[1];
 					// 双手柄
-					both = !options.both || options.both === 'false' ? false : true;
+					both = attrBoolCheck(options.both, false);
 					// 数据处理
 					if (min > max) max = min;
 
@@ -5088,7 +5515,7 @@ var ud2 = (function (window, $) {
 				$left.css('left', percentToViewPos(percentLeft) + '%');
 
 				// 如果不是双手柄
-				if (!options.both) {
+				if (!both) {
 					// 显示手柄和值
 					$back.css('width', percentLeft * 100 + '%');
 					$value.val(valueLeft);
@@ -5953,10 +6380,10 @@ var ud2 = (function (window, $) {
 			cls = collection.className,
 			// 错误常量
 			ERR_LENGTH = 'length-error', ERR_TYPE = 'type-error', ERR_SIZE = 'size-error',
-			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error',
-			// 样式常量
-			STYLE_DEFAULT = 'default', STYLE_SIMPLE = 'simple', STYLE_CUSTOM = 'custom';
+			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error';
 
+		// 控件类型
+		constructor.style = createStyle(STYLE_STANDARD, STYLE_SIMPLE);
 		// 重写集合初始化方法
 		collection.init = function (control) {
 
@@ -5965,7 +6392,11 @@ var ud2 = (function (window, $) {
 			var // 最大长度 最大文件尺寸(KB) 可重命名 重命名最大名称长度 文件过滤 文件上传URL 样式
 				maxlength, maxsize, rename, renameLength, filter, urlUpload, style,
 				// 获取用户自定义项
-				options = control.getOptions(['maxlength', 'maxsize', 'rename', 'renamLength', 'urlUpload', 'filter', 'style'], function (options) {
+				options = control.getOptions([
+					'maxlength', 'maxsize',
+					['rename', 'isRename'],
+					'renamLength', 'urlUpload', 'filter', 'style'
+				], function (options) {
 					var // 文件后缀
 						ext = '(png|jpg|gif|bmp|svg|ico|html|js|cs|vb|css|less|scss|sass|mp3|mp4|wav|avi|ogg|mov|wmv|webm|flv|swf|txt|pdf|doc|docx|xls|xlsx|ppt|pptx|ett|wpt|dpt|rar|zip|iso)',
 						files = new RegExp('^(' + ext + ',)*' + ext + '$'),
@@ -5976,7 +6407,7 @@ var ud2 = (function (window, $) {
 					// 初始化最大文件尺寸
 					maxsize = parseInt(options.maxsize) || 2048;
 					// 初始化是否启用重命名
-					rename = options.rename !== 'false' && !!options.rename;
+					rename = attrBoolCheck(options.rename, true);
 					// 初始化启用重命名的最大名称长度
 					renameLength = parseInt(options.renameLength) || 50;
 					// 初始化文件过滤
@@ -5989,7 +6420,8 @@ var ud2 = (function (window, $) {
 					urlUpload = options.urlUpload || '';
 					// 初始化样式
 					style = options.style;
-					if (style !== STYLE_DEFAULT && style !== STYLE_SIMPLE && style !== STYLE_CUSTOM) style = STYLE_DEFAULT;
+					if (style !== STYLE_STANDARD && style !== STYLE_SIMPLE && style !== STYLE_CUSTOM)
+						style = STYLE_STANDARD;
 				}),
 				// 控件结构
 				template = '<input type="file" multiple />',
@@ -6356,7 +6788,7 @@ var ud2 = (function (window, $) {
 				// 更新返回对象
 				updateControlPublic();
 				// 默认样式
-				if (style === STYLE_DEFAULT) constructor.default(control.public);
+				if (style === STYLE_STANDARD) constructor.standard(control.public);
 			}());
 
 			// #endregion
@@ -6400,7 +6832,7 @@ var ud2 = (function (window, $) {
 		};
 		// 文件上传控件 - 默认样式
 		// (control) 传入默认控件
-		constructor.default = function (control) {
+		constructor.standard = function (control) {
 			var // 容器对象
 				$default, $fileEmpty, $fileDrag, $fileList, $fileTools, $fileAdd, $fileAddBox,
 				// 重命名状态 文件集合对象

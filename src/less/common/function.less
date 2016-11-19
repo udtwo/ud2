@@ -126,12 +126,12 @@
 }
 // 生成带有浏览器前缀的text-overflow属性
 // 默认值为ellipsis，即文本超出范围则用'...'来代替多余文本
-.textOverflow() {
+.textOverflow(@value: ellipsis) {
 	white-space: nowrap;
 	overflow: hidden;
-	-ms-text-overflow: ellipsis;
-	-o-text-overflow: ellipsis;
-	text-overflow: ellipsis;
+	-ms-text-overflow: @value;
+	-o-text-overflow: @value;
+	text-overflow: @value;
 }
 // 生成带有浏览器前缀的box-sizing属性
 // 默认值为content-box，即盒子运算方式为width、padding、border分开运算

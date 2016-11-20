@@ -363,10 +363,19 @@ var ud2 = (function (window, $) {
 			// 创建一个空的div元素
 			div = document.createElement('div'),
 			// 获取userAgent
-			u = window.navigator.userAgent;
+			u = window.navigator.userAgent, ipad ,iphone, mac;
 
+		// 判断是否为IPAD
+		ipad = u.match(/ipad/i);
+		support.ipad = ipad && ipad[0].toLowerCase() === 'ipad',
+		// 判断是否为IPHONE
+		iphone = u.match(/iphone/i);
+		support.iphone = iphone && iphone[0].toLowerCase() === 'iphone',
+		// 判断是否为MAC
+		mac = u.match(/macintosh/i);
+		support.mac = mac && mac[0].toLowerCase() === 'macintosh',
 		// 判断是否为Safari浏览器
-		support.safari = /constructor/i.test(window.HTMLElement);
+		support.safari = ipad || iphone || mac;
 		// 判断是否为移动终端
 		support.mobile = !!u.match(/mobile|mobi|mini/i);
 		// 判断是否为Android平台
@@ -3095,6 +3104,12 @@ var ud2 = (function (window, $) {
 						$content = $('<div class="' + cls + '-content iframe"><iframe id="' + name + '" name="' + name + '" src="' + content + '" /></div>');
 						break;
 					}
+				}
+				if (ud2.support.safari) {
+					$content.css({
+						'-webkit-overflow-scrolling': 'touch',
+						'overflow-y': 'scroll'
+					});
 				}
 
 				// 加入到容器中

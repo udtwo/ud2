@@ -3,6 +3,9 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<title></title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1, maximum-scale=1" />
+	<meta name="renderer" content="webkit">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<link href="../dist/css/ud2.css" rel="stylesheet" />
 	<link href="src/test.css" rel="stylesheet" />
 	<script src="../vendor/js/jquery.js"></script>
@@ -10,23 +13,10 @@
 	<script src="../src/js/ud2.dataTable.js"></script>
 </head>
 <body>
-	<div ud2="tabs" ud2-id="tab-0" style="margin-bottom: 15px;"></div>
 	<script>
-				ud2.ready(function () {
-					ud2.tabs.collection[0]
-						.pageAdd(ud2.tabs.pageType.html, 'abc1', '标题1', '内容1')
-						.pageAdd(ud2.tabs.pageType.html, 'abc2', '标题2', '内容2')
-						.pageAdd(ud2.tabs.pageType.html, 'abc3', '标题3', '内容3')
-						.pageAdd(ud2.tabs.pageType.html, 'abc4', '标题4', '内容4')
-						.pageAdd(ud2.tabs.pageType.html, 'abc5', '标题5', '内容5');
-
-					ud2.tabs('tab-1', { layout: 3 }).insertAfter('[ud2="tabs"]')
-						.pageAdd(ud2.tabs.pageType.html, 'abc1', '标题1', '内容1')
-						.pageAdd(ud2.tabs.pageType.html, 'abc2', '标题2', '内容2')
-						.pageAdd(ud2.tabs.pageType.html, 'abc3', '标题3', '内容3')
-						.pageAdd(ud2.tabs.pageType.html, 'abc4', '标题4', '内容4')
-						.pageAdd(ud2.tabs.pageType.html, 'abc5', '标题5', '内容5');
-				})
+		ud2.ready(function () {
+			
+		});
 	</script>
 </body>
 </html>

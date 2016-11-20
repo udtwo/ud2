@@ -115,6 +115,8 @@ var ud2 = (function (window, $) {
 		SELECTOR_HIDDEN = '[type="hidden"]',
 		// 定位默认长度
 		NORMAL_LENGTH = 12,
+		// 点字符
+		STR_POINT = '.',
 
 		// 用于克隆的空jQuery对象
 		$div = $('<div />'),
@@ -2766,7 +2768,7 @@ var ud2 = (function (window, $) {
 				$scroll.append($wrapper);
 			} else {
 				$child.wrapAll($wrapper);
-				$wrapper = $scroll.children('.' + prefixLibName + 'scroll-wrapper');
+				$wrapper = $scroll.children(STR_POINT + prefixLibName + 'scroll-wrapper');
 			}
 
 			// 延续scroll盒的padding值
@@ -2883,25 +2885,28 @@ var ud2 = (function (window, $) {
 					isFull = attrBoolCheck(options.full, false);
 				}),
 				// 控件结构
-				template = '<div class="' + cls + '-bar"><div class="' + cls + '-bar-inner"></div></div><div class="ud2-tabs-main"></div>',
+				template = '<div class="' + cls + '-bar"><div class="' + cls + '-bar-inner" /></div><div class="' + cls + '-main" />',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
 				$tabs = current.html(template),
 				// 选项滚动容器对象
-				$tabScroll = $tabs.children('.' + cls + '-bar'),
+				$tabScroll = $tabs.children(STR_POINT + cls + '-bar'),
 				// 选项容器对象
-				$tabBox = $tabs.find('.' + cls + '-bar-inner'),
+				$tabInner = $tabs.find(STR_POINT + cls + '-bar-inner'),
 				// 内容容器对象
-				$contentBox = $tabs.find('.' + cls + '-main'),
+				$contentBox = $tabs.find(STR_POINT + cls + '-main'),
 				// 目录对象
-				$menu = $('<div class="' + cls + '-menu"><div class="' + cls + '-menu-btn"></div><div class="ud2-tabs-menu-list empty" ud2-tabs-empty="这里是空的"><div class="ud2-tabs-menu-inner"></div></div></div>'),
+				$menu = $('<div class="' + cls + '-menu"><div class="' + cls + '-menu-btn" />'
+					+ '<div class="' + cls + '-menu-list empty" ' + cls + '-empty="这里是空的"><div class="' + cls + '-menu-inner" /></div></div>'),
+				// 事件遮罩
+				$mask = $('<div class="' + cls + '-mask" />'),
 				// 目录按钮对象
 				$menuBtn = $menu.children(':first'),
 				// 目录容器对象
-				$menuBox = $menu.children(':last'),
+				$menuScroll = $menu.children(':last'),
 				// 目录滚动容器对象
-				$menuScroll = $menu.find('.' + cls + '-menu-inner'),
+				$menuInner = $menu.find(STR_POINT + cls + '-menu-inner'),
 				// 选项页对象集合
 				pageCollection = [],
 				// 目录列表容器滚动条对象
@@ -2961,10 +2966,10 @@ var ud2 = (function (window, $) {
 				else {
 					scrollSize += size;
 					if (layout === 0 || layout === 1) {
-						$tabBox.width(scrollSize + pageCollection.length * 2);
+						$tabInner.width(scrollSize + pageCollection.length * 2);
 					}
 					else {
-						$tabBox.height(scrollSize + pageCollection.length * 2);
+						$tabInner.height(scrollSize + pageCollection.length * 2);
 					}
 				}
 			}
@@ -3079,21 +3084,21 @@ var ud2 = (function (window, $) {
 				};
 				
 				// 生成选项和内容对象
-				$tab = $('<div class="ud2-tabs-tab"><span>' + title + '</span></div>');
+				$tab = $('<div class="' +cls + '-tab"><span>' +title + '</span></div>');
 				if (isCloseBtn) $tab.append('<i class="ico ico-solid-cancel" />');
 				switch (type) {
 					case 0: {
-						$content = $('<div class="ud2-tabs-content">' + content + '</div>');
+						$content = $('<div class="' + cls + '-content">' + content + '</div>');
 						break;
 					}
 					case 1: {
-						$content = $('<div class="ud2-tabs-content iframe"><iframe id="' + name + '" name="' + name + '" src="' + content + '" /></div>');
+						$content = $('<div class="' + cls + '-content iframe"><iframe id="' + name + '" name="' + name + '" src="' + content + '" /></div>');
 						break;
 					}
 				}
 
 				// 加入到容器中
-				$tabBox.append($tab);
+				$tabInner.append($tab);
 				$contentBox.append($content);
 				// 重计算滚动尺寸
 				if (layout === 0 || layout === 1) size = $tab.outerWidth();
@@ -3102,16 +3107,16 @@ var ud2 = (function (window, $) {
 				if (isTabScroll) tabBoxScroll.recountPosition();
 				// 生成菜单项
 				if (isMenu) {
-					$tabLink = $('<div class="ud2-tabs-menu-item" title="' + title + '"><span>' + title + '</span></div>');
+					$tabLink = $('<div class="' + cls + '-menu-item" title="' + title + '"><span>' + title + '</span></div>');
 					if (isCloseBtn) $tabLink.append('<i class="ico ico-hollow-cancel" />');
-					$menuScroll.append($tabLink);
+					$menuInner.append($tabLink);
 					menuBoxScroll.recountPosition();
 				}
 				
 				// 是否自动开启
 				if (pageCollection.length === 0 || isOpen) pageOpen(pageObj);
 				// 清除空选项情况
-				if (pageCollection.length === 0) $menuBox.removeClass('empty');
+				if (pageCollection.length === 0) $menuScroll.removeClass('empty');
 				pageCollection.push(pageObj);
 
 				// 加入到选项页集合
@@ -3155,7 +3160,7 @@ var ud2 = (function (window, $) {
 					pageCollection.splice(index, 1);
 					if (pageCollection.length === 0) {
 						pageOpenNow = null;
-						$menuBox.addClass('empty');
+						$menuScroll.addClass('empty');
 					}
 					else moveScroll(pageOpenNow);
 
@@ -3233,11 +3238,15 @@ var ud2 = (function (window, $) {
 				// 目录菜单
 				if (isMenu) {
 					event($menuBtn).setTap(menuToggle);
-					menuBoxScroll = scroll($menuBox, {
-						barSize: 3,
-						barColor: '#d5d5d5'
-					});
+					menuBoxScroll = scroll($menuScroll, { barSize: 3, barColor: '#d5d5d5' });
 				}
+
+				// 设置遮罩
+				ud2.event($tabScroll).setDown(function () {
+					$mask.show();
+				}).setUp(function () {
+					$mask.hide();
+				});
 			}
 
 			// #endregion
@@ -3259,6 +3268,8 @@ var ud2 = (function (window, $) {
 				if (isMenu) $tabs.prepend($menu);
 				// 是否填满父层
 				if (isFull) $tabs.addClass(cls + '-full');
+				// 加入遮罩
+				$tabs.append($mask);
 
 				// 事件绑定
 				bindEvent();
@@ -5173,7 +5184,7 @@ var ud2 = (function (window, $) {
 					if (min > max) max = min;
 					value = convertValue(value);
 					// 处理小数点
-					if (step.toString().indexOf('.') > -1) stepDigit = step.toString().split('.')[1].length;
+					if (step.toString().indexOf(STR_POINT) > -1) stepDigit = step.toString().split(STR_POINT)[1].length;
 					else stepDigit = 0;
 				}),
 				// 控件结构
@@ -5410,7 +5421,7 @@ var ud2 = (function (window, $) {
 					if (min > max) max = min;
 
 					// 获取步长位数
-					if (step.toString().indexOf('.') > -1) stepDigit = step.toString().split('.')[1].length;
+					if (step.toString().indexOf(STR_POINT) > -1) stepDigit = step.toString().split(STR_POINT)[1].length;
 					else stepDigit = 0;
 				}),
 				// 控件结构
@@ -5432,7 +5443,7 @@ var ud2 = (function (window, $) {
 				// 右侧拖拽手柄
 				$right = $a.clone().addClass(cls + '-hand'),
 				// 按钮背景
-				$back = $list.find('.' + cls + '-back'),
+				$back = $list.find(STR_POINT + cls + '-back'),
 				// 处理信息数据
 				handleInfo = {
 					// 按钮的最大位移
@@ -5891,17 +5902,17 @@ var ud2 = (function (window, $) {
 				// 开关容器
 				$power = $value.next(),
 				// 日期容器
-				$listDate = $date.find('.' + cls + '-datelist'),
+				$listDate = $date.find(STR_POINT + cls + '-datelist'),
 				// 年份月份容器
-				$listYM = $date.find('.' + cls + '-ymlist'),
+				$listYM = $date.find(STR_POINT + cls + '-ymlist'),
 				// 日期文本容器 
-				$textDate = $date.find('.' + cls + '-tools-text'),
+				$textDate = $date.find(STR_POINT + cls + '-tools-text'),
 				// 年月文本容器
-				$textYM = $listYM.find('.' + cls + '-tools-text'),
+				$textYM = $listYM.find(STR_POINT + cls + '-tools-text'),
 				// 今日按钮
-				$todayBtn = $listDate.find('.' + cls + '-btns button:eq(0)'),
+				$todayBtn = $listDate.find(STR_POINT + cls + '-btns button:eq(0)'),
 				// 清空按钮
-				$emptyBtn = $listDate.find('.' + cls + '-btns button:eq(1)'),
+				$emptyBtn = $listDate.find(STR_POINT + cls + '-btns button:eq(1)'),
 				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 键盘快捷事件
@@ -5985,7 +5996,7 @@ var ud2 = (function (window, $) {
 			// 日期初始化
 			function dateInit() {
 				var // 工具按钮
-					$toolsBtn = $date.find('.' + cls + '-tools a');
+					$toolsBtn = $date.find(STR_POINT + cls + '-tools a');
 
 				dateHtmlCreate();
 				// 菜单按钮处理方法
@@ -6028,7 +6039,7 @@ var ud2 = (function (window, $) {
 				var // HTML 容器
 					$html = $listDate.children('table'),
 					// 文本容器 
-					$text = $listDate.find('.' + cls + '-tools-text'),
+					$text = $listDate.find(STR_POINT + cls + '-tools-text'),
 					// 存储 HTML
 					html = [],
 					// 闰年
@@ -6098,9 +6109,9 @@ var ud2 = (function (window, $) {
 			// 年份月份初始化
 			function ymInit() {
 				var // 工具按钮
-					$toolsBtn = $listYM.find('.' + cls + '-tools a'),
+					$toolsBtn = $listYM.find(STR_POINT + cls + '-tools a'),
 					// 底部按钮
-					$bottomBtn = $listYM.find('.' + cls + '-btns button');
+					$bottomBtn = $listYM.find(STR_POINT + cls + '-btns button');
 
 				ymHtmlCreate();
 
@@ -6497,7 +6508,7 @@ var ud2 = (function (window, $) {
 				// 迭代
 				for (; i < len; i++) {
 					// 当前文件扩展名
-					ext = files[i].name.split('.');
+					ext = files[i].name.split(STR_POINT);
 					ext = ext[ext.length - 1].toLowerCase();
 					if (!ext || filter[ext] === void 0) { return false; }
 				}
@@ -6855,7 +6866,7 @@ var ud2 = (function (window, $) {
 					// 输入框
 					$boxInput = $box.find('input'),
 					// 关闭按钮
-					$boxClose = $box.children('.' + cls + '-full-close'),
+					$boxClose = $box.children(STR_POINT + cls + '-full-close'),
 					// 文件读取对象
 					reader;
 
@@ -6919,15 +6930,15 @@ var ud2 = (function (window, $) {
 			}
 			// 文件进度处理方法
 			function progress(file, progressNum) {
-				var $progress = file.element.find('.' + cls + '-full-progress');
+				var $progress = file.element.find(STR_POINT + cls + '-full-progress');
 				$progress.css('width', progressNum + '%');
 				$progress.html(progressNum + '%');
 			}
 			// 文件上传处理方法
 			function upload(file) {
 				$fileList.find('[' + cls + '-add]').hide();
-				$fileList.find('.' + cls + '-full-close').hide();
-				$fileList.find('.' + cls + '-full-figure input').attr('readonly', 'readonly');
+				$fileList.find(STR_POINT + cls + '-full-close').hide();
+				$fileList.find(STR_POINT + cls + '-full-figure input').attr('readonly', 'readonly');
 				$fileTools.html('文件开始上传...');
 			}
 			// 文件上传完毕处理方法

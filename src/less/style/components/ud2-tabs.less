@@ -27,12 +27,17 @@
 	position: relative;
 }
 // 设置容器的定位方式为绝对定位
-.ud2-tabs-bar, .ud2-tabs-main, .ud2-tabs-menu, .ud2-tabs-menu-list, .ud2-tabs-menu-item i, .ud2-tabs-tab i {
+.ud2-tabs-bar, .ud2-tabs-main, .ud2-tabs-menu, .ud2-tabs-menu-list, .ud2-tabs-menu-item i, .ud2-tabs-tab i, .ud2-tabs-mask {
 	position: absolute;
 }
 // 设定容器的盒运算方式
 .ud2-tabs-tab, .ud2-tabs-main {
 	.boxSizing(border-box);
+}
+// 遮罩层
+.ud2-tabs-mask {
+	display: none;
+	z-index: 4;
 }
 
 // 选项集合容器
@@ -232,7 +237,7 @@
 		height: @TabNormalHeight - @TabNormalSize;
 	}
 
-	.ud2-tabs-main {
+	.ud2-tabs-main, .ud2-tabs-mask {
 		left: 0;
 		right: 0;
 	}
@@ -268,7 +273,7 @@
 		height: @TabNormalHeight;
 	}
 
-	.ud2-tabs-main {
+	.ud2-tabs-main, .ud2-tabs-mask {
 		top: 0;
 		bottom: 0;
 	}
@@ -286,7 +291,7 @@
 		top: 0;
 	}
 
-	.ud2-tabs-main {
+	.ud2-tabs-main, .ud2-tabs-mask {
 		top: @TabNormalSize;
 		bottom: 0;
 	}
@@ -317,7 +322,7 @@
 		bottom: 0;
 	}
 
-	.ud2-tabs-main {
+	.ud2-tabs-main, .ud2-tabs-mask {
 		top: 0;
 		bottom: @TabNormalSize;
 	}
@@ -352,7 +357,7 @@
 		left: 0;
 	}
 
-	.ud2-tabs-main {
+	.ud2-tabs-main, .ud2-tabs-mask {
 		left: @TabNormalSize * 3.5;
 		right: 0;
 	}
@@ -387,7 +392,7 @@
 		right: 0;
 	}
 
-	.ud2-tabs-main {
+	.ud2-tabs-main, .ud2-tabs-mask {
 		left: 0;
 		right: @TabNormalSize * 3.5;
 	}

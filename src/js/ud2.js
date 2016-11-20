@@ -3080,14 +3080,14 @@ var ud2 = (function (window, $) {
 				
 				// 生成选项和内容对象
 				$tab = $('<div class="ud2-tabs-tab"><span>' + title + '</span></div>');
-				if (isCloseBtn) $tab.append('<i class="ico ico-solid-cancel"></i>');
+				if (isCloseBtn) $tab.append('<i class="ico ico-solid-cancel" />');
 				switch (type) {
 					case 0: {
 						$content = $('<div class="ud2-tabs-content">' + content + '</div>');
 						break;
 					}
 					case 1: {
-						$content = $('<div class="ud2-tabs-content iframe"><iframe id="' + name + '" name="' + name + '" src="' + content + '"></iframe></div>');
+						$content = $('<div class="ud2-tabs-content iframe"><iframe id="' + name + '" name="' + name + '" src="' + content + '" /></div>');
 						break;
 					}
 				}
@@ -3103,18 +3103,18 @@ var ud2 = (function (window, $) {
 				// 生成菜单项
 				if (isMenu) {
 					$tabLink = $('<div class="ud2-tabs-menu-item" title="' + title + '"><span>' + title + '</span></div>');
-					if (isCloseBtn) $tabLink.append('<i class="ico ico-hollow-cancel"></i>');
+					if (isCloseBtn) $tabLink.append('<i class="ico ico-hollow-cancel" />');
 					$menuScroll.append($tabLink);
 					menuBoxScroll.recountPosition();
 				}
 				
-				// 清楚空选项情况
-				if (pageCollection.length === 0) $menuBox.removeClass('empty');
 				// 是否自动开启
 				if (pageCollection.length === 0 || isOpen) pageOpen(pageObj);
+				// 清除空选项情况
+				if (pageCollection.length === 0) $menuBox.removeClass('empty');
+				pageCollection.push(pageObj);
 
 				// 加入到选项页集合
-				pageCollection.push(pageObj);
 				pageObj.event = event($().add($tab.children('span')).add($tabLink.children('span'))).setTap(function () {
 					pageOpen(pageObj);
 					menuClose();
@@ -3153,7 +3153,10 @@ var ud2 = (function (window, $) {
 						}
 					}
 					pageCollection.splice(index, 1);
-					if (pageCollection.length === 0) pageOpenNow = null;
+					if (pageCollection.length === 0) {
+						pageOpenNow = null;
+						$menuBox.addClass('empty');
+					}
 					else moveScroll(pageOpenNow);
 
 					obj.getTab().remove();

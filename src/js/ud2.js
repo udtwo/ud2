@@ -1670,7 +1670,8 @@ var ud2 = (function (window, $) {
 				// 库已准备完成时的回调方法
 				ready: function (fn) {
 					if (type.isFunction(fn)) {
-						callbacks.pageReady.add(fn);
+						if (pageLoaded) fn();
+						else callbacks.pageReady.add(fn);
 					}
 				}
 			};
@@ -2970,7 +2971,6 @@ var ud2 = (function (window, $) {
 							element.size = element.getTab().outerHeight();
 						scrollSize += element.size;
 					});
-					
 				}
 				else {
 					scrollSize += size;
@@ -3030,9 +3030,16 @@ var ud2 = (function (window, $) {
 
 			// 选项页添加
 			// (object) 通过参数对象，创建一个内容对象
-			// (name, type, title, content, isCloseBtn, isOpen) 通过参数创建一个内容对象
 			// - name[string]: 选项页名称
 			// - type[ud2.tabs.pageType]: 选项页类型
+			// - title[string]: 选项页标题
+			// - content[string]: 选项页内容
+			// - isCloseBtn[bool]: 是否包含关闭按钮
+			// - isOpen[bool]: 是否添加后开启
+			// (type, name, title, content, isCloseBtn, isOpen) 通过参数创建一个内容对象
+			// - type[ud2.tabs.pageType]: 选项页类型
+			// - name[string]: 选项页名称
+			// - title[string]: 选项页标题
 			// - content[string]: 选项页内容
 			// - isCloseBtn[bool]: 是否包含关闭按钮
 			// - isOpen[bool]: 是否添加后开启
@@ -3044,8 +3051,8 @@ var ud2 = (function (window, $) {
 					type, title, content, isCloseBtn, isOpen, name,
 					// 选项卡对象 内容对象 菜单项
 					$tab, $content, $tabLink,
-					// 内容对象
-					pageObj = {}, size,
+					// 选项信息 选项信息子对象 选项信息用于关闭的子对象 选项尺寸
+					pageInfo, pageInfoChild, pageInfoCloseChild, size,
 					// 参数对象
 					argObj;
 
@@ -3070,28 +3077,6 @@ var ud2 = (function (window, $) {
 				// 如存在此名称，直接跳出
 				if (getPageObjByName(name)) return control.public;
 
-				// 重设置选项页对象属性
-				pageObj = {
-					name: name,
-					page: 1,
-					getSize: function () { return size; },
-					getTab: function () { return $tab; },
-					getTabLink: function () { return $tabLink; },
-					getContent: function () { return $content; },
-					setOpenState: function (state) {
-						if (state) {
-							$tab.addClass('on');
-							$content.addClass('on');
-							$tabLink.addClass('on');
-						}
-						else {
-							$tab.removeClass('on');
-							$content.removeClass('on');
-							$tabLink.removeClass('on');
-						}
-					}
-				};
-				
 				// 生成选项和内容对象
 				$tab = $('<div class="' +cls + '-tab"><span>' +title + '</span></div>');
 				if (isCloseBtn) $tab.append('<i class="ico ico-solid-cancel" />');
@@ -3105,6 +3090,7 @@ var ud2 = (function (window, $) {
 						break;
 					}
 				}
+				// 通过此项设置让safari中的iframe正常滚动
 				if (ud2.support.safari) {
 					$content.css({
 						'-webkit-overflow-scrolling': 'touch',
@@ -3127,22 +3113,51 @@ var ud2 = (function (window, $) {
 					$menuInner.append($tabLink);
 					menuBoxScroll.recountPosition();
 				}
-				
-				// 是否自动开启
-				if (pageCollection.length === 0 || isOpen) pageOpen(pageObj);
-				// 清除空选项情况
-				if (pageCollection.length === 0) $menuScroll.removeClass('empty');
-				pageCollection.push(pageObj);
 
-				// 加入到选项页集合
-				pageObj.event = event($().add($tab.children('span')).add($tabLink.children('span'))).setTap(function () {
-					pageOpen(pageObj);
-					menuClose();
-				});
-				pageObj.closeEvent = event($().add($tab.find('i')).add($tabLink.find('i'))).setTap(function () {
-					pageRemove(pageObj);
-					menuClose();
-				});
+				// 重设置选项页对象属性
+				pageInfo = {
+					// 名称
+					name: name,
+					// 对象标识
+					page: 1,
+					// 获取尺寸
+					getSize: function () { return size; },
+					// 获取选项对象
+					getTab: function () { return $tab; },
+					// 获取选项链接对象
+					getTabLink: function () { return $tabLink; },
+					// 获取内容对象
+					getContent: function () { return $content; },
+					// 设置选项的开启状态
+					setOpenState: function (state) {
+						if (state) {
+							$tab.addClass('on');
+							$content.addClass('on');
+							if (isMenu) $tabLink.addClass('on');
+						}
+						else {
+							$tab.removeClass('on');
+							$content.removeClass('on');
+							if (isMenu) $tabLink.removeClass('on');
+						}
+					}
+				};
+				pageCollection.push(pageInfo);
+
+				// 是否自动开启
+				if (pageCollection.length === 1 || isOpen) pageOpen(pageInfo);
+				// 清除空选项情况
+				if (pageCollection.length === 1) $menuScroll.removeClass('empty');
+
+				// 设置选项和选项链接的短按事件
+				pageInfoChild = $().add($tab.children('span'));
+				pageInfoCloseChild = $().add($tab.find('i'));
+				if (isMenu) {
+					pageInfoChild = pageInfoChild.add($tabLink.children('span'));
+					pageInfoCloseChild = pageInfoCloseChild.add($tabLink.find('i'));
+				}
+				pageInfo.event = event(pageInfoChild).setTap(function () { pageOpen(pageInfo); menuClose(); });
+				pageInfo.closeEvent = event(pageInfoCloseChild).setTap(function () { pageRemove(pageInfo); menuClose(); });
 
 				// 返回
 				return control.public;

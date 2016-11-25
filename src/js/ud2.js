@@ -18,12 +18,8 @@ var ud2 = (function (window, $) {
 
 		// 库名称
 		libName = 'ud2',
-		// 连接符
-		joinStr = '-',
-		// 数据属性前缀
-		prefixData = 'data-',
 		// 库属性前缀
-		prefixLibName = libName + joinStr,
+		prefixLibName = libName + '-',
 		// 样式属性前缀集合
 		// 有效集合 {1-4}
 		prefixStyles = ' -webkit- -moz- -o- -ms- '.split(' '),
@@ -160,7 +156,7 @@ var ud2 = (function (window, $) {
 		// return[function]: 返回一个方法，此方法来判断传入的Value参数是否为TypeName类型
 		function isType(type) {
 			return function (obj) {
-				return {}.toString.call(obj) === "[object " + type + "]";
+				return {}.toString.call(obj) === '[object ' + type + ']';
 			};
 		}
 		// 判断传入参数是否为一个对象Object
@@ -603,6 +599,20 @@ var ud2 = (function (window, $) {
 			else if (val === 'false' || val === '0') return false;
 			return !!val;
 		}
+	}
+	// 获取属性值
+	// $element[jQuery]: 待检测的元素
+	// attrName[string]: 待检测的属性名
+	// prefixName[string]: 属性名前缀
+	// defaultVal[bool]: 当不存在值时给定的默认值
+	// return[string]: 返回获取到的属性值
+	function attrValue($element, attrName, prefixName, defaultVal) {
+		var val;
+		$element = convertToJQ($element);
+		val = $element.attr(attrName);
+		if (val === void 0 && prefixName) val = $element.attr(prefixName + '-' + attrName);
+		if (val === void 0) val = defaultVal;
+		return val;
 	}
 
 	// #endregion
@@ -1742,12 +1752,12 @@ var ud2 = (function (window, $) {
 					// 获取新的属性名
 					name = (function () {
 						if (!attrTranslateGroup[name]) {
-							attrTranslateGroup[name] = (name.match(attrTranslateRegex).join(joinStr)).toString().toLowerCase();
+							attrTranslateGroup[name] = (name.match(attrTranslateRegex).join('-')).toString().toLowerCase();
 						}
 						return attrTranslateGroup[name];
 					})();
 
-					var attr = isNative ? name : collection.className + joinStr + name;
+					var attr = isNative ? name : collection.className + '-' + name;
 					return control.origin ? control.origin.attr(attr) : null;
 				},
 				// 获取控件自定义项
@@ -2843,7 +2853,9 @@ var ud2 = (function (window, $) {
 	controlCreater('tabs', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className;
+			cls = collection.className, 
+			// 内容对象模版
+			$contentTemplate = $div.clone().addClass(cls + '-content');
 
 		// 布局方式
 		constructor.layout = {
@@ -3023,6 +3035,26 @@ var ud2 = (function (window, $) {
 				});
 				return f && f[0];
 			}
+			// 解析原控件内的全部选项对象
+			function analysisElements() {
+				if (!control.origin.length) return;
+
+				var selector = '[' + cls + '-page]',
+					$pages = control.origin.children(selector),
+					i = 0, l = $pages.length, 
+					p, type, name, content, closeBtn, openState;
+
+				for (; i < l; i++) {
+					p = $pages.eq(i);
+					type = parseInt(attrValue(p, 'page-type', cls, 0));
+					type = type === 1 ? 1 : 0;
+					name = attrValue(p, 'page-name', cls, 'unnamed');
+					content = p.html();
+					closeBtn = attrValue(p, 'page-close-btn', cls, 1);
+					openState = attrValue(p, 'page-open', cls, 0);
+					pageAdd({ type: type, name: name, content: content, isCloseBtn: closeBtn, isOpen: openState });
+				}
+			}
 
 			// #endregion
 
@@ -3048,7 +3080,7 @@ var ud2 = (function (window, $) {
 				var // 参数集合        参数长度
 					args = arguments, len = args.length,
 					// 类型 标题  详情      是否包含关闭按钮 是否默认开启 页名称
-					type, title, content, isCloseBtn, isOpen, name,
+					pageType, title, content, isCloseBtn, isOpen, name,
 					// 选项卡对象 内容对象 菜单项
 					$tab, $content, $tabLink,
 					// 选项信息 选项信息子对象 选项信息用于关闭的子对象 选项尺寸
@@ -3058,18 +3090,18 @@ var ud2 = (function (window, $) {
 
 				// 判断传参方式，并初始化参数
 				if (len === 1 && type.isObject(argObj = args[0], argObj)) {
-					type = argObj.type && (argObj.type === 1 || argObj.type === 'url') ? 1 : 0;
+					pageType = argObj.type && (argObj.type === 1 || argObj.type === 'url') ? 1: 0;
 					name = argObj.name;
 					title = argObj.title || '未命名标题';
-					content = argObj.content || (type === 1 ? EMPTY_PAGE : '');
+					content = argObj.content || (pageType === 1 ? EMPTY_PAGE : '');
 					isCloseBtn = attrBoolCheck(argObj.isCloseBtn, true);
 					isOpen = attrBoolCheck(argObj.isOpen, false);
 				}
 				else {
-					type = args[0] && (args[0] === 1 || args[0] === 'url') ? 1 : 0;
+					pageType = args[0] && (args[0] === 1 || args[0] === 'url') ? 1 : 0 || 0;
 					name = args[1];
 					title = args[2] || '未命名标题';
-					content = args[3] || (type === 1 ? EMPTY_PAGE : '');
+					content = args[3] || (pageType === 1 ? EMPTY_PAGE : '');
 					isCloseBtn = attrBoolCheck(args[4], true);
 					isOpen = attrBoolCheck(args[5], false);
 				}
@@ -3080,13 +3112,15 @@ var ud2 = (function (window, $) {
 				// 生成选项和内容对象
 				$tab = $('<div class="' +cls + '-tab"><span>' +title + '</span></div>');
 				if (isCloseBtn) $tab.append('<i class="ico ico-solid-cancel" />');
-				switch (type) {
+				switch (pageType) {
 					case 0: {
-						$content = $('<div class="' + cls + '-content">' + content + '</div>');
+						$content = $contentTemplate.clone();
+						$content.append(content);
 						break;
 					}
 					case 1: {
-						$content = $('<div class="' + cls + '-content iframe"><iframe id="' + name + '" name="' + name + '" src="' + content + '" /></div>');
+						$content = $contentTemplate.clone().addClass('iframe');
+						$content.append('<iframe id="' + name + '" name="' + name + '" src="' + content + '" />');
 						break;
 					}
 				}
@@ -3303,7 +3337,8 @@ var ud2 = (function (window, $) {
 
 				// 事件绑定
 				bindEvent();
-
+				// 解析原控件
+				analysisElements();
 			}());
 
 			// #endregion
@@ -4758,9 +4793,12 @@ var ud2 = (function (window, $) {
 				emptyText = text;
 				getContent().attr(cls + '-empty', emptyText);
 			}
-			// 解析选项控件全部组
+			// 解析原选项控件内的全部组对象
 			function analysisGroups() {
-				var $groups = control.origin.children('optgroup, [' + cls + '-optgroup]');
+				if (!control.origin.length) return;
+
+				var groupsSelector = 'optgroup, [' + cls + '-optgroup]',
+					$groups = control.origin.children(groupsSelector);                                   
 				analysisOptions();
 				for (var i = 0, l = $groups.length, group; i < l; i++) {
 					var $group = $groups.eq(i),
@@ -4772,17 +4810,18 @@ var ud2 = (function (window, $) {
 					analysisOptions(group, $group);
 				}
 			}
-			// 解析选项控件全部选项
+			// 解析原选项控件内的全部选项对象
 			// group[ud2.select.group]: 待解析的选项组对象
 			// $group[jQuery]: 待解析的选项组内容对象
 			function analysisOptions(group, $group) {
 				var noGroup = group === void 0,
-					$options = noGroup ? control.origin.children('option, [' + cls + '-option]') : $group.children('option, [' + cls + '-option]');
+					optionsSelector = 'option, [' + cls + '-option]',
+					$options = noGroup ? control.origin.children(optionsSelector) : $group.children(optionsSelector);
 
 				for (var i = 0, l = $options.length, option; i < l; i++) {
 					var $select = $options.eq(i),
 						name = $options.eq(i).html(),
-						val = $options.eq(i).val() || $options.eq(i).attr('value'),
+						val = $options.eq(i).val() || $options.eq(i).attr('value') || $options.eq(i).attr(cls + '-value'),
 						disabled = !!($options.eq(i).attr('disabled') !== void 0 && $options.eq(i).attr('disabled') !== 'false'
 							|| $options.eq(i).attr(cls + '-disabled') !== void 0 && $options.eq(i).attr(cls + '-disabled') !== 'false'),
 						selected = !!($options.eq(i).attr('selected') !== void 0 && $options.eq(i).attr('selected') !== 'false'
@@ -5124,6 +5163,7 @@ var ud2 = (function (window, $) {
 					control.transferAttrs({ accept: $value, attrReg: 'name' });
 				}
 
+				// 设置控件列表方向
 				setListDir(dir);
 				setPlaceholder(placeholder);
 
@@ -5144,6 +5184,7 @@ var ud2 = (function (window, $) {
 				updateControlPublic();
 				// 解析对象
 				analysisGroups();
+				
 			}());
 
 			// #endregion
@@ -7104,17 +7145,6 @@ var ud2 = (function (window, $) {
 		// 当页面读取完成时，创建全部控件
 		callbacks.pageReady.add(ud2.createAllControl);
 	}());
-
-	//(function () {
-	//	var oldAppend = $.fn.append;
-	//	$.fn.append = function () {
-	//		var args = arguments[0];
-	//		if (args && args["ud2"]) {
-	//			console.log('a')
-	//			oldAppend.apply(this, args.current());
-	//		}
-	//	}
-	//}());
 
 	// 返回控件
 	return extendObjects(ud2, {

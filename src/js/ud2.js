@@ -3824,8 +3824,8 @@ var ud2 = (function (window, $) {
 					}
 					// 初始化样式
 					msgSC = options.style || '';
-					// 初始化是否可以关闭
-					isClose = options.close === void 0 ? true : !!options.close;
+					// 初始化是否有关闭按钮
+					isClose = attrBoolCheck(options.close, true);
 					// 初始化关闭时间
 					closeTime = options.closeTime || 5000;
 				}),
@@ -3928,7 +3928,7 @@ var ud2 = (function (window, $) {
 			function remove() {
 				if (isOpen) {
 					close();
-					window.setTimeout(remove, 310);
+					window.setTimeout(remove, 305);
 					return;
 				}
 				$message.remove();
@@ -3980,14 +3980,10 @@ var ud2 = (function (window, $) {
 
 				// 添加样式
 				if (msgSC !== '') $message.addClass(msgSC.name ? msgSC.name : msgSC);
-				// 是否自动开启
-				if (autoSwitch) {
-					window.setTimeout(function () { open(); }, 10);
-				}
 				// 是否有关闭按钮
-				if (isClose) {
-					$message.append($close);
-				}
+				if (isClose) $message.append($close);
+				// 是否自动开启
+				if (autoSwitch) open();				
 
 				// 事件绑定
 				bindEvent();

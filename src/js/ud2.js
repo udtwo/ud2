@@ -3079,8 +3079,8 @@ var ud2 = (function (window, $) {
 			function pageAdd() {
 				var // 参数集合        参数长度
 					args = arguments, len = args.length,
-					// 类型 标题  详情      是否包含关闭按钮 是否默认开启 页名称
-					pageType, title, content, isCloseBtn, isOpen, name,
+					// 类型    标题    详情     是否包含关闭按钮 是否默认开启 页名称
+					pageType, title, details, isCloseBtn, isOpen, name,
 					// 选项卡对象 内容对象 菜单项
 					$tab, $content, $tabLink,
 					// 选项信息 选项信息子对象 选项信息用于关闭的子对象 选项尺寸
@@ -3093,7 +3093,7 @@ var ud2 = (function (window, $) {
 					pageType = argObj.type && (argObj.type === 1 || argObj.type === 'url') ? 1: 0;
 					name = argObj.name;
 					title = argObj.title || '未命名标题';
-					content = argObj.content || (pageType === 1 ? EMPTY_PAGE : '');
+					details = argObj.details || (pageType === 1 ? EMPTY_PAGE : '');
 					isCloseBtn = attrBoolCheck(argObj.isCloseBtn, true);
 					isOpen = attrBoolCheck(argObj.isOpen, false);
 				}
@@ -3101,7 +3101,7 @@ var ud2 = (function (window, $) {
 					pageType = args[0] && (args[0] === 1 || args[0] === 'url') ? 1 : 0 || 0;
 					name = args[1];
 					title = args[2] || '未命名标题';
-					content = args[3] || (pageType === 1 ? EMPTY_PAGE : '');
+					details = args[3] || (pageType === 1 ? EMPTY_PAGE : '');
 					isCloseBtn = attrBoolCheck(args[4], true);
 					isOpen = attrBoolCheck(args[5], false);
 				}
@@ -3115,12 +3115,12 @@ var ud2 = (function (window, $) {
 				switch (pageType) {
 					case 0: {
 						$content = $contentTemplate.clone();
-						$content.append(content);
+						$content.append(details);
 						break;
 					}
 					case 1: {
 						$content = $contentTemplate.clone().addClass('iframe');
-						$content.append('<iframe id="' + name + '" name="' + name + '" src="' + content + '" />');
+						$content.append('<iframe id="' + name + '" name="' + name + '" src="' + details + '" />');
 						break;
 					}
 				}
@@ -3152,8 +3152,12 @@ var ud2 = (function (window, $) {
 				pageInfo = {
 					// 名称
 					name: name,
+					// 内容
+					details: details,
 					// 对象标识
 					page: 1,
+					// 页类型
+					pageType: pageType,
 					// 获取尺寸
 					getSize: function () { return size; },
 					// 获取选项对象
@@ -3249,7 +3253,7 @@ var ud2 = (function (window, $) {
 					if (name) obj = name;
 				}
 
-				if (obj){
+				if (obj) {
 					if (pageOpenNow) pageOpenNow.setOpenState(false);
 					obj.setOpenState(true);
 					moveScroll(obj);
@@ -3257,6 +3261,36 @@ var ud2 = (function (window, $) {
 				}
 
 				return control.public;
+			}
+			// 获取或设置选项页内容
+			// (name) 通过name属性获取的选项页内容
+			// - name[string]: 选项页名称
+			// - return[ud2.tabs]: 返回该控件对象
+			// (name, details) 修改通过name属性获取的选项页内容
+			// - name[string]: 选项页名称
+			// - details[string]: 待修改的内容
+			// - return[ud2.tabs]: 返回该控件对象
+			function pageContent(name, details) {
+				var page = getPageObjByName(name);
+				if (!page) return control.public;
+
+				if (details === void 0) {
+					return page.details;
+				}
+				else {
+					page.details = details;
+					switch (page.pageType) {
+						case 0: {
+							page.getContent().html(details);
+							break;
+						}
+						case 1: {
+							page.getContent().children('iframe').attr('src', details);
+							break;
+						}
+					}
+					return control.public;
+				}
 			}
 			// 查询选项页集合中是否包含此名称
 			// name[string]: 待查询的名称
@@ -3350,6 +3384,7 @@ var ud2 = (function (window, $) {
 				pageAdd: pageAdd,
 				pageRemove: pageRemove,
 				pageOpen: pageOpen,
+				pageContent: pageContent,
 				hasName: hasName
 			});
 
@@ -3836,7 +3871,7 @@ var ud2 = (function (window, $) {
 				// 控件对象
 				$message = current.html(template),
 				// 关闭按钮
-				$close = $('<a class="message-close"></a>'),//$message.children('.message-close'),
+				$close = $a.clone().addClass('message-close'),
 				// 显示状态
 				isOpen = false,
 				// 关闭定时器
@@ -3856,7 +3891,7 @@ var ud2 = (function (window, $) {
 			// #region 公共方法
 
 			// 获取浮动消息内容对象
-			// return[jquery]: 返回该控件对象
+			// return[jquery]: 返回该控件内容容器
 			function getContent() {
 				return $message;
 			}

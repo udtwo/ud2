@@ -6600,7 +6600,6 @@ var ud2 = (function (window, $) {
 	});
 
 	// 文件上传控件
-	// TODO: 取消初始化的类型加工厂
 	controlCreater('file', function (collection, constructor) {
 
 		var // className存于变量
@@ -6610,7 +6609,7 @@ var ud2 = (function (window, $) {
 			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error';
 
 		// 控件类型
-		constructor.style = createStyle(STYLE_STANDARD, STYLE_SIMPLE);
+		constructor.style = createStyle(STYLE_STANDARD, STYLE_SIMPLE, STYLE_CUSTOM);
 		// 重写集合初始化方法
 		collection.init = function (control) {
 
@@ -6648,7 +6647,7 @@ var ud2 = (function (window, $) {
 					// 初始化样式
 					style = options.style;
 					if (style !== STYLE_STANDARD && style !== STYLE_SIMPLE && style !== STYLE_CUSTOM)
-						style = STYLE_STANDARD;
+						style = STYLE_CUSTOM;
 				}),
 				// 控件结构
 				template = '<input type="file" multiple />',
@@ -7002,6 +7001,7 @@ var ud2 = (function (window, $) {
 
 			// 初始化
 			(function init() {
+
 				// 控件初始化
 				if (control.origin.length) {
 					control.origin.after($file);
@@ -7014,8 +7014,10 @@ var ud2 = (function (window, $) {
 
 				// 更新返回对象
 				updateControlPublic();
-				// 默认样式
-				if (style === STYLE_STANDARD) constructor.standard(control.public);
+
+				// 非自定义样式返回指定集成样式对象
+				if (style === STYLE_STANDARD) return constructor.standard(control.public);
+
 			}());
 
 			// #endregion
@@ -7057,18 +7059,16 @@ var ud2 = (function (window, $) {
 			// #endregion
 
 		};
-		// 文件上传控件 - 默认样式
-		// (control) 传入默认控件
+		// 标准文件上传控件
 		constructor.standard = function (control) {
+
 			var // 容器对象
 				$default, $fileEmpty, $fileDrag, $fileList, $fileTools, $fileAdd, $fileAddBox,
 				// 重命名状态 文件集合对象
-				rename, upfiles, style;
-
-			// 不存在父对象时，重新创建
-			if (!control || !control.type || control.type !== 'file') {
-				return ud2.file.create.apply(constructor, arguments);
-			}
+				rename, upfiles, style,
+				// 继承父对象
+				parent = control && control.ud2 && control.type === 'file' ? control
+					: ud2.file.create.apply(constructor, arguments);
 
 			// 文件添加处理方法
 			function fileAdd(file) {
@@ -7203,9 +7203,9 @@ var ud2 = (function (window, $) {
 
 			// 初始化
 			(function init() {
-				style = control.style;
-				rename = control.getRenameState();
-				upfiles = control.getUpfiles();
+				style = parent.style;
+				rename = parent.getRenameState();
+				upfiles = parent.getUpfiles();
 
 				$default = $div.clone().addClass(cls + '-full');
 				$fileEmpty = $('<div class="' + cls + '-full-nofile"><button class="btn btn-solid c-blue" ud2-file-add><i class="ico ico-group-file"></i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em></div>');
@@ -7215,22 +7215,27 @@ var ud2 = (function (window, $) {
 				$default.append($fileList).append($fileEmpty).append($fileDrag).append($fileTools);
 				$fileAdd = $default.find('[' + cls + '-add]');
 				$fileAddBox = $fileList.find('[' + cls + '-add]');
-				control.getContent().append($default);
+				parent.getContent().append($default);
 
 				style
 					.fileAddBtn($fileAdd)
 					.uploadBtn($fileTools.children().eq(0))
 					.clearBtn($fileTools.children().eq(1))
-					.fileAddFn(fileAdd).fileRemoveFn(fileRemove).clearFn(clear).progressFn(progress).uploadFn(upload)
-					.doneFn(done).failFn(fail);
+					.fileAddFn(fileAdd)
+					.fileRemoveFn(fileRemove)
+					.clearFn(clear)
+					.progressFn(progress)
+					.uploadFn(upload)
+					.doneFn(done)
+					.failFn(fail);
 
 				bindEvent();
 
 			}());
 
 			// 返回
-			delete control.style;
-			return control;
+			delete parent.style;
+			return parent;
 
 		};
 

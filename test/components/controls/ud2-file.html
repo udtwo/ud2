@@ -16,9 +16,34 @@
 	<fieldset>
 		<legend>样式</legend>
 		<div>
-			<h5>默认(standard)</h5>
+			<h5>标准样式</h5>
 			<p>
-				<input ud2="file" />
+				<input ud2="file" ud2-file-style="standard" />
+			</p>
+
+			<hr class="hr" />
+
+			<h5>自定义样式 (该用例只设置了简单的皮肤样式)</h5>
+			<p>
+				<input ud2="file" ud2-id="custom" />
+				<script>
+					ud2.ready(function () {
+
+						var file = ud2.file.collection['custom'];
+						var $skin = $([
+							'<div class="group" style="width: 100%">',
+							'<button class="btn">选择文件</button>',
+							'<span class="textbox" />',
+							'</div>'
+						].join(''));
+
+						file.getContent().css('border', 'none').append($skin);
+
+						file.style.fileAddBtn($skin.find('button')).fileAddFn(function (file) {
+							$skin.find('span').html(file.name);
+						});
+					});
+				</script>
 			</p>
 		</div>
 	</fieldset>

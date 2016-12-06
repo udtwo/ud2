@@ -117,6 +117,8 @@ var ud2 = (function (window, $) {
 		// 用于克隆的空jQuery对象
 		$div = $('<div />'),
 		$a = $('<a />'),
+		$span = $('<span />'),
+		$ico = $('<i class="ico" />'),
 
 		// 空方法
 		fnNoop = function () { },
@@ -441,6 +443,23 @@ var ud2 = (function (window, $) {
 
 	// #region ud2 库私有方法
 
+	// 为未命名控件生成ud2-id属性值
+	// 生成的id从编号0开始顺延
+	var createControlID = (function () {
+
+		var // ID种子    子元素种子
+			idSeed = 0, subSeed = 0;
+
+		return function (subSeedName) {
+			if (subSeedName) {
+				return prefixLibName + subSeedName + '-' + subSeed++;
+			}
+			else {
+				return prefixLibName + idSeed++;
+			}
+		};
+
+	}());
 	// 获取控件自定义项
 	// 调用此方法须通过call、apply方法传入control对象或调用对象
 	// (optNameArr, callbacks) 通过属性名数组，获取数组内的全部名称对应的属性，获取数序为control.userOptions、ud2-前缀元素属性、元素属性
@@ -568,14 +587,6 @@ var ud2 = (function (window, $) {
 	function convertToJQ(jq) {
 		if (!type.isJQuery(jq)) jq = $(jq);
 		return jq;
-	}
-	// 为未命名控件生成ud2-id属性值
-	// 生成的id从编号0开始顺延
-	function createControlID() {
-		var id = 0;
-		return function () {
-			return prefixLibName + id++;
-		};
 	}
 	// 生成控件可支持的样式枚举
 	// [...string]: 可支持的样式名称
@@ -1735,7 +1746,7 @@ var ud2 = (function (window, $) {
 						});
 						return this;
 					},
-					// 获取或设置控件样式
+					// 控件样式
 					style: styleHandler
 				},
 				// 原生jQuery对象
@@ -1862,7 +1873,7 @@ var ud2 = (function (window, $) {
 			for (i = 0, len = $parents.length; i < len; i++) if ($parents.eq(i).get(0) === control.current.get(0)) return;
 			control.autoClose();
 		}
-		// 获取或设置控件样式
+		// 控件样式操作
 		// () 获取控件样式
 		// - return[ud2.style.*]: 返回控件样式对象
 		// (whichStyle) 设置控件样式
@@ -2518,10 +2529,10 @@ var ud2 = (function (window, $) {
 			translateMove(-x, -y, time);
 			return scrollObj;
 		}
-		// 获取或设置跟随状态
-		// (): 获取跟随状态
+		// 跟随状态操作
+		// () 获取跟随状态
 		// - return[bool]: 返回当前是否被跟随
-		// (state): 设置跟随状态
+		// (state) 设置跟随状态
 		// - state[bool]: 是否被跟随
 		// - return[scroll]: 返回滚动对象
 		function oplock(state) {
@@ -2855,8 +2866,233 @@ var ud2 = (function (window, $) {
 		var // className存于变量
 			cls = collection.className, 
 			// 内容对象模版
-			$contentTemplate = $div.clone().addClass(cls + '-content');
+			$contentTemplate = $div.clone().addClass(cls + '-content'),
+			// 替代文本常量
+			TYPE_TABS = 'tabs', TYPE_PAGE = TYPE_TABS + '.page', TYPE_PAGE_NAME = 'tabs-page';
 
+		// 选项卡页添加
+		// (object) 通过参数对象，创建一个选项卡页对象
+		// - type[ud2.tabs.pageType]: 选项卡页类型
+		// - name[string]: 选项卡页名称
+		// - title[string]: 选项卡页标题
+		// - details[string]: 选项卡页内容
+		// - btnClose[bool]: 是否包含关闭按钮
+		// (title, details) 通过参数对象创建一个不可关闭的内容选项卡页对象，该创建方式通常用于常规选项卡对象中，命名为递增种子方式自动命名
+		// - title[string]: 选项卡页标题
+		// - details[string]: 选项卡页内容
+		// (type, title, details) 通过参数对象创建一个可关闭的自定义类型的选项卡页对象，该创建方式通常省略了选项卡页命名，命名为递增种子方式自动命名
+		// - type[ud2.tabs.pageType]: 选项卡页类型
+		// - title[string]: 选项卡页标题
+		// - details[string]: 选项卡页内容
+		// (type, name, title, details, btnClose) 通过参数创建一个选项卡页对象
+		// - type[ud2.tabs.pageType]: 选项卡页类型
+		// - name[string]: 选项卡页名称
+		// - title[string]: 选项卡页标题
+		// - details[string]: 选项卡页内容
+		// - btnClose[bool]: 是否包含关闭按钮
+		// return[ud2.tabs.page]: 返回创建的选项卡页对象
+		creater('page', function () {
+
+			var // 参数集合         参数长度            参数对象
+				args = arguments, len = args.length, argObj = args[0],
+				// 选项卡页对象
+				pageObj = { tabs: null },
+				// 类型    标题    详情     是否包含关闭按钮 页名称
+				pageType, title, details, btnClose, name,
+				// 选项卡对象 内容对象 菜单项
+				$tab, $content, $tabLink,
+				// 显示状态
+				isOpen = false;
+
+			// 将值强制转换为符合pageType的类型的值
+			// 默认值为ud2.tabs.pageType.html(0)
+			// return[ud2.tabs.pageType]: pageType的类型的值
+			function convertPageType(val) {
+				if (val && val.type === 1 || type.isString(val) && val === 'url' || val === 1) return 1;
+				if (val && val.type === 0 || type.isString(val) && val === 'html' || val === 0) return 0;
+				return 0;
+			}
+
+			// 标题操作
+			// () 获取标题
+			// - return[string]: 返回标题
+			// (text) 设置标题
+			// - text[string]: 待更改的标题
+			// - return[ud2.tabs.page]: 返回该选项卡页对象
+			function titleOperate(text) {
+				if (text !== void 0) {
+					title = String(text);
+					$tab.attr('title', title).children('span').html(title);
+					$tabLink.attr('title', title).children('span').html(title);
+					return pageObj;
+				}
+				else {
+					return title;
+				}
+			}
+			// 描述操作
+			// () 获取描述
+			// - return[string]: 返回描述
+			// (text) 设置描述
+			// - text[string]: 待更改的描述
+			// - return[ud2.tabs.page]: 返回该选项卡页对象
+			function detailsOperate(text) {
+				if (text !== void 0) {
+					details = String(text);
+					switch (pageType) {
+						case 0: {
+							$content.html(details);
+							break;
+						}
+						case 1: {
+							$content.children('iframe').attr('src', details);
+							break;
+						}
+					}
+					return pageObj;
+				}
+				else {
+					return details;
+				}
+			}
+			// 将对象加入到选项卡控件中
+			// whichTabs[ud2.tabs]: 选项卡控件
+			// return[ud2.tabs.page]: 返回该选项卡页对象
+			function tabsIn(whichTabs) {
+				if (whichTabs && whichTabs.type === TYPE_TABS && !pageObj.tabs) {
+					whichTabs.pageAdd(pageObj);
+				}
+				return pageObj;
+			}
+			// 将对象从选项卡控件中移除
+			// return[ud2.tabs.page]: 返回该选项卡页对象
+			function tabsOut() {
+				if (pageObj.tabs) {
+					pageObj.tabs.pageRemove(pageObj);
+				}
+				return pageObj;
+			}
+			// 显示状态操作
+			// () 获取当前对象的显示状态
+			// - return[bool]: 返回当前对象的显示状态
+			// (state) 设置当前对象的显示状态
+			// - state[bool]: 当前对象的显示状态
+			// - return[ud2.tabs.page]: 返回该选项卡页对象
+			function openState(state) {
+				if (state === void 0) {
+					return isOpen;
+				}
+				else {
+					isOpen = !!state;
+					if (isOpen) {
+						$tab.addClass('on');
+						$content.addClass('on');
+						$tabLink.addClass('on');
+					}
+					else {
+						$tab.removeClass('on');
+						$content.removeClass('on');
+						$tabLink.removeClass('on');
+					}
+					return pageObj;
+				}
+			}
+
+			// 获取选项内容对象
+			// return[jquery]: 返回选项内容对象
+			function getTab() {
+				return $tab;
+			}
+			// 获取链接内容对象
+			// return[jquery]: 返回链接内容对象
+			function getTabLink() {
+				return $tabLink;
+			}
+			// 获取描述内容对象
+			// return[jquery]: 返回描述内容对象
+			function getContent() {
+				return $content;
+			}
+			
+			// 初始化
+			(function init() {
+
+				if (len === 1 && type.isObject(argObj = args[0])) {
+					pageType = argObj.type;
+					name = argObj.name;
+					title = argObj.title;
+					details = argObj.details;
+					btnClose = argObj.btnClose;
+
+				}
+				else if (len === 2) {
+					title = args[0];
+					details = args[1];
+					btnClose = 0;
+				}
+				else if (len === 3) {
+					pageType = args[0];
+					title = args[1];
+					details = args[2];
+				}
+				else if (len === 5) {
+					pageType = args[0];
+					name = args[1];
+					title = args[2];
+					details = args[3];
+					btnClose = args[4];
+				}
+
+				pageType = convertPageType(pageType);
+				name = name || createControlID(TYPE_PAGE_NAME);
+				title = title || '未命名选项卡';
+				details = details || (pageType === 1 ? EMPTY_PAGE : '');
+				btnClose = attrBoolCheck(btnClose, true);
+
+				// 生成选项和描述内容对象
+				$tab = $div.clone().addClass(cls + '-tab').attr('title', title).append($span.clone().html(title));
+				$tabLink = $div.clone().addClass(cls + '-menu-item').attr('title', title).append($span.clone().html(title));
+				$content = $contentTemplate.clone();
+				if (btnClose) {
+					$tab.append($ico.clone().addClass('ico-solid-cancel'));
+					$tabLink.append($ico.clone().addClass('ico-hollow-cancel'));
+				}
+				switch (pageType) {
+					case 0: {
+						$content.append(details);
+						break;
+					}
+					case 1: {
+						$content.append('<iframe id="' + name + '" name="' + name + '" src="' + details + '" />').addClass('iframe');
+						break;
+					}
+				}
+				
+				// 通过此项设置让safari中的iframe正常滚动
+				if (ud2.support.safari) {
+					$content.css({
+						'-webkit-overflow-scrolling': 'touch',
+						'overflow-y': 'scroll'
+					});
+				}
+
+			}());
+
+			// 返回
+			return extendObjects(pageObj, {
+				name: name,
+				type: TYPE_PAGE,
+				getTab: getTab,
+				getTabLink: getTabLink,
+				getContent: getContent,
+				openState: openState,
+				title: titleOperate,
+				details: detailsOperate,
+				tabsIn: tabsIn,
+				tabsOut: tabsOut
+			});
+
+		}, constructor);
 		// 布局方式
 		constructor.layout = {
 			// 上方
@@ -2868,7 +3104,7 @@ var ud2 = (function (window, $) {
 			// 右侧
 			right: 3
 		};
-		// 选项页类型
+		// 选项卡页类型
 		constructor.pageType = {
 			html: 0,
 			url: 1
@@ -2915,7 +3151,7 @@ var ud2 = (function (window, $) {
 				// 选项滚动容器对象
 				$tabScroll = $tabs.children(STR_POINT + cls + '-bar'),
 				// 选项容器对象
-				$tabInner = $tabs.find(STR_POINT + cls + '-bar-inner'),
+				$tabBox = $tabs.find(STR_POINT + cls + '-bar-inner'),
 				// 内容容器对象
 				$contentBox = $tabs.find(STR_POINT + cls + '-main'),
 				// 目录对象
@@ -2928,14 +3164,14 @@ var ud2 = (function (window, $) {
 				// 目录容器对象
 				$menuScroll = $menu.children(':last'),
 				// 目录滚动容器对象
-				$menuInner = $menu.find(STR_POINT + cls + '-menu-inner'),
-				// 选项页对象集合
+				$menuBox = $menu.find(STR_POINT + cls + '-menu-inner'),
+				// 选项卡页对象集合
 				pageCollection = [],
 				// 目录列表容器滚动条对象
 				menuBoxScroll,
 				// 选项卡容器滚动条对象
 				tabBoxScroll, scrollSize = 0,
-				// 当前开启的选项页对象
+				// 当前开启的选项卡页对象
 				pageOpenNow;
 
 			// #endregion
@@ -2987,10 +3223,10 @@ var ud2 = (function (window, $) {
 				else {
 					scrollSize += size;
 					if (layout === 0 || layout === 1) {
-						$tabInner.width(scrollSize + pageCollection.length * 2);
+						$tabBox.width(scrollSize + pageCollection.length * 2);
 					}
 					else {
-						$tabInner.height(scrollSize + pageCollection.length * 2);
+						$tabBox.height(scrollSize + pageCollection.length * 2);
 					}
 				}
 			}
@@ -3028,7 +3264,7 @@ var ud2 = (function (window, $) {
 					menuBoxScroll.move(0, menuPos.top - 5, 300);
 				}
 			}
-			// 通过name属性获取选项页对象
+			// 通过name属性获取选项卡页对象
 			function getPageObjByName(name) {
 				var f = pageCollection.filter(function (element) {
 					return element.name === name;
@@ -3042,17 +3278,17 @@ var ud2 = (function (window, $) {
 				var selector = '[' + cls + '-page]',
 					$pages = control.origin.children(selector),
 					i = 0, l = $pages.length, 
-					p, type, name, content, closeBtn, openState;
+					p, type, title, name, content, btnClose, openState;
 
 				for (; i < l; i++) {
 					p = $pages.eq(i);
-					type = parseInt(attrValue(p, 'page-type', cls, 0));
-					type = type === 1 ? 1 : 0;
-					name = attrValue(p, 'page-name', cls, 'unnamed');
+					type = attrValue(p, 'page-type', cls);
+					name = attrValue(p, 'page-name', cls);
+					title = attrValue(p, 'page-title', cls);
 					content = p.html();
-					closeBtn = attrValue(p, 'page-close-btn', cls, 1);
-					openState = attrValue(p, 'page-open', cls, 0);
-					pageAdd({ type: type, name: name, content: content, isCloseBtn: closeBtn, isOpen: openState });
+					btnClose = attrValue(p, 'page-btn-close', cls, 1);
+					openState = attrBoolCheck(attrValue(p, 'page-open', cls, 0), 0);
+					pageAdd(constructor.page({ type: type, title: title, name: name, details: content, btnClose: btnClose }), openState);
 				}
 			}
 
@@ -3060,239 +3296,111 @@ var ud2 = (function (window, $) {
 
 			// #region 公共方法
 
-			// 选项页添加
-			// (object) 通过参数对象，创建一个内容对象
-			// - name[string]: 选项页名称
-			// - type[ud2.tabs.pageType]: 选项页类型
-			// - title[string]: 选项页标题
-			// - content[string]: 选项页内容
-			// - isCloseBtn[bool]: 是否包含关闭按钮
-			// - isOpen[bool]: 是否添加后开启
-			// (type, name, title, content, isCloseBtn, isOpen) 通过参数创建一个内容对象
-			// - type[ud2.tabs.pageType]: 选项页类型
-			// - name[string]: 选项页名称
-			// - title[string]: 选项页标题
-			// - content[string]: 选项页内容
-			// - isCloseBtn[bool]: 是否包含关闭按钮
-			// - isOpen[bool]: 是否添加后开启
+			// 向选项卡控件添加选项卡页对象
+			// page[ud2.tabs.page]: 选项卡页对象
+			// isOpen[bool]: 是否默认开启
 			// return[ud2.tabs]: 返回该控件对象
-			function pageAdd() {
-				var // 参数集合        参数长度
-					args = arguments, len = args.length,
-					// 类型    标题    详情     是否包含关闭按钮 是否默认开启 页名称
-					pageType, title, details, isCloseBtn, isOpen, name,
-					// 选项卡对象 内容对象 菜单项
-					$tab, $content, $tabLink,
-					// 选项信息 选项信息子对象 选项信息用于关闭的子对象 选项尺寸
-					pageInfo, pageInfoChild, pageInfoCloseChild, size,
-					// 参数对象
-					argObj;
-
-				// 判断传参方式，并初始化参数
-				if (len === 1 && type.isObject(argObj = args[0], argObj)) {
-					pageType = argObj.type && (argObj.type === 1 || argObj.type === 'url') ? 1: 0;
-					name = argObj.name;
-					title = argObj.title || '未命名标题';
-					details = argObj.details || (pageType === 1 ? EMPTY_PAGE : '');
-					isCloseBtn = attrBoolCheck(argObj.isCloseBtn, true);
-					isOpen = attrBoolCheck(argObj.isOpen, false);
-				}
-				else {
-					pageType = args[0] && (args[0] === 1 || args[0] === 'url') ? 1 : 0 || 0;
-					name = args[1];
-					title = args[2] || '未命名标题';
-					details = args[3] || (pageType === 1 ? EMPTY_PAGE : '');
-					isCloseBtn = attrBoolCheck(args[4], true);
-					isOpen = attrBoolCheck(args[5], false);
-				}
-
-				// 如存在此名称，直接跳出
-				if (getPageObjByName(name)) return control.public;
-
-				// 生成选项和内容对象
-				$tab = $('<div class="' +cls + '-tab"><span>' +title + '</span></div>');
-				if (isCloseBtn) $tab.append('<i class="ico ico-solid-cancel" />');
-				switch (pageType) {
-					case 0: {
-						$content = $contentTemplate.clone();
-						$content.append(details);
-						break;
+			function pageAdd(page, isOpen) {
+				var size, e, ce;
+				if (page && page.type === TYPE_PAGE && !page.tabs && !hasName(page.name)) {
+					// 绑定对象
+					page.tabs = control.public;
+					pageCollection.push(page);
+					// 将元素加入到容器中
+					$tabBox.append(page.getTab());
+					$contentBox.append(page.getContent());
+					// 重计算滚动尺寸
+					if (layout === 0 || layout === 1) size = page.getTab().outerWidth();
+					else size = page.getTab().outerHeight();
+					recountScrollSize(size);
+					if (isTabScroll) tabBoxScroll.recountPosition();
+					// 生成菜单项
+					if (isMenu) {
+						$menuBox.append(page.getTabLink());
+						menuBoxScroll.recountPosition();
 					}
-					case 1: {
-						$content = $contentTemplate.clone().addClass('iframe');
-						$content.append('<iframe id="' + name + '" name="' + name + '" src="' + details + '" />');
-						break;
+
+					// 是否自动开启
+					if (pageCollection.length === 1 || isOpen) {
+						pageOpen(page);
 					}
-				}
-				// 通过此项设置让safari中的iframe正常滚动
-				if (ud2.support.safari) {
-					$content.css({
-						'-webkit-overflow-scrolling': 'touch',
-						'overflow-y': 'scroll'
-					});
-				}
-
-				// 加入到容器中
-				$tabInner.append($tab);
-				$contentBox.append($content);
-				// 重计算滚动尺寸
-				if (layout === 0 || layout === 1) size = $tab.outerWidth();
-				else size = $tab.outerHeight();	
-				recountScrollSize(size);
-				if (isTabScroll) tabBoxScroll.recountPosition();
-				// 生成菜单项
-				if (isMenu) {
-					$tabLink = $('<div class="' + cls + '-menu-item" title="' + title + '"><span>' + title + '</span></div>');
-					if (isCloseBtn) $tabLink.append('<i class="ico ico-hollow-cancel" />');
-					$menuInner.append($tabLink);
-					menuBoxScroll.recountPosition();
-				}
-
-				// 重设置选项页对象属性
-				pageInfo = {
-					// 名称
-					name: name,
-					// 内容
-					details: details,
-					// 对象标识
-					page: 1,
-					// 页类型
-					pageType: pageType,
-					// 获取尺寸
-					getSize: function () { return size; },
-					// 获取选项对象
-					getTab: function () { return $tab; },
-					// 获取选项链接对象
-					getTabLink: function () { return $tabLink; },
-					// 获取内容对象
-					getContent: function () { return $content; },
-					// 设置选项的开启状态
-					setOpenState: function (state) {
-						if (state) {
-							$tab.addClass('on');
-							$content.addClass('on');
-							if (isMenu) $tabLink.addClass('on');
-						}
-						else {
-							$tab.removeClass('on');
-							$content.removeClass('on');
-							if (isMenu) $tabLink.removeClass('on');
-						}
+					// 清除空选项样式
+					if (pageCollection.length === 1) {
+						$menuScroll.removeClass('empty');
 					}
-				};
-				pageCollection.push(pageInfo);
 
-				// 是否自动开启
-				if (pageCollection.length === 1 || isOpen) pageOpen(pageInfo);
-				// 清除空选项情况
-				if (pageCollection.length === 1) $menuScroll.removeClass('empty');
-
-				// 设置选项和选项链接的短按事件
-				pageInfoChild = $().add($tab.children('span'));
-				pageInfoCloseChild = $().add($tab.find('i'));
-				if (isMenu) {
-					pageInfoChild = pageInfoChild.add($tabLink.children('span'));
-					pageInfoCloseChild = pageInfoCloseChild.add($tabLink.find('i'));
+					// 绑定事件
+					e = $().add(page.getTab().children('span'));
+					ce = $().add(page.getTab().find('i'));
+					if (isMenu) {
+						e = e.add(page.getTabLink().children('span'));
+						ce = ce.add(page.getTabLink().find('i'));
+					}
+					page.event = event(e).setTap(function () { pageOpen(page); menuClose(); });
+					page.closeEvent = event(ce).setTap(function () { pageRemove(page); menuClose(); });
 				}
-				pageInfo.event = event(pageInfoChild).setTap(function () { pageOpen(pageInfo); menuClose(); });
-				pageInfo.closeEvent = event(pageInfoCloseChild).setTap(function () { pageRemove(pageInfo); menuClose(); });
-
-				// 返回
 				return control.public;
 			}
-			// 选项页移除
-			// name[string]: 待移除选项页的名称
+			// 从选项卡控件中移除指定的选项卡页对象
+			// page[ud2.tabs.page]: 选项卡页对象
 			// return[ud2.tabs]: 返回该控件对象
-			function pageRemove(name) {
-				var obj, index;
-				if (type.isObject(name) && name.page) obj = name;
-				else {
-					name = getPageObjByName(String(name));
-					if (name) obj = name;
-				}
+			function pageRemove(page) {
+				var index;
+				if (page && page.type === TYPE_PAGE && page.tabs === control.public) {
+					index = pageCollection.indexOf(page);
 
-				if (obj) {
-					index = pageCollection.indexOf(obj);
-					if (pageOpenNow === obj) {
-						obj.setOpenState(false);
-
+					if (pageOpenNow === page) {
+						page.openState(0);
 						if (index > 0) {
-							pageCollection[index - 1].setOpenState(true);
-							pageOpenNow = pageCollection[index - 1];
+							pageOpenNow = pageCollection[index - 1].openState(1);
 						}
 						else if (pageCollection.length > 1) {
-							pageCollection[1].setOpenState(true);
-							pageOpenNow = pageCollection[1];
+							pageOpenNow = pageCollection[1].openState(1);
 						}
 					}
-					pageCollection.splice(index, 1);
-					if (pageCollection.length === 0) {
+
+					if (pageCollection.length === 1) {
 						pageOpenNow = null;
 						$menuScroll.addClass('empty');
 					}
-					else moveScroll(pageOpenNow);
-
-					obj.getTab().remove();
-					obj.getContent().remove();
-					obj.getTabLink().remove();
-					obj.event.off();
-					obj.closeEvent.off();
-					recountScrollSize(-obj.getSize());
-				}
-
-				return control.public;
-			}
-			// 选项页开启
-			// name[string]: 待开启选项页的名称
-			// return[ud2.tabs]: 返回该控件对象
-			function pageOpen(name) {
-				var obj;
-				if (type.isObject(name) && name.page) obj = name;
-				else {
-					name = getPageObjByName(String(name));
-					if (name) obj = name;
-				}
-
-				if (obj) {
-					if (pageOpenNow) pageOpenNow.setOpenState(false);
-					obj.setOpenState(true);
-					moveScroll(obj);
-					pageOpenNow = obj;
-				}
-
-				return control.public;
-			}
-			// 获取或设置选项页内容
-			// (name) 通过name属性获取的选项页内容
-			// - name[string]: 选项页名称
-			// - return[ud2.tabs]: 返回该控件对象
-			// (name, details) 修改通过name属性获取的选项页内容
-			// - name[string]: 选项页名称
-			// - details[string]: 待修改的内容
-			// - return[ud2.tabs]: 返回该控件对象
-			function pageContent(name, details) {
-				var page = getPageObjByName(name);
-				if (!page) return control.public;
-
-				if (details === void 0) {
-					return page.details;
-				}
-				else {
-					page.details = details;
-					switch (page.pageType) {
-						case 0: {
-							page.getContent().html(details);
-							break;
-						}
-						case 1: {
-							page.getContent().children('iframe').attr('src', details);
-							break;
-						}
+					else {
+						moveScroll(pageOpenNow);
 					}
-					return control.public;
+
+					// 移除元素
+					page.getTab().detach();
+					page.getTabLink().detach();
+					page.getContent().detach();
+					page.event.off();
+					page.closeEvent.off();
+					recountScrollSize(-page.size);
+					delete page.size;
+
+					// 解绑关系
+					page.tabs = null;
+					pageCollection.splice(index, 1);
 				}
+				return control.public;
 			}
-			// 查询选项页集合中是否包含此名称
+			// 开启指定的选项卡页
+			// page[ud2.tabs.page]: 选项卡页对象
+			// return[ud2.tabs]: 返回该控件对象
+			function pageOpen(page) {
+				if (page && page.type === TYPE_PAGE && page.tabs === control.public) {
+					if (pageOpenNow) pageOpenNow.openState(false);
+					page.openState(true);
+					moveScroll(page);
+					pageOpenNow = page;
+				}
+				return control.public;
+			}
+			// 通过name属性查找选项卡页对象
+			// name[string]: 选项卡页名称
+			// return[ud2.tabs.page]: 返回选项卡页对象
+			function pageFind(name) {
+				return getPageObjByName(name) || null;
+			}
+			// 查询选项卡页集合中是否包含此名称
 			// name[string]: 待查询的名称
 			// return[bool]: 返回是否包含该名称
 			function hasName(name) {
@@ -3381,10 +3489,11 @@ var ud2 = (function (window, $) {
 
 			// 返回
 			return extendObjects(control.public, {
+				pages: pageCollection,
 				pageAdd: pageAdd,
 				pageRemove: pageRemove,
 				pageOpen: pageOpen,
-				pageContent: pageContent,
+				pageFind: pageFind,
 				hasName: hasName
 			});
 
@@ -3836,11 +3945,11 @@ var ud2 = (function (window, $) {
 			// #region 私有字段
 
 			var //　位置   信息      样式   默认开启及关闭 是否有关闭按钮 关闭时间
-				position, message, msgSC, autoSwitch, isClose, closeTime,
+				position, message, msgSC, autoSwitch, btnClose, closeTime,
 				// 获取用户自定义项
 				options = control.getOptions([
 					'position', 'message', 'style', 'autoSwitch',
-					['close', 'isClose'], 'closeTime'
+					['btnClose', 'isBtnClose'], 'closeTime'
 				], function (options) {
 					// 初始化是否默认开启及关闭
 					autoSwitch = attrBoolCheck(options.autoSwitch, true);
@@ -3860,7 +3969,7 @@ var ud2 = (function (window, $) {
 					// 初始化样式
 					msgSC = options.style || '';
 					// 初始化是否有关闭按钮
-					isClose = attrBoolCheck(options.close, true);
+					btnClose = attrBoolCheck(options.btnClose, true);
 					// 初始化关闭时间
 					closeTime = options.closeTime || 5000;
 				}),
@@ -4016,7 +4125,7 @@ var ud2 = (function (window, $) {
 				// 添加样式
 				if (msgSC !== '') $message.addClass(msgSC.name ? msgSC.name : msgSC);
 				// 是否有关闭按钮
-				if (isClose) $message.append($close);
+				if (btnClose) $message.append($close);
 				// 是否自动开启
 				if (autoSwitch) open();				
 
@@ -4115,7 +4224,7 @@ var ud2 = (function (window, $) {
 
 			// #region 公共方法
 
-			// 获取或设置控件值
+			// 控件值操作
 			// () 获取控件值
 			// - return[string]: 返回控件值
 			// (v) 设置控件值
@@ -4260,6 +4369,7 @@ var ud2 = (function (window, $) {
 	});
 
 	// 选择控件
+	// TODO: 将生成程序从group、option重写到select中
 	controlCreater('select', function (collection, constructor) {
 
 		var // className存于变量
@@ -4286,7 +4396,7 @@ var ud2 = (function (window, $) {
 				// 选项组对象
 				groupObj = { select: null },
 				// 参数对象 选项内容对象
-				argObj, $group;
+				argObj = args[0], $group;
 
 			// 标记操作
 			// () 获取选项组标记内容
@@ -4334,16 +4444,16 @@ var ud2 = (function (window, $) {
 			// 将选项组对象添加到选项控件中
 			// select[ud2.select]: 待添入的选项控件
 			// return[ud2.select.group]: 返回该选项组对象
-			function selectIn(select) {
+			function selectIn(whichSelect) {
 				var i, j;
-				if (select && select.type === TYPE_SELECT && !groupObj.select) {
+				if (whichSelect && whichSelect.type === TYPE_SELECT && !groupObj.select) {
 					// 绑定关系
-					groupObj.select = select;
-					select.groups.push(groupObj);
-					select.getContent().append(getContent());
+					groupObj.select = whichSelect;
+					whichSelect.groups.push(groupObj);
+					whichSelect.getContent().append(getContent());
 
 					if (j = options.length, j !== 0) {
-						for (i = 0; i < j; i++) options[i].selectIn(select);
+						for (i = 0; i < j; i++) options[i].selectIn(whichSelect);
 					}
 				}
 				return groupObj;
@@ -4395,7 +4505,7 @@ var ud2 = (function (window, $) {
 			// 初始化
 			(function init() {
 				// 判断传参方式，并初始化组对象
-				if (len === 1 && type.isObject(argObj = args[0], argObj)) {
+				if (len === 1 && type.isObject(argObj)) {
 					label = argObj.label;
 					isDisabled = !!argObj.isDisabled;
 				}
@@ -4448,7 +4558,7 @@ var ud2 = (function (window, $) {
 				// 选项对象 
 				optionObj = { group: null, select: null },
 				// 参数对象 选项内容对象
-				argObj, $option;
+				argObj = args[0], $option;
 
 			// 标记操作
 			// () 获取选项标记内容
@@ -4667,7 +4777,7 @@ var ud2 = (function (window, $) {
 			// 初始化
 			(function init() {
 				// 判断传参方式，并初始化选项对象
-				if (len === 1 && type.isObject(argObj = args[0], argObj)) {
+				if (len === 1 && type.isObject(argObj)) {
 					label = argObj.label;
 					value = argObj.value;
 					isDisabled = !!argObj.isDisabled;
@@ -4884,7 +4994,7 @@ var ud2 = (function (window, $) {
 				listScroll.recountPosition();
 				return control.public;
 			}
-			// 获取或设置默认文本
+			// 默认文本操作
 			// () 获取默认文本
 			// - return[string]: 返回当前的默认文本
 			// (text) 设置默认文本
@@ -4899,7 +5009,7 @@ var ud2 = (function (window, $) {
 					return placeholder;
 				}
 			}
-			// 获取或设置空列表占位文本
+			// 空列表占位文本操作
 			// () 获取空列表占位文本
 			// - return[string]: 返回当前的空列表占位文本
 			// (text) 设置空列表占位文本
@@ -4914,7 +5024,7 @@ var ud2 = (function (window, $) {
 					return emptyText;
 				}
 			}
-			// 获取或设置列表方向
+			// 列表方向操作
 			// () 获取列表方向
 			// - return[string]: 方向状态码
 			// (direction) 设置列表方向
@@ -4929,7 +5039,7 @@ var ud2 = (function (window, $) {
 					return dir;
 				}
 			}
-			// 获取或设置控件选择方式
+			// 控件选择方式操作
 			// () 获取控件选择方式
 			// - return[bool]: true为多选，false为单选
 			// (state) 设置控件选择方式
@@ -5004,7 +5114,7 @@ var ud2 = (function (window, $) {
 				return listScroll.getContent();
 			}
 
-			// 获取或设置控件值
+			// 控件值操作
 			// () 获取控件值
 			// - return[string]: 返回控件值
 			// (arr) 设置控件值
@@ -5033,7 +5143,7 @@ var ud2 = (function (window, $) {
 					return isMultiple ? valArr : valArr[0] ? valArr[0] : null;
 				}
 			}
-			// 通过选项控件获取或设置控件值对象集合
+			// 控件值对象集合操作
 			// () 获取控件值对象集合
 			// - return[array]: 返回控件值对象集合
 			// (option) 设置或取消选项对象为控件值对象
@@ -5401,7 +5511,7 @@ var ud2 = (function (window, $) {
 
 			// #region 公共方法
 
-			// 获取或设置控件值
+			// 控件值操作
 			// () 获取控件值
 			// - return[number]: 返回控件值
 			// (v) 设置控件值
@@ -5717,7 +5827,7 @@ var ud2 = (function (window, $) {
 				}
 				return control.public;
 			}
-			// 获取或设置控件值
+			// 控件值操作
 			// () 获取控件值
 			// - return[number]: 返回控件值
 			// - return[array]: 返回双控件值
@@ -6298,7 +6408,7 @@ var ud2 = (function (window, $) {
 
 			// #region 公共方法
 
-			// 获取或设置默认文本
+			// 默认文本操作
 			// () 获取默认文本
 			// - return[string]: 返回当前的默认文本
 			// (text) 设置默认文本
@@ -6313,7 +6423,7 @@ var ud2 = (function (window, $) {
 					return placeholder;
 				}
 			}
-			// 获取或设置预格式化公式
+			// 预格式化公式操作
 			// () 获取预格式化公式
 			// - return[string]: 返回当前的预格式化公式
 			// (text) 设置预格式化公式
@@ -6375,7 +6485,7 @@ var ud2 = (function (window, $) {
 				}
 				return control.public;
 			}
-			// 获取或设置控件值
+			// 控件值操作
 			// () 获取控件值
 			// - return[string]: 返回控件值
 			// (v) 设置控件值
@@ -6490,6 +6600,7 @@ var ud2 = (function (window, $) {
 	});
 
 	// 文件上传控件
+	// TODO: 取消初始化的类型加工厂
 	controlCreater('file', function (collection, constructor) {
 
 		var // className存于变量

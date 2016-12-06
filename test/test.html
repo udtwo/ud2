@@ -13,10 +13,18 @@
 	<script src="../src/js/ud2.dataTable.js"></script>
 </head>
 <body>
+	<div ud2="tabs" ud2-id="tab-0" style="margin-bottom: 15px;"></div>
+	
 	<script>
 		ud2.ready(function () {
-			
+			ud2.tabs.collection[0]
+				.pageAdd(ud2.tabs.page(ud2.tabs.pageType.url, '标题1', 'http://www.taobao.com/'))
+				.pageAdd(ud2.tabs.page(ud2.tabs.pageType.url, '标题2', 'http://www.qq.com/'))
+				.pageAdd(ud2.tabs.page(ud2.tabs.pageType.url, '标题3', 'http://www.baidu.com/ '))
+				.pageAdd(ud2.tabs.page(ud2.tabs.pageType.url, '标题4', 'http://www.baidu.com/4'))
+				.pageAdd(ud2.tabs.page(ud2.tabs.pageType.url, '标题5', 'http://www.baidu.com/5'));
 		});
 	</script>
+
 </body>
 </html>

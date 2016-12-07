@@ -1,0 +1,223 @@
+﻿/**
+ * panel.less
+ * 面板的默认样式
+ */
+
+// 导入必要的文件
+@import "../../common/import.less";
+
+// 面板变量
+@PanelHeight: @BaseSize * 4.6;
+@PanelPadding: @BaseSize;
+@PanelTitleFontSize: @H4FontSize;
+
+// 面板样式
+.panel {
+	display: block;
+	background: @ColorWhite;
+	border: 1px solid @ColorWhiteBorder;
+	border-radius: @BorderRadius;
+	.boxSizing(border-box);
+	// 小号样式
+	&.sm {
+		font-size: @BaseFontSize - @CtrlSizeGradient;
+
+		.panel-title {
+			font-size: @PanelTitleFontSize - @CtrlSizeGradient;
+		}
+
+		.panel-title, .panel-tools {
+			height: @PanelHeight - @CtrlSizeGradient * 2;
+			line-height: @PanelHeight - @CtrlSizeGradient * 2;
+		}
+	}
+	// 大号样式
+	&.lg {
+		font-size: @BaseFontSize + @CtrlSizeGradient;
+
+		.panel-title {
+			font-size: @PanelTitleFontSize + @CtrlSizeGradient;
+		}
+
+		.panel-title, .panel-tools {
+			height: @PanelHeight + @CtrlSizeGradient * 2;
+			line-height: @PanelHeight + @CtrlSizeGradient * 2;
+		}
+	}
+}
+// 面板头部样式
+.panel-header {
+	position: relative;
+	padding-left: @PanelPadding;
+	border-bottom: 1px solid;
+	border-bottom-color: inherit;
+}
+// 默认内边距
+.panel-body, .panel-footer {
+	padding: @PanelPadding;
+}
+// 默认标题高
+.panel-title, .panel-tools {
+	height: @PanelHeight;
+	line-height: @PanelHeight;
+}
+
+// 面板主体样式
+.panel-body {
+	+ .panel-body {
+		border-top: 1px solid;
+		border-top-color: inherit;
+	}
+}
+// 面板标题样式
+.panel-title {
+	font-size: @PanelTitleFontSize;
+	font-weight: 800;
+}
+// 面板工具箱样式
+.panel-tools {
+	position: absolute;
+	top: 0;
+	right: @PanelPadding;
+}
+// 面板底部样式
+.panel-footer {
+	background: lighten(@ColorWhiteBackLight, 2%);
+	border-top: 1px solid;
+	border-top-color: inherit;
+}
+
+// 面板颜色函数
+.panel-color(@Color, @BorderColor, @BackColor) {
+	border-color: @BorderColor;
+
+	.panel-title {
+		color: @Color;
+	}
+
+	.panel-footer {
+		background: @BackColor;
+	}
+}
+// 红色面板颜色样式
+.panel.c-red, .panel.danger {
+	.panel-color(@ColorRed, @ColorRedBorder, @ColorRedBackLight);
+}
+// 橙色面板颜色样式
+.panel.c-orange, .panel.warning {
+	.panel-color(@ColorOrange, @ColorOrangeBorder, @ColorOrangeBackLight);
+}
+// 绿色面板颜色样式
+.panel.c-green, .panel.success {
+	.panel-color(@ColorGreen, @ColorGreenBorder, @ColorGreenBackLight);
+}
+// 蓝色面板颜色样式
+.panel.c-blue, .panel.info {
+	.panel-color(@ColorBlue, @ColorBlueBorder, @ColorBlueBackLight);
+}
+// 黄色面板颜色样式
+.panel.c-yellow {
+	.panel-color(@ColorYellow, @ColorYellowBorder, @ColorYellowBackLight);
+}
+// 天蓝色面板颜色样式
+.panel.c-teal {
+	.panel-color(@ColorTeal, @ColorTealBorder, @ColorTealBackLight);
+}
+// 紫蓝色面板颜色样式
+.panel.c-violet {
+	.panel-color(@ColorViolet, @ColorVioletBorder, @ColorVioletBackLight);
+}
+// 紫色面板颜色样式
+.panel.c-purple {
+	.panel-color(@ColorPurple, @ColorPurpleBorder, @ColorPurpleBackLight);
+}
+// 粉色面板颜色样式
+.panel.c-pink {
+	.panel-color(@ColorPink, @ColorPinkBorder, @ColorPinkBackLight);
+}
+// 棕色面板颜色样式
+.panel.c-brown {
+	.panel-color(@ColorBrown, @ColorBrownBorder, @ColorBrownBackLight);
+}
+// 灰色面板颜色样式
+.panel.c-grey {
+	.panel-color(@ColorGrey, @ColorGreyBorder, @ColorGreyBackLight);
+}
+// 深色面板颜色样式
+.panel.c-dark {
+	.panel-color(@ColorDark, @ColorDarkBorder, @ColorDarkBackLight);
+}
+
+// 表格面板样式
+.panel > .table {
+	border-width: 0;
+
+	+ .table {
+		border-top-width: 1px;
+	}
+}
+
+// import面板颜色函数
+.panel-import-color(@Color, @ColorBorder, @ColorBack) {
+	border-color: @ColorBorder;
+
+	.panel-title {
+		color: @Color;
+	}
+
+	.panel-header {
+		background: @ColorBack;
+	}
+}
+// 默认import面板样式
+.panel-import {
+	.panel-import-color(@ColorDarkDeepest, @ColorWhiteDeepest, @ColorWhiteBackLight);
+}
+// 红色import面板颜色样式
+.panel-import.c-red, .panel-import.danger {
+	.panel-import-color(@ColorWhite, @ColorRedDeepest, @ColorRedDeepest);
+}
+// 橙色import面板颜色样式
+.panel-import.c-orange, .panel-import.warning {
+	.panel-import-color(@ColorWhite, @ColorOrangeDeepest, @ColorOrangeDeepest);
+}
+// 绿色import面板颜色样式
+.panel-import.c-green, .panel-import.success {
+	.panel-import-color(@ColorWhite, @ColorGreenDeepest, @ColorGreenDeepest);
+}
+// 蓝色import面板颜色样式
+.panel-import.c-blue, .panel-import.info {
+	.panel-import-color(@ColorWhite, @ColorBlueDeepest, @ColorBlueDeepest);
+}
+// 黄色import面板颜色样式
+.panel-import.c-yellow {
+	.panel-import-color(@ColorWhite, @ColorYellowDeepest, @ColorYellowDeepest);
+}
+// 天蓝色import面板颜色样式
+.panel-import.c-teal {
+	.panel-import-color(@ColorWhite, @ColorTealDeepest, @ColorTealDeepest);
+}
+// 紫蓝色import面板颜色样式
+.panel-import.c-violet {
+	.panel-import-color(@ColorWhite, @ColorVioletDeepest, @ColorVioletDeepest);
+}
+// 紫色import面板颜色样式
+.panel-import.c-purple {
+	.panel-import-color(@ColorWhite, @ColorPurpleDeepest, @ColorPurpleDeepest);
+}
+// 粉色import面板颜色样式
+.panel-import.c-pink {
+	.panel-import-color(@ColorWhite, @ColorPinkDeepest, @ColorPinkDeepest);
+}
+// 棕色import面板颜色样式
+.panel-import.c-brown {
+	.panel-import-color(@ColorWhite, @ColorBrownDeepest, @ColorBrownDeepest);
+}
+// 灰色import面板颜色样式
+.panel-import.c-grey {
+	.panel-import-color(@ColorWhite, @ColorGreyDeepest, @ColorGreyDeepest);
+}
+// 深色import面板颜色样式
+.panel-import.c-dark {
+	.panel-import-color(@ColorWhite, @ColorDarkDeepest, @ColorDarkDeepest);
+}

@@ -7,9 +7,9 @@
 @import "../../common/import.less";
 
 // 面板变量
-@PanelHeight: @BaseSize * 4.6;
+@PanelHeight: @BaseSize * 4.8;
 @PanelPadding: @BaseSize;
-@PanelTitleFontSize: @H4FontSize;
+@PanelTitleFontSize: @BaseLarge;
 
 // 面板样式
 .panel {
@@ -100,19 +100,19 @@
 	}
 }
 // 红色面板颜色样式
-.panel.c-red, .panel.danger {
+.panel.c-red {
 	.panel-color(@ColorRed, @ColorRedBorder, @ColorRedBackLight);
 }
 // 橙色面板颜色样式
-.panel.c-orange, .panel.warning {
+.panel.c-orange {
 	.panel-color(@ColorOrange, @ColorOrangeBorder, @ColorOrangeBackLight);
 }
 // 绿色面板颜色样式
-.panel.c-green, .panel.success {
+.panel.c-green {
 	.panel-color(@ColorGreen, @ColorGreenBorder, @ColorGreenBackLight);
 }
 // 蓝色面板颜色样式
-.panel.c-blue, .panel.info {
+.panel.c-blue {
 	.panel-color(@ColorBlue, @ColorBlueBorder, @ColorBlueBackLight);
 }
 // 黄色面板颜色样式

@@ -464,24 +464,16 @@ textarea.textbox {
 // 可加入控件 ud2.number ud2.range ud2.select ud2.date
 // 可加入元素 .btn .textbox .addon
 .group {
-	display: -moz-inline-box;
-	display: -webkit-inline-box;
-	display: -ms-inline-flexbox;
-	display: inline-flex;
-	-ms-flex-direction: row;
-	flex-direction: row;
-	-ms-flex-wrap: nowrap;
-	flex-wrap: nowrap;
+	.flexInline();
+	.flexDirection(row);
 	.transition(width .3s, height .3s);
-
 	// 内部控件的基础样式
 	// 内部弹性控件强制取消弹性
 	> * {
+		.flexItem(0);
 		position: relative;
 		z-index: 1;
 		font-size: @BaseFontSize;
-		-ms-flex: 0 0 auto;
-		flex: 0 0 auto;
 
 		&:not(:first-child) {
 			margin-left: -1px;
@@ -491,14 +483,11 @@ textarea.textbox {
 			z-index: 2;
 		}
 	}
-
 	// 内部弹性控件
 	> .textbox, > [ud2] {
+		.flexItem(1);
 		width: 200px;
-		-ms-flex: 1 1 auto;
-		flex: 1 1 auto;
 	}
-
 	// 取消多个控件组合时除第一个控件外的左侧圆角
 	> :not(:first-child) {
 		border-top-left-radius: 0;
@@ -509,12 +498,10 @@ textarea.textbox {
 		border-top-right-radius: 0;
 		border-bottom-right-radius: 0;
 	}
-
 	// 取消圆角样式
 	&.square > * {
 		border-radius: 0;
 	}
-
 	// 控件的小尺寸方案
 	&.sm > * {
 		font-size: @BaseFontSize - @CtrlSizeGradient;
@@ -533,87 +520,16 @@ textarea.textbox {
 	width: 100%;
 
 	> * {
-		-ms-flex: 1 1 auto;
-		flex: 1 1 auto;
-	}
-
-	> .textbox, > [ud2] {
-		width: 100%;
+		.flexItem(1);
 	}
 }
 // 强制与取消强制弹性
 .group, .group-justify {
 	> .flex {
-		-ms-flex: 1 1 auto;
-		flex: 1 1 auto;
+		.flexItem(1);
 	}
 
 	> .noflex {
-		-ms-flex: 0 0 auto;
-		flex: 0 0 auto;
+		.flexItem(0);
 	}
 }
-
-/*
-.group {
-	display: inline-block;
-	width: 100%;
-	font-size: 0 !important; // 强制让所有文本信息字号为0
-	vertical-align: middle;
-
-	white-space: nowrap;
-	// 为所有组合控件的可支持控件设置样式
-
-	> * {
-		position: relative;
-		z-index: 1;
-		font-size: @BaseFontSize;
-
-		&:not(:first-child) {
-			margin-left: -1px;
-		}
-
-		&:hover, &:focus, &.on {
-			z-index: 2;
-		}
-	}
-
-	> [class^='ud2-'] {
-		width: 50%;
-	}
-	// 为文本输入控件设置样式
-	> .textbox {
-		width: 50%;
-		// 当不是为一个子元素时，所有文本输入控件宽度缩小
-		&:not(:only-of-type) {
-			width: 50%;
-		}
-		// 当文本控件被focus时，z轴变大
-		&:focus {
-			z-index: 3;
-		}
-	}
-	// 取消多个控件组合时除第一个控件外的左侧圆角
-	> :not(:first-child) {
-		border-top-left-radius: 0;
-		border-bottom-left-radius: 0;
-	}
-	// 取消多个控件组合时除最后一个控件外的右侧圆角
-	> :not(:last-child) {
-		border-top-right-radius: 0;
-		border-bottom-right-radius: 0;
-	}
-	// 控件的小尺寸方案
-	&.sm > * {
-		font-size: @BaseFontSize - @CtrlSizeGradient;
-		height: @CtrlHeight - @CtrlSizeGradient * 2;
-		line-height: @CtrlLineHeight - @CtrlSizeGradient * 2;
-	}
-	// 控件的大尺寸方案
-	&.lg > * {
-		font-size: @BaseFontSize + @CtrlSizeGradient;
-		height: @CtrlHeight + @CtrlSizeGradient * 2;
-		line-height: @CtrlLineHeight + @CtrlSizeGradient * 2;
-	}
-}
-*/

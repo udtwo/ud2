@@ -173,6 +173,69 @@
 	-webkit-perspective: @dist;
 	perspective: @dist;
 }
+// 设置弹性盒
+.flex() {
+	display: -moz-box;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+}
+// 设置内联弹性盒
+.flexInline() {
+	display: -moz-inline-box;
+	display: -webkit-inline-box;
+	display: -ms-inline-flexbox;
+	display: inline-flex;
+}
+// 设置弹性盒子项
+.flexItem(@value: 0) {
+	-moz-box-flex: @value;
+	-webkit-box-flex: @value;
+	-ms-flex: @value @value auto;
+	-webkit-flex: @value @value auto;
+	flex: @value @value auto;
+}
+// 弹性盒布局方向
+// 兼容旧版浏览器column模式
+.flexDirection(@value: column) when (@value = column) {
+	-moz-box-orient: vertical;
+	-webkit-box-orient: vertical;
+	-moz-box-direction: normal;
+	-webkit-box-direction: normal;
+}
+// 兼容旧版浏览器row模式
+.flexDirection(@value: column) when (@value = row) {
+	-moz-box-orient: horizontal;
+	-webkit-box-orient: horizontal;
+	-moz-box-direction: normal;
+	-webkit-box-direction: normal;
+}
+// 兼容旧版浏览器column-reverse模式
+.flexDirection(@value: column) when (@value = column-reverse) {
+	-moz-box-orient: vertical;
+	-webkit-box-orient: vertical;
+	-moz-box-direction: reverse;
+	-webkit-box-direction: reverse;
+}
+// 兼容旧版浏览器row-reverse模式
+.flexDirection(@value: column) when (@value = row-reverse) {
+	-moz-box-orient: horizontal;
+	-webkit-box-orient: horizontal;
+	-moz-box-direction: reverse;
+	-webkit-box-direction: reverse;
+}
+// 新版浏览器非兼容模式
+.flexDirection(@value: column) {
+	-ms-flex-direction: @value;
+	-webkit-flex-direction: @value;
+	flex-direction: @value;
+}
+// 弹性盒换行方式
+.flexWrap(@value: nowrap) {
+	-ms-flex-wrap: @value;
+	-webkit-flex-wrap: @value;
+	flex-wrap: @value;
+}
 
 // 设置动画帧
 .keyframes(@name, @point1: 0%, @point2: 100%, @point3: '', @point4: '', @point5: '', @point6: '', @point7: '', @point8: '', @point9: '', @point10: '', @point11: '', @point12: '', @point13: '', @point14: '', @point15: '', @point16: '') {

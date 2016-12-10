@@ -50,6 +50,7 @@ module.exports = function (grunt) {
 						'src/less/style/base/reset.less',
 						'src/less/style/base/keyframes.less',
 						'src/less/style/base/elements.less',
+						'src/less/style/base/layout.less',
 						'src/less/style/base/ico.less',
 						'src/less/style/base/loading.less',
 						'src/less/style/base/form.less',

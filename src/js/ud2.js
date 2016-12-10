@@ -438,6 +438,21 @@ var ud2 = (function (window, $) {
 			}
 		};
 	}
+	// 获取当前屏幕状态
+	// return[number]: 返回当前的屏幕状态
+	// - 0: phone screen
+	// - 1: small screen
+	// - 2: middle screen
+	// - 3: large screen
+	function deviceScreenState() {
+		var state = window.getComputedStyle(window.document.documentElement, '::before').getPropertyValue('content').replace(/(\"|\')/g, '');
+		switch (state) {
+			case 'p': return 0;
+			case 's': return 1;
+			case 'm': return 2;
+			case 'l': return 3;
+		}
+	}
 
 	// #endregion
 
@@ -7298,6 +7313,7 @@ var ud2 = (function (window, $) {
 		// 对象扩展方法
 		extend: extendObjects,
 		propertier: propertier,
+		deviceScreenState: deviceScreenState,
 		creater: creater,
 		controlCreater: controlCreater,
 		// 公共支持情况及类型处理

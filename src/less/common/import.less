@@ -3,8 +3,8 @@
  * 管理导入文件包及公用样式
  */
 
-@import "../user/config.less";
-@import "../common/function.less";
+@import "config.less";
+@import "function.less";
 
 // 控件尺寸方案
 .size() {
@@ -67,20 +67,4 @@
 		top: 0; left: -20000px;
 		z-index: -1;
 	}
-}
-// 带有斑马条文效果的背景
-.background-striped(@size: 40px) {
-	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, 
-		transparent 50%, rgba(255, 255, 255, .15) 50%, 
-		rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
-	background-image: -o-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, 
-		transparent 50%, rgba(255, 255, 255, .15) 50%, 
-		rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
-	background-image: -moz-linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, 
-		transparent 50%, rgba(255, 255, 255, .15) 50%, 
-		rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
-	background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, 
-		transparent 50%, rgba(255, 255, 255, .15) 50%, 
-		rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
-	background-size: @size @size;
 }

@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="../../dist/css/ud2.css" rel="stylesheet" />
+	<link href="../src/test.css" rel="stylesheet" />
+	<script src="../../vendor/js/jquery.js"></script>
+	<script src="../../dist/js/ud2.js"></script>
+	<style>
+		[class^="col-"] {
+			background: rgba(82, 208, 108, .15);
+			outline: 1px dotted rgb(82, 208, 108);
+			outline-offset: -2px;
+		}
+	</style>
+</head>
+<body>
+
+	<h3>grid栅格样式</h3>
+
+	<fieldset>
+		<legend>样式</legend>
+		<div>
+			<h5>默认样式</h5>
+			<div>
+				<div class="row">
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+					<div class="col-1">col-1</div>
+				</div>
+				<div class="row">
+					<div class="col-12">col-12</div>
+				</div>
+				<div class="row">
+					<div class="col-1">col-1</div>
+					<div class="col-11">col-11</div>
+				</div>
+				<div class="row">
+					<div class="col-2">col-2</div>
+					<div class="col-10">col-10</div>
+				</div>
+				<div class="row">
+					<div class="col-3">col-3</div>
+					<div class="col-9">col-9</div>
+				</div>
+				<div class="row">
+					<div class="col-4">col-4</div>
+					<div class="col-8">col-8</div>
+				</div>
+				<div class="row">
+					<div class="col-5">col-5</div>
+					<div class="col-7">col-7</div>
+				</div>
+				<div class="row">
+					<div class="col-6">col-6</div>
+					<div class="col-6">col-6</div>
+				</div>
+			</div>
+
+			<hr class="hr" />
+
+			<h5>嵌套样式</h5>
+			<div>
+				<div class="row">
+					<div class="col-6">
+						col-6
+						<div class="row">
+							<div class="col-6">col-6</div>
+							<div class="col-6">col-6</div>
+						</div>
+					</div>
+					<div class="col-6">
+						col-6
+						<div class="row">
+							<div class="col-9">
+								col-9
+								<div class="row">
+									<div class="col-3">col-3</div>
+									<div class="col-9">col-9</div>
+								</div>
+							</div>
+							<div class="col-3">
+								col-3
+								<div class="row">
+									<div class="col-12">col-12</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</fieldset>
+</body>
+</html>

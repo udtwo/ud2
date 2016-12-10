@@ -43,6 +43,35 @@
 @OpacityNoImport: .5;
 
 
+/* 布局变量 */
+// 布局默认内边距
+@LayoutPadding: (1.2 * @BaseSize);
+// 栅格最大列数
+@GridMaxColumn: 12;
+
+// 在320px-767px宽度下，视为手机设备
+// 手机设备的最小宽度
+@PhoneScreenMinWidth: 320px;
+// 手机设备的最大宽度
+@PhoneScreenMaxWidth: @SmallScreenMinWidth - 1;
+
+// 在768px-991px宽度下，视为小号屏幕设备
+// 小号屏幕设备的最小宽度
+@SmallScreenMinWidth: 768px;
+// 小号屏幕设备的最大宽度
+@SmallScreenMaxWidth: @MiddleScreenMinWidth - 1;
+
+// 在992px-1199px宽度下，视为中号屏幕设备
+// 中号屏幕设备的最小宽度
+@MiddleScreenMinWidth: 992px;
+// 中号屏幕设备的最大宽度
+@MiddleScreenMaxWidth: @LargeScreenMinWidth - 1;
+
+// 在1200px+宽度下，视为大号屏幕设备
+// 大号屏幕设备的最小宽度
+@LargeScreenMinWidth: 1200px;
+
+
 /* 控件变量 */
 // 控件默认宽度
 @CtrlWidth: (15 * @BaseSize);
@@ -51,7 +80,7 @@
 // 控件上下方向内边距
 @CtrlPaddingTB: (.4 * @BaseSize);
 // 控件左右方向内边距
-@CtrlPaddingLR: @BaseSize;
+@CtrlPaddingLR: (.8 * @BaseSize);
 // 控件默认行高
 @CtrlLineHeight: (2.4 * @BaseSize);
 // 控件尺寸梯度 小尺寸 -2 大尺寸 +2
@@ -62,6 +91,7 @@
 @CtrlIcoHoverColor: darken(@ColorBlueBorder, 40%);
 // 控件列表阴影
 @CtrlShadow: 1px 1px 3px rgba(0, 0, 0, .12);
+
 
 /* 颜色变量 */
 // 默认文本颜色

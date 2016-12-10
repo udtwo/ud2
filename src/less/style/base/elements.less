@@ -345,3 +345,34 @@ input:-ms-input-placeholder {
 	color: @ColorNotes;
 }
 
+
+/**
+ * 屏幕检测
+ */
+// 手机屏幕
+// 代号p:phone screen
+html::before {
+	display: none;
+	content: 'p';
+}
+// 小尺寸屏幕
+// 代号s:small screen
+@media (min-width: @SmallScreenMinWidth) {
+	html::before {
+		content: 's';
+	}
+}
+// 中尺寸屏幕
+// 代号m:middle screen
+@media (min-width: @MiddleScreenMinWidth) {
+	html::before {
+		content: 'm';
+	}
+}
+// 大尺寸屏幕
+// 代号l:large screen
+@media (min-width: @LargeScreenMinWidth) {
+	html::before {
+		content: 'l';
+	}
+}

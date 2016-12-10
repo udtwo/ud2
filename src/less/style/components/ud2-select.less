@@ -11,7 +11,6 @@
 	padding-left: @CtrlPaddingLR;
 	padding-right: 2em;
 	text-align: left;
-	.boxSizing(border-box);
 
 	// 设置列表开启后的样式
 	&.on {
@@ -107,10 +106,10 @@
 	border-radius: @BorderRadius;
 	background: @ColorWhite;
 	box-shadow: @CtrlShadow;
+	.boxSizing();
 
 	div, div::before, a {
 		display: block;
-		.boxSizing(border-box);
 	}
 
 	div::before, a {

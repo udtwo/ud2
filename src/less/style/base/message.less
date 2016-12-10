@@ -8,14 +8,8 @@
 
 // 消息样式
 .message {
-	display: -moz-box;
-	display: -webkit-box;
-	display: -ms-flexbox;
-	display: flex;
-	-ms-flex-direction: row;
-	flex-direction: row;
-	-ms-flex-wrap: nowrap;
-	flex-wrap: nowrap;
+	.flex();
+	.flexDirection(row);
 	padding: @CtrlPaddingTB @CtrlPaddingLR * 1.5;
 	border-radius: @BorderRadius;
 	background: @ColorWhiteBackLight;
@@ -100,12 +94,11 @@
 		font-family: 'ud2';
 		font-style: normal;
 		opacity: @OpacityNoImport;
-		.transition(transform .3s, opacity .3s);
+		.transition(opacity .2s);
 	}
 
 	&:hover::before {
 		opacity: 1;
-		.transform(rotate(90deg));
 	}
 }
 // 红色消息颜色样式

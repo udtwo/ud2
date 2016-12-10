@@ -14,6 +14,10 @@
 	font: @BaseFontSize @Font;
 	line-height: @LineHeight;
 }
+// 默认盒模型渲染方式
+*, ::before, ::after {
+	.boxSizing(border-box);
+}
 // 为特定标签定义默认的字体类型、大小和行距
 html, button, input, textarea {
 	.font();

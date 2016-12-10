@@ -30,10 +30,6 @@
 .ud2-tabs-bar, .ud2-tabs-main, .ud2-tabs-menu, .ud2-tabs-menu-list, .ud2-tabs-menu-item i, .ud2-tabs-tab i, .ud2-tabs-mask {
 	position: absolute;
 }
-// 设定容器的盒运算方式
-.ud2-tabs-tab, .ud2-tabs-main {
-	.boxSizing(border-box);
-}
 // 遮罩层
 .ud2-tabs-mask {
 	display: none;
@@ -99,7 +95,6 @@
 	overflow: hidden;
 	visibility: hidden;
 	opacity: 0;
-	.boxSizing(border-box);
 	.transition(transform .2s, opacity .2s, visibility .2s);
 }
 // 目录项
@@ -154,10 +149,10 @@
 	height: @TabNormalSize;
 	line-height: @TabNormalSize;
 	color: @TabNormalFontColor;
-	background: -webkit-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
-	background: -o-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
-	background: -moz-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
-	background: linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
+	background-image: -webkit-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
+	background-image: -o-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
+	background-image: -moz-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
+	background-image: linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
 	cursor: pointer;
 	
 	i {
@@ -196,7 +191,6 @@
 .ud2-tabs-content {
 	display: none;
 	padding: @LayoutPadding;
-	.boxSizing(border-box);
 
 	&.on {
 		display: block;
@@ -216,7 +210,7 @@
 .ud2-tabs-top, .ud2-tabs-bottom {
 	.ud2-tabs-bar {
 		left: 0;
-		right: @TabNormalSize + @CtrlSizeGradient;
+		right: @TabNormalSize;
 		height: @TabNormalSize;
 
 		&:first-child {
@@ -253,7 +247,7 @@
 .ud2-tabs-left, .ud2-tabs-right {
 	.ud2-tabs-bar {
 		top: 0;
-		bottom: @TabNormalSize + @CtrlSizeGradient;
+		bottom: @TabNormalSize;
 		width: @TabNormalSize * 3.5;
 
 		&:first-child {

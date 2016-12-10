@@ -10,7 +10,6 @@
 .ud2-date {
 	padding-left: @CtrlPaddingLR;
 	padding-right: 2em;
-	.boxSizing(border-box);
 
 	// 设置控件开启样式
 	&.on {
@@ -32,6 +31,7 @@
 	border-radius: @BorderRadius;
 	background: @ColorWhite;
 	box-shadow: @CtrlShadow;
+	.boxSizing();
 
 	table {
 		width: 100%;
@@ -48,7 +48,7 @@
 
 		td div {
 			float: left;
-			width: 49%;
+			width: 50%;
 		}
 
 		td[ud2-date-date], div[ud2-date-month], div[ud2-date-year] {

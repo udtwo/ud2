@@ -32,25 +32,25 @@
 // 对话框控件头部容器样式
 .ud2-dialog-header {
 	width: 100%;
-	height: @BaseSize * 4;
-	padding: @BaseSize @BaseSize * 1.5;
+	height: 3em;
+	padding: 0 1em;
 	font-weight: 800;
-	line-height: @BaseSize * 2;
+	line-height: 3em;
 	background: @ColorWhiteDeeper;
-	.boxSizing(border-box);
 }
 // 对话框关闭按钮
 .ud2-dialog-close {
 	z-index: 2;
 	display: block;
-	top: .75em;
-	right: .75em;
+	font-size: 1.142857em;
+	line-height: 1;
+	top: .9em;
+	right: .8em;
 	cursor: pointer;
-	.transition(color .3s, transform .3s);
+	.transition(color .2s);
 
 	&:hover {
 		color: @ColorRed;
-		.transform(rotate(90deg));
 	}
 }
 // 对话框控件身体容器样式

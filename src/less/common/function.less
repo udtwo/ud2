@@ -306,7 +306,7 @@
 
 	.gc-style(@index, @col, @row) when (@index > @GridMaxColumn) {
 		@{col} {
-			.boxSizing(border-box);
+			display: block;
 			position: relative;
 			min-height: 1px;
 			padding-left: @LayoutPadding;

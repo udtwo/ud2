@@ -17,10 +17,6 @@
 		}
 	}
 }
-// 设置盒子渲染方式
-.ud2-range, .ud2-range-hand {
-	.boxSizing(border-box);
-}
 // 设置横拉控件公共样式
 .ud2-range-back, .ud2-range-end, .ud2-range-hand {
 	display: block;
@@ -67,6 +63,7 @@
 	border: 1px solid @ColorWhiteBackDark;
 	border-radius: @BorderRadius;
 	background: @ColorWhite;
+	.boxSizing();
 }
 // 设置控件的小尺寸方案
 .ud2-range.sm, .group.sm .ud2-range {

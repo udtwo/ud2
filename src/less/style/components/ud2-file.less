@@ -39,10 +39,10 @@
 	}
 
 	.ud2-file-full-nofile, .ud2-file-full-list {
-		-ms-filter: blur(10px);
-		-moz-filter: blur(10px);
-		-webkit-filter: blur(10px);
-		filter: blur(10px);
+		-ms-filter: blur(5px);
+		-moz-filter: blur(5px);
+		-webkit-filter: blur(5px);
+		filter: blur(5px);
 	}
 }
 // 设置控件的拖拽样式
@@ -135,7 +135,7 @@
 	position: relative;
 
 	input {
-		padding-right: 1em;
+		width: 86%;
 	}
 
 	&::before {
@@ -143,9 +143,10 @@
 		display: block;
 		position: absolute;
 		right: 0;
-		top: 1px;
+		top: 4px;
 		font-family: 'ud2';
 		font-size: 1em;
+		line-height: 1;
 		color: @ColorWhiteBackDark;
 	}
 }
@@ -188,14 +189,14 @@
 // 设置控件的图片样式
 .ud2-file-full-img {
 	display: table-cell;
-	width: 138px;
-	height: 118px;
+	width: 136px;
+	height: 116px;
 	vertical-align: middle;
 
 	img {
 		display: block;
-		max-width: 138px;
-		max-height: 118px;
+		max-width: 136px;
+		max-height: 116px;
 		margin: auto;
 	}
 
@@ -224,7 +225,7 @@
 		color: @ColorRed;
 		font-size: 18px;
 		line-height: 18px;
-		.transition(transform .3s, color .3s);
+		.transition(transform .2s, color .2s);
 	}
 
 	&:hover::before {

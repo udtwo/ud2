@@ -487,13 +487,19 @@ textarea.textbox {
 		.flexItem(1);
 		width: 200px;
 	}
+	// 内部组控件自适应
+	> [ud2].group {
+		width: auto;
+	}
+
 	// 取消多个控件组合时除第一个控件外的左侧圆角
-	> :not(:first-child) {
+	> :not(:first-child), > .group:not(:first-child) > :first-child {
 		border-top-left-radius: 0;
 		border-bottom-left-radius: 0;
 	}
+
 	// 取消多个控件组合时除最后一个控件外的右侧圆角
-	> :not(:last-child) {
+	> :not(:last-child), > .group:not(:last-child) > :last-child {
 		border-top-right-radius: 0;
 		border-bottom-right-radius: 0;
 	}

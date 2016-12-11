@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="../../../dist/css/ud2.css" rel="stylesheet" />
+	<link href="../../src/test.css" rel="stylesheet" />
+	<script src="../../../vendor/js/jquery.js"></script>
+	<script src="../../../dist/js/ud2.js"></script>
+</head>
+<body>
+	<h3>页码控件</h3>
+
+	<fieldset>
+		<legend>样式</legend>
+		<div>
+			<h5>默认</h5>
+			<p>
+				<div ud2="page" ud2-page-max="3"></div>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>无响应式控件</h5>
+			<p>
+				<div ud2="page" ud2-page-max="3" ud2-page-relayout="false"></div>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>页码布局样式</h5>
+			<p>
+				<div class="group group-justify" data-btn="layout">
+					<div ud2="page" ud2-id="layout" ud2-page-max="3" ud2-page-relayout="false" class="noflex"></div>
+					<button class="btn">变更为常规样式</button>
+					<button class="btn">变更为小尺寸样式</button>
+				</div>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>控制两端页码显示数量</h5>
+			<p>
+				<div ud2="page" ud2-page-max="100" ud2-page-now="50" ud2-page-relayout="false" ud2-page-show="4"></div>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>仅图标页码</h5>
+			<p>
+				<div ud2="page" ud2-page-max="10" ud2-page-text="false"></div>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>仅文字页码</h5>
+			<p>
+				<div ud2="page" ud2-page-max="10" ud2-page-ico="false"></div>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>隐藏目录页码</h5>
+			<p>
+				<div ud2="page" ud2-page-max="10" ud2-page-menu="false"></div>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>颜色样式</h5>
+			<p>
+				<div ud2="page" ud2-page-max="10" class="info"></div><hr class="hr hr-dotted" />
+				<div ud2="page" ud2-page-max="10" class="success"></div><hr class="hr hr-dotted" />
+				<div ud2="page" ud2-page-max="10" class="danger"></div><hr class="hr hr-dotted" />
+				<div ud2="page" ud2-page-max="10" class="warning"></div>
+			</p>
+
+			<script>
+				ud2.ready(function () {
+					ud2.page.collection[0].setChange(function (val) {
+						ud2.message.info('您选择了' + val + '页');
+					});
+					ud2.page.collection[3].setChange(function (val) {
+						ud2.message.warning('您选择了' + val + '页');
+					});
+
+					var btnLayout = $('[data-btn="layout"] .btn');
+					var uPageLayout = ud2.page.collection['layout'];
+					ud2.event(btnLayout).setTap(function () {
+						var index = this.index();
+						switch (index) {
+							case 1: { uPageLayout.layout(1); break; }
+							case 2: { uPageLayout.layout(0); break; }
+						}
+					})
+
+				});
+			</script>
+		</div>
+	</fieldset>
+
+
+</body>
+</html>

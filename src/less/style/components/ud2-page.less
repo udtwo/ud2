@@ -1,0 +1,75 @@
+﻿/**
+ * ud2-page.less
+ * 页码控件的默认样式
+ */
+
+// 导入必要的文件
+@import "../../common/import.less";
+
+// 页码控件主容器
+.ud2-page {
+	&.noico {
+		.ico {
+			display: none;
+		}
+	}
+
+	&.notext {
+		span {
+			display: none;
+		}
+
+		.ico {
+			margin: 0 !important;
+		}
+	}
+
+	[ud2-page-now] {
+		z-index: 5;
+		color: @ColorWhite !important;
+	}
+	
+	.btn:hover .ico {
+		opacity: 1;
+	}
+
+	.ico {
+		opacity: @OpacityNoImport;
+		font-size: .85em;
+		line-height: 1;
+		vertical-align: -1px;
+		.transition(opacity .2s);
+
+		&:first-child {
+			margin: 0 .35em 0 0;
+		}
+
+		&:last-child {
+			margin: 0 0 0 .35em;
+		}
+	}
+
+	.ud2-select {
+		width: 5em;
+	}
+
+	& [ud2-page-now], &.info [ud2-page-now] {
+		border-color: @ColorBlue;
+		background: @ColorBlue;
+	}
+
+	&.warning [ud2-page-now] {
+		border-color: @ColorOrange;
+		background: @ColorOrange;
+	}
+
+	&.danger [ud2-page-now] {
+		border-color: @ColorRed;
+		background: @ColorRed;
+	}
+
+	&.success [ud2-page-now] {
+		border-color: @ColorGreen;
+		background: @ColorGreen;
+	}
+}

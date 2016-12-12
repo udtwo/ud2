@@ -2106,6 +2106,70 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
+	// #region ud2 功能控件
+
+	// 数据表控件
+	(function datatable() {
+
+		var // 数据表集合
+			collection = [], 
+			// 单元格值类型
+			cellValueType = {
+				string: 'string', // 未知类型时的默认类型
+				number: 'number',
+				boolean: 'boolean',
+				datetime: 'datetime'
+			};
+
+		// 数据表构造器
+		var constructor = creater('datatable', function () {
+
+			var // 列对象集合
+				columns = [],
+				// 行对象集合
+				rows = [],
+				// 单元格
+				cells = [],
+				// 数据表对象
+				dtObj = {};
+
+			// 初始化
+			(function init() {
+				// 初始化数据表名
+				name = name || '';
+				// 向集合添加当前控件
+				collection.push(dtObj);
+				// 将数据表对象放入集合
+				if (name) collection[name] = dtObj;
+			})();
+
+			// 返回数据表对象
+			return ud2.extend(dtObj, {
+				// 列对象集合
+				columns: columns,
+				// 行对象集合
+				rows: rows,
+				// 单元格对象集合
+				cells: cells
+			});
+
+		});
+		// 绑定类型对象到构造器
+		constructor.type = cellValueType;
+
+		// 数据列
+		var column = function () {
+
+		};
+		// 数据行
+		var row = function () {
+
+		};
+
+	}());
+
+	// #endregion
+
 	// #region ud2 内容控件
 
 	// 滚动条控件及滚动事件

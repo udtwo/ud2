@@ -29,8 +29,7 @@ module.exports = function (grunt) {
 				},
 				files: {
 					'dist/js/ud2.js': [
-						'src/js/ud2.js',
-						'src/js/ud2.dataTable.js'
+						'src/js/ud2.js'
 					]
 				}
 			}

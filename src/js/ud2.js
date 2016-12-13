@@ -2106,9 +2106,9 @@ var ud2 = (function (window, $) {
 
 	// #endregion
 
-	// #region ud2 功能控件
+	// #region ud2 功能组件
 
-	// 数据表控件
+	// 数据表功能组件
 	(function datatable() {
 
 		var // 数据表集合
@@ -4400,6 +4400,10 @@ var ud2 = (function (window, $) {
 			// #endregion
 
 		};
+
+	});
+	// 数据网格控件
+	controlCreater('datagrid', function (collection, constructor) {
 
 	});
 

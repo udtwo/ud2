@@ -430,10 +430,10 @@ var ud2 = (function (window, $) {
 	function propertier(getter, setter) {
 		return function () {
 			var args = arguments, len = args.length;
-			if (len === 0) {
+			if (len === 0 && getter) {
 				return getter.apply(this, args);
 			}
-			else {
+			else if (setter) {
 				return setter.apply(this, args);
 			}
 		};
@@ -2113,30 +2113,115 @@ var ud2 = (function (window, $) {
 
 		var // 数据表集合
 			collection = [], 
-			// 单元格值类型
-			cellValueType = {
+			// 数据类型
+			dataType = {
 				string: 'string', // 未知类型时的默认类型
 				number: 'number',
 				boolean: 'boolean',
 				datetime: 'datetime'
-			};
+			},
+			// 类型常量
+			TYPE_CELL = 'cell', TYPE_ROW = 'row', TYPE_COLUMN = 'column';
 
-		// 数据表构造器
-		var constructor = creater('datatable', function () {
+		// 通过数据值获取对应的数据值类型
+		// value[*]: 数据值
+		// return[ud2.datatable.dataType]: 返回数据值类型
+		function getDataTypeByValue(value){
+			switch (true) {
+				case type.isString(value): { return dataType.string; }
+				case type.isNumber(value): { return dataType.number; }
+				case type.isBoolean(value): { return dataType.boolean; }
+				case type.isDatetime(value): { return dataType.datetime; }
+				default: { return dataType.string; }
+			}
+		}
+		// 通过数据类型强制转换数据值，使数据值符合当前数据类型
+		// value[*]: 数据值
+		// valueType[ud2.datatable.dataType]: 数据值类型
+		// return[*]: 返回转换后的数据值
+		function convertValueByDataType(value, valueType) {
+			if (value !== null) {
+				switch (valueType) {
+					case dataType.string: {
+						if (!type.isString(value)) value = String(value);
+						break;
+					}
+					case dataType.number: {
+						if (!type.isNumber(value)) value = Number(value);
+						if (isNaN(value)) value = null;
+						break;
+					}
+					case dataType.boolean: {
+						if (!type.isBoolean(value)) value = Boolean(value);
+						break;
+					}
+					case dataType.datetime: {
+						if (!type.isDatetime(value)) value = new Date(value);
+						if (isNaN(value.valueOf())) value = null;
+						break;
+					}
+					default: {
+						return convertValueByDataType(value, dataType.string);
+					}
+				}
+			}
+			return value;
+		}
 
-			var // 列对象集合
-				columns = [],
-				// 行对象集合
-				rows = [],
-				// 单元格
-				cells = [],
+		// 数据表初始化
+		// options[object]: 参数对象
+		// - name[string]: 数据表名称
+		// - columns[array]: 列对象集合
+		//   - {title, type}: 列对象参数对象
+		// - rows[array]: 行对象集合
+		//   - []: 每一个数组对应一个行数据
+		//     - <*>: 单元格的值
+		//     - <object>: 单元格参数对象
+		var constructor = creater('datatable', function (options) {
+
+			var // 行对象集合
+				rowCollection = [],
+				// 列对象集合
+				columnCollection = [],
 				// 数据表对象
-				dtObj = {};
+				dtObj = {},
+				// 表名
+				name;
+			
+			function columnAdd(options) {
+				var c;
+				if (!type.isObject(options)) options = {};
+				c = column(options);
+				columnCollection.push(c);
+			}
+
+			function rowAdd(options) {
+
+			}
+
+			// 初始化行和列
+			function initColumnsAndRows(columns, rows) {
+				var i, l;
+				if (!columns || !type.isArray(columns)) columns = null;
+				if (!rows || !type.isArray(rows)) rows = [];
+
+				if (columns !== null) for (i = 0, l = columns.length; i < l; i++) {
+					columnAdd(columns[i]);
+				}
+
+				for (i = 0, l = rows.length; i < l; i++) {
+					
+				}
+			}
 
 			// 初始化
 			(function init() {
+				// 获取参数
+				!options && (options = {});
+				initColumnsAndRows(options.columns, options.rows);
+
 				// 初始化数据表名
-				name = name || '';
+				name = options.name || '';
 				// 向集合添加当前控件
 				collection.push(dtObj);
 				// 将数据表对象放入集合
@@ -2146,23 +2231,228 @@ var ud2 = (function (window, $) {
 			// 返回数据表对象
 			return ud2.extend(dtObj, {
 				// 列对象集合
-				columns: columns,
+				columns: columnCollection,
 				// 行对象集合
-				rows: rows,
-				// 单元格对象集合
-				cells: cells
+				rows: rowCollection
 			});
 
 		});
-		// 绑定类型对象到构造器
-		constructor.type = cellValueType;
+		// 绑定数据类型对象到数据表控件
+		constructor.dataType = dataType;
+		// 绑定控件集合到数据表控件
+		constructor.collection = collection;
 
-		// 数据列
-		var column = function () {
+		// 数据列初始化
+		// (title) 通过标题创建数据列
+		// - title[string]: 数据列标题
+		// (options) 通过参数对象创建数据列
+		// - title[string]: 数据列标题
+		// - type[ud2.datatable.dataType]: 值的数据类型
+		// return[column]: 返回创建的数据列对象
+		var column = function (options) {
+
+			var // 列对象
+				columnObj = { type: TYPE_COLUMN },
+				// 列标题
+				title,
+				// 列的默认值类型，无指令类型为null，而非单元格默认的string类型
+				valueType,
+				// 单元格对象集合
+				cellCollection = [];
+
+			// 操作列标题
+			// () 获取当前列标题
+			// - return[string]: 返回当前列标题
+			// (text) 设置当前列标题
+			// - text[string]: 待设置的列标题
+			// - return[column]: 返回数据列对象
+			var titleOperate = propertier(function () {
+				return title;
+			}, function (text) {
+				if (text !== null) title = String(text);
+				else title = null;
+				return columnObj;
+			});
+			// 操作列的默认值类型
+			// () 获取当前列的默认值类型
+			// - return[ud2.datatable.dataType]: 返回当前列的默认值类型
+			// (mode) 设置当前列的默认值类型，设置该类型会影响到当前所有单元格对象的值类型
+			// - mode[ud2.datatable.dataType]: 设置当前列的默认值类型
+			// - return[column]: 返回数据列对象
+			var dataTypeOperate = propertier(function () {
+				return valueType;
+			}, function (mode) {
+				var i = 0, l = cellCollection.length;
+				if (!dataType[mode]) mode = null;
+				valueType = mode;
+				for (; i < l; i++) cellCollection[i].dataType(valueType);
+				return columnObj;
+			});
+
+			// 初始化
+			(function init() {
+				// 获取参数
+				if (options && !type.isObject(options)) {
+					titleOperate(options);
+				}
+				else {
+					!options && (options = {});
+					titleOperate(!options.title ? null : options.title);
+					dataTypeOperate(options.type);
+				}
+			}());
+
+			// 返回
+			return extendObjects(columnObj, {
+				cells: cellCollection,
+				title: titleOperate,
+				dataType: dataTypeOperate
+			});
 
 		};
-		// 数据行
-		var row = function () {
+		// 数据行初始化
+		// (valueArr) 通过单元格对象或值的集合创建数据行
+		// - valueArr[array]: 单元格对象或值的集合
+		// (options) 通过参数对象创建数据行
+		// - cells[array]: 单元格对象或值的集合
+		// return[row]: 返回创建的数据行对象
+		var row = function (options) {
+
+			var // 行对象
+				rowObj = { type: TYPE_ROW },
+				// 单元格对象集合
+				cellCollection = [];
+
+			// 初始化单元格
+			function initCell(cells) {
+				var i, l, c;
+				if (!type.isArray(cells)) cells = [];
+				for (i = 0, l = cells.length; i < l; i++) {
+					c = cells[i];
+					if (type.isObject(c) && c.type === TYPE_CELL) {
+						cells[i].bindRow(rowObj);
+						cellCollection.push(cells[i]);
+					}
+					else {
+						cellCollection.push(cell({ value: c, row: rowObj }));
+					}
+				}
+			}
+
+			// 初始化
+			(function init() {
+				var cells,
+					i, l, c;
+
+				// 获取参数并初始化单元格
+				if (options && type.isArray(options)) {
+					initCell(options);
+				}
+				else {
+					!options && (options = {});
+					initCell(options.cells);
+				}
+			}());
+
+			// 返回
+			return extendObjects(rowObj, {
+				cells: cellCollection
+			});
+
+		};
+		// 数据单元格初始化
+		// (value) 通过值创建单元格
+		// - value[*]: 单元格的值
+		// (options) 通过参数对象创建单元格
+		// - value[*]: 单元格的值
+		// - type[ud2.datatable.dataType]: 值的数据类型
+		// return[cell]: 返回创建的单元格对象
+		var cell = function (options) {
+
+			var // 单元格对象
+				cellObj = { type: TYPE_CELL, column: null, row: null },
+				// 值   值数据类型
+				value, valueType;
+
+			// 操作当前值
+			// () 获取当前值
+			// - return[*]: 返回当前值
+			// (val) 设置当前值为指定值
+			// - val[*]: 待设置的值
+			// - return[cell]: 返回单元格对象
+			var valueOperate = propertier(function () {
+				return value;
+			}, function (val) {
+				value = convertValueByDataType(val, valueType);
+				return cellObj;
+			});
+			// 操作值类型
+			// () 获取当前值的数据类型
+			// - return[ud2.datatable.dataType]: 返回当前值的数据类型
+			// (mode) 设置当前值的数据类型
+			// - mode[ud2.datatable.dataType]: 待设置的值的数据类型
+			// - return[cell]: 返回单元格对象
+			var dataTypeOperate = propertier(function () {
+				return valueType;
+			}, function (mode) {
+				if (!dataType[mode]) mode = dataType.string;
+				valueType = mode;
+				valueOperate(value);
+				return cellObj;
+			});
+			// 绑定行对象
+			// return[cell]: 返回单元格对象
+			function bindRow(row) {
+				if (row && row.type === TYPE_ROW && cellObj.row === null) {
+					cellObj.row = row;
+				}
+				return cellObj;
+			}
+			// 绑定列对象
+			// return[cell]: 返回单元格对象
+			function bindColumn(column) {
+				if (column && column.type === TYPE_COLUMN && cellObj.column === null) {
+					cellObj.column = column;
+				}
+				return cellObj;
+			}
+
+			// 初始化
+			(function init() {
+				// 获取参数
+				// 初始化类型和值
+				// 当options为非对象参数，将options当作value参数执行
+				// 否则按对象参数方式执行
+				if (options && !type.isObject(options)) {
+					value = options;
+				}
+				else {
+					!options && (options = {});
+					valueType = options.type || null;
+					value = options.value || null;
+				}
+				
+				// 当值类型存在，则将值强制转换为复合类型的值
+				// 若值类型不存在，则检测当前值所属的类型，并指定为值类型
+				if (valueType) {
+					valueOperate(value);
+				}
+				else {
+					valueType = getDataTypeByValue(value);
+				}
+
+				// 绑定行列对象
+				cellObj.column = options.column || null;
+				cellObj.row = options.row || null;
+			}());
+
+			// 返回
+			return extendObjects(cellObj, {
+				val: valueOperate,
+				dataType: dataTypeOperate,
+				bindRow: bindRow,
+				bindColumn: bindColumn
+			});
 
 		};
 

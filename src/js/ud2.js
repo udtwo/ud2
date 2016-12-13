@@ -2170,7 +2170,7 @@ var ud2 = (function (window, $) {
 
 		// 数据表初始化
 		// options[object]: 参数对象
-		// - name[string]: 数据表名称
+		// - id[string]: 数据表ID(名称)
 		// - columns[array]: 列对象集合
 		//   - {title, type}: 列对象参数对象
 		// - rows[array]: 行对象集合
@@ -2179,40 +2179,151 @@ var ud2 = (function (window, $) {
 		//     - <object>: 单元格参数对象
 		var constructor = creater('datatable', function (options) {
 
+			// #region 私有字段
+
 			var // 行对象集合
 				rowCollection = [],
 				// 列对象集合
 				columnCollection = [],
 				// 数据表对象
 				dtObj = {},
-				// 表名
-				name;
-			
-			function columnAdd(options) {
-				var c;
-				if (!type.isObject(options)) options = {};
-				c = column(options);
-				columnCollection.push(c);
-			}
+				// id(表名)
+				id;
 
-			function rowAdd(options) {
+			// #endregion
 
-			}
+			// #region 私有方法
 
 			// 初始化行和列
 			function initColumnsAndRows(columns, rows) {
 				var i, l;
 				if (!columns || !type.isArray(columns)) columns = null;
-				if (!rows || !type.isArray(rows)) rows = [];
+				if (!rows || !type.isArray(rows)) rows = null;
 
-				if (columns !== null) for (i = 0, l = columns.length; i < l; i++) {
-					columnAdd(columns[i]);
+				// 获取列对象
+				if (columns !== null) for (i = 0, l = columns.length; i < l; i++) columnAdd(columns[i]);
+				// 获取行对象
+				if (rows !== null) for (i = 0, l = rows.length; i < l; i++) rowAdd(rows[i]);
+			}
+			// 单元格数据补全
+			function completionCells() {
+				var // 行中字段最大数目 for循环的最大数目变动次数
+					max = 0, changeMax = 0,
+					// 循环i 循环j 补充量 行数 当前行的字段数量 单元格
+					i, j, m, l = rowCollection.length, rcl, ct;
+
+				for (i = 0; i < l; i++) {
+					if (max !== rowCollection[i].cells.length) changeMax++;
+					if (max < rowCollection[i].cells.length) {
+						max = rowCollection[i].cells.length;
+					}
 				}
 
-				for (i = 0, l = rows.length; i < l; i++) {
-					
+				if (changeMax > 1) {
+					for (i = 0; i < l; i++) {
+						rcl = rowCollection[i].cells.length;
+						if (max > rcl) for (j = 0, m = max - rcl; j < m; j++) {
+							ct = cell({ row: rowCollection[i], column: columnCollection[rcl + j] });
+							rowCollection[i].cells.push(ct);
+							columnCollection[rcl + j].cells.push(ct);
+						}
+					}
 				}
 			}
+
+			// #endregion
+			
+			// #region 公共方法
+
+			// 添加数据列
+			// (title) 通过标题创建数据列
+			// - title[string]: 数据列标题
+			// (options) 通过参数对象创建数据列
+			// - title[string]: 数据列标题
+			// - type[ud2.datatable.dataType]: 值的数据类型
+			// return[ud2.datatable]: 返回该控件对象
+			function columnAdd(options) {
+				columnCollection.push(column(options));
+				return dtObj;
+			}
+			// 添加数据行
+			// (valueArr) 通过单元格对象或值的集合创建数据行
+			// - valueArr[array]: 单元格对象或值的集合
+			// (options) 通过参数对象创建数据行
+			// - cells[array]: 单元格对象或值的集合
+			// return[ud2.datatable]: 返回该控件对象
+			function rowAdd(options) {
+				var r = row(options),
+					i = 0, rl = r.cells.length, cl = columnCollection.length, ct;
+				rowCollection.push(r);
+
+				// 加入单元格对象
+				for (; i < rl; i++) {
+					if (!columnCollection[i]) columnAdd();
+					columnCollection[i].cells.push(r.cells[i]);
+					r.cells[i].bindColumn(columnCollection[i]);
+				}
+				// 如果
+				if (cl > rl) {
+					for (; i < cl; i++) {
+						ct = cell({ row: r, column: columnCollection[i] });
+						r.cells.push(ct);
+						columnCollection[i].cells.push(ct);
+					}
+				}
+
+				// 当传入的行数据中的列数量不统一时，进行单元格数据补全
+				completionCells();
+
+				return dtObj;
+			}
+			// 移除数据列
+			// (index) 通过数据列集合的索引号删除列
+			// - index[number]: 数据列集合索引号
+			// (columnObj) 通过数据列对象来删除列
+			// - columnObj[column]: 数据列对象
+			// return[ud2.datatable]: 返回该控件对象
+			function columnRemove(whichColumn) {
+				var index, r;
+				if (type.isNaturalNumber(whichColumn)) {
+					if (columnCollection[whichColumn]) {
+						columnCollection.splice(whichColumn, 1);
+						for (r = rowCollection.length - 1; r >= 0; r--) {
+							rowCollection[r].cells.splice(whichColumn, 1);
+							if (rowCollection[r].cells.length === 0) rowCollection.splice(r, 1);
+						}
+					}
+				}
+				else if (whichColumn && whichColumn.type === TYPE_COLUMN) {
+					index = columnCollection.indexOf(whichColumn);
+					if (index !== -1) return columnRemove(index);
+				}
+				return dtObj;
+			}
+			// 移除数据行
+			// (index) 通过数据行集合的索引号删除行
+			// - index[number]: 数据行集合索引号
+			// (rowObj) 通过数据行对象来删除行
+			// - rowObj[row]: 数据行对象
+			// return[ud2.datatable]: 返回该控件对象
+			function rowRemove(whichRow) {
+				var index, r;
+				if (type.isNaturalNumber(whichRow)) {
+					if (rowCollection[whichRow]) {
+						rowCollection.splice(whichRow, 1);
+						for (r in columnCollection) columnCollection[r].cells.splice(whichRow, 1);
+					}
+				}
+				else if (whichRow && whichRow.type === TYPE_ROW) {
+					index = rowCollection.indexOf(whichRow);
+					if (index !== -1) return rowRemove(index);
+				}
+				return dtObj;
+			}
+
+			// #endregion
+
+			// #region 初始化
 
 			// 初始化
 			(function init() {
@@ -2221,20 +2332,28 @@ var ud2 = (function (window, $) {
 				initColumnsAndRows(options.columns, options.rows);
 
 				// 初始化数据表名
-				name = options.name || '';
+				id = options.id || '';
 				// 向集合添加当前控件
 				collection.push(dtObj);
 				// 将数据表对象放入集合
-				if (name) collection[name] = dtObj;
+				if (id) collection[id] = dtObj;
 			})();
+
+			// #endregion
+
+			// #region 返回
 
 			// 返回数据表对象
 			return ud2.extend(dtObj, {
-				// 列对象集合
 				columns: columnCollection,
-				// 行对象集合
-				rows: rowCollection
+				rows: rowCollection,
+				columnAdd: columnAdd,
+				columnRemove: columnRemove,
+				rowAdd: rowAdd,
+				rowRemove: rowRemove
 			});
+
+			// #endregion
 
 		});
 		// 绑定数据类型对象到数据表控件
@@ -2338,6 +2457,22 @@ var ud2 = (function (window, $) {
 					}
 				}
 			}
+			// 添加一个单元格对象到数据行中
+			// (value) 通过值创建单元格
+			// - value[*]: 单元格的值
+			// (options) 通过参数对象创建单元格
+			// - value[*]: 单元格的值
+			// - type[ud2.datatable.dataType]: 值的数据类型
+			// return[row]: 返回数据行对象
+			function cellAdd(options) {
+				var c = cell(options);
+				cellCollection.push(c);
+				return rowObj;
+			}
+
+			function cellRemove(options) {
+
+			}
 
 			// 初始化
 			(function init() {
@@ -2356,7 +2491,9 @@ var ud2 = (function (window, $) {
 
 			// 返回
 			return extendObjects(rowObj, {
-				cells: cellCollection
+				cells: cellCollection,
+				cellAdd: cellAdd,
+				cellRemove: cellRemove
 			});
 
 		};
@@ -2428,10 +2565,12 @@ var ud2 = (function (window, $) {
 				}
 				else {
 					!options && (options = {});
-					valueType = options.type || null;
-					value = options.value || null;
+					valueType = options.type;
+					// !! 目前数组值和函数值在此解决
+					value = options.value === void 0
+						|| type.isArray(options.value) || type.isFunction(options.value) ? null : options.value;
 				}
-				
+
 				// 当值类型存在，则将值强制转换为复合类型的值
 				// 若值类型不存在，则检测当前值所属的类型，并指定为值类型
 				if (valueType) {

@@ -62,20 +62,24 @@
 
 			<h5>选项及选项组操作</h5>
 			<p>
+				<select ud2="select" multiple></select>
 				<div class="group group-justify">
-					<select ud2="select" multiple></select>
-					<button class="btn a">添加1个选项</button>
-					<button class="btn a">删除1个选项</button>
-					<button class="btn a">添加1个选项组</button>
-					<button class="btn a">删除1个选项组</button>
-					<button class="btn a">批量添加1000个选项</button>
+					<button class="btn a" data-index="0">添加1个选项</button>
+					<button class="btn a" data-index="1">删除1个选项</button>
+					<button class="btn a" data-index="2">批量添加1000个选项</button>
+				</div>
+				<div class="group group-justify" style="margin-top: 4px;">
+					<button class="btn a" data-index="3">添加1个选项组</button>
+					<button class="btn a" data-index="4">删除1个选项组</button>
+					<button class="btn a" data-index="5">向第1个组中添加选项</button>
+					<button class="btn a" data-index="6">从第1个组中删除选项</button>
 				</div>
 				<script>
 					$(function () {
 						var select = ud2.select.collection[2], f = 0, g = 0;
 						ud2.event($('.a')).setTap(function () {
-							var index = $('.a').index(this);
-							switch (index) {
+							var index = this.data('index');
+							switch (parseInt(index)) {
 								case 0: {
 									select.optionAdd(ud2.select.option('新添加的选项' + f++, 'x'));
 									break;
@@ -84,19 +88,34 @@
 									if (select.options[0]) select.options[0].selectOut();
 									break;
 								}
-								case 2: {
+								case 3: {
 									select.groupAdd(ud2.select.group('新添加的分组' + g++));
 									break;
 								}
-								case 3: {
+								case 4: {
 									select.groupRemove(select.groups[0]);
 									break;
 								}
-								case 4: {
+								case 2: {
 									var a = new Date();
 									for (var i = 0; i < 1000; i++) select.optionAdd(ud2.select.option('新添加的选项' + f++, 'x'));
 									var b = new Date();
 									alert((b - a) / 1000 + 's');
+									break;
+								}
+								case 5: {
+									if (select.groups[0]) {
+										ud2.select.option('新添加的选项' + f++, 'x').groupIn(select.groups[0]);
+									}
+									break;
+								}
+								case 6: {
+									if (select.groups[0]) {
+										if (select.groups[0].options[0]) {
+											select.groups[0].options[0].groupOut();
+										}
+									}
+									break;
 								}
 							}
 						});

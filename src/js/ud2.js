@@ -5269,13 +5269,10 @@ var ud2 = (function (window, $) {
 	});
 
 	// 选择控件
-	// TODO: 将生成程序从group、option重写到select中
 	controlCreater('select', function (collection, constructor) {
 
 		var // className存于变量
 			cls = collection.className,
-			// 组内选项对象从选项控件移除的特征标识
-			groupOptionOutSelectFeatureID = 'gr',
 			// 替代文本常量
 			TYPE_SELECT = 'select', TYPE_GROUP = TYPE_SELECT + '.group', TYPE_OPTION = TYPE_SELECT + '.option';
 
@@ -5345,32 +5342,17 @@ var ud2 = (function (window, $) {
 			// select[ud2.select]: 待添入的选项控件
 			// return[ud2.select.group]: 返回该选项组对象
 			function selectIn(whichSelect) {
-				var i, j;
-				if (whichSelect && whichSelect.type === TYPE_SELECT && !groupObj.select) {
-					// 绑定关系
-					groupObj.select = whichSelect;
-					whichSelect.groups.push(groupObj);
-					whichSelect.getContent().append(getContent());
-
-					if (j = options.length, j !== 0) {
-						for (i = 0; i < j; i++) options[i].selectIn(whichSelect);
-					}
+				if (whichSelect && whichSelect.type === TYPE_SELECT
+					&& !groupObj.select) {
+					whichSelect.groupAdd(groupObj);
 				}
 				return groupObj;
 			}
 			// 将选项控件从选项组对象中移除
 			// return[ud2.select.group]: 返回该选项组对象
 			function selectOut() {
-				var i, j;
 				if (groupObj.select) {
-					if (j = options.length, j !== 0) {
-						for (i = 0; i < j; i++) options[i].selectOut(groupOptionOutSelectFeatureID);
-					}
-
-					// 解绑关系
-					groupObj.select.groups.splice(groupObj.select.groups.indexOf(groupObj), 1);
-					groupObj.select = null;
-					$group.detach();
+					groupObj.select.groupRemove(groupObj);
 				}
 				return groupObj;
 			}
@@ -5379,9 +5361,17 @@ var ud2 = (function (window, $) {
 			// return[ud2.select.group]: 返回该选项组对象
 			function optionAdd(whichOption) {
 				// 判断传入option的类型是否符合
-				if (whichOption && whichOption.type && whichOption.type === TYPE_OPTION
+				if (whichOption && whichOption.type === TYPE_OPTION
 					&& !whichOption.group) {
-					whichOption.groupIn(groupObj);
+					// 如果组对象被禁用，则默认取消被选中选项的选中状态
+					if (isDisabled && whichOption.selected()) whichOption.selected(0);
+
+					// 绑定选项与组的关系
+					whichOption.group = groupObj;
+					options.push(whichOption);
+					$group.append(whichOption.getContent());
+					// 如果组已绑定到选项控件中，绑定与选项控件的关系
+					if (groupObj.select) whichOption.selectIn(groupObj.select);
 				}
 				return groupObj;
 			}
@@ -5389,10 +5379,20 @@ var ud2 = (function (window, $) {
 			// whichOption[ud2.select.option]: 待移除的选项对象
 			// return[ud2.select.group]: 返回该选项组对象
 			function optionRemove(whichOption) {
+				var isHave;
 				// 判断传入option的类型是否符合
-				if (whichOption && whichOption.type && whichOption.type === TYPE_OPTION
+				if (whichOption && whichOption.type === TYPE_OPTION
 					&& whichOption.group === groupObj) {
-					whichOption.groupOut();
+					// 解绑与组的关系
+					isHave = options.indexOf(whichOption);
+					if (isHave > -1) {
+						options.splice(isHave, 1);
+						whichOption.group = null;
+						whichOption.getContent().detach();
+
+						// 如果组已绑定到选项控件中，解绑与选项控件的关系
+						if (whichOption.select) whichOption.selectOut();
+					}
 				}
 				return groupObj;
 			}
@@ -5549,34 +5549,18 @@ var ud2 = (function (window, $) {
 			// return[ud2.select.option]: 返回该选项对象
 			function groupIn(whichGroup) {
 				// 判断传入的选项组对象是否符合
-				if (whichGroup.type && whichGroup.type === TYPE_GROUP
+				if (whichGroup && whichGroup.type === TYPE_GROUP
 					&& !optionObj.group && !optionObj.select) {
-					// 如果组对象被禁用，则默认取消被选中选项的选中状态
-					if (whichGroup.disabled() && isSelected) selectedOperate(0);
-
-					// 绑定与组的关系
-					optionObj.group = whichGroup;
-					whichGroup.options.push(optionObj);
-					whichGroup.getContent().append($option);
-					// 如果组已绑定到选项控件中，绑定与选项控件的关系
-					if (whichGroup.select) selectIn(whichGroup.select);
+					whichGroup.optionAdd(optionObj);
 				}
-
 				return optionObj;
 			}
 			// 将选项对象从选项组中移除
 			// return[ud2.select.option]: 返回该选项对象
 			function groupOut() {
-				var isHave = -1;
+				// 判断是否存在组
 				if (optionObj.group) {
-					// 解绑与组的关系
-					isHave = optionObj.group.options.indexOf(optionObj);
-					optionObj.group.options.splice(isHave, 1);
-					optionObj.group = null;
-					$option.detach();
-
-					// 如果组已绑定到选项控件中，解绑与选项控件的关系
-					if (optionObj.select) selectOut();
+					optionObj.group.optionRemove(optionObj);
 				}
 				return optionObj;
 			}
@@ -5584,87 +5568,20 @@ var ud2 = (function (window, $) {
 			// whichSelect[ud2.select]: 待添入的选项控件
 			// return[ud2.select.option]: 返回该选项对象
 			function selectIn(whichSelect) {
-				var // 设置参数默认值
-					isDefaultGroup = !optionObj.group,
-					// 长度
-					len;
-
 				// 检测传入参数的数据类型是否符合，且当前选项对象是否未绑定选项控件对象
-				if (whichSelect && whichSelect.type && whichSelect.type === TYPE_SELECT
+				if (whichSelect && whichSelect.type === TYPE_SELECT
 					&& !optionObj.select) {
-
-					// 如果是默认分组下，绑定到选项控件的默认分组，且将选项内容对象加入到控件中
-					// 如果是在选项组下，则只绑定选项对象与选项控件的关系
-					if (isDefaultGroup) {
-						optionObj.select = whichSelect;
-						whichSelect.options.push(optionObj);
-						whichSelect.optionsDefault.push(optionObj);
-						len = whichSelect.optionsDefault.length;
-
-						if (len === 1) {
-							whichSelect.getContent().prepend($option);
-						}
-						else {
-							whichSelect.optionsDefault[len - 2].getContent().after($option);
-						}
-					}
-					else {
-						optionObj.select = whichSelect;
-						whichSelect.options.push(optionObj);
-					}
-					// 如果该选项状态为已选中，则在选项控件中，选中此对象
-					if (isSelected) {
-						whichSelect.valOption(optionObj);
-					}
+					whichSelect.optionAdd(optionObj);
 				}
-
 				return optionObj;
 			}
 			// 向选项控件中移除选项对象
 			// return[ud2.select.option]: 返回该选项对象
 			function selectOut() {
-				var isHave = -1;
-
-				// 组从选项控件移除时，迭代组内的选项对象并全部移除选项控件
-				if (arguments[0] && arguments[0] === groupOptionOutSelectFeatureID) {
-					// 如果选项已被选中，则取消选中
-					if (isSelected) {
-						// 取消选项集合中的已选状态
-						optionObj.select.valOption(optionObj, false);
-						// 恢复本对象原本的已选状态
-						optionObj.selected(1);
-					}
-
-					// 删除与选项控件的关系
-					isHave = optionObj.select.options.indexOf(optionObj);
-					optionObj.select.options.splice(isHave, 1);
-					optionObj.select = null;
-
-					return;
-				}
-
+				// 判断是否存在选项控件
 				if (optionObj.select) {
-					// 如果存在组
-					if (optionObj.group) return groupOut();
-					else {
-						optionObj.select.optionsDefault.splice(optionObj.select.optionsDefault.indexOf(optionObj), 1);
-					}
-
-					// 如果选项已被选中，则取消选中
-					if (isSelected) {
-						// 取消选项集合中的已选状态
-						optionObj.select.valOption(optionObj, false);
-						// 恢复本对象原本的已选状态
-						optionObj.selected(1);
-					}
-
-					// 删除与选项控件的关系
-					isHave = optionObj.select.options.indexOf(optionObj);
-					optionObj.select.options.splice(isHave, 1);
-					optionObj.select = null;
-					$option.detach();
+					optionObj.select.optionRemove(optionObj);
 				}
-
 				return optionObj;
 			}
 
@@ -6136,43 +6053,113 @@ var ud2 = (function (window, $) {
 			// group[ud2.select.group]: 待添加的选项组对象
 			// return[ud2.select]: 返回该控件对象
 			function groupAdd(group) {
-				// 判断参数传入是否正确
-				if (group && group.type && group.type === TYPE_GROUP
+				var i, j;
+				// 判断传入group的类型是否符合
+				if (group && group.type === TYPE_GROUP
 					&& !group.select) {
-					group.selectIn(control.public);
+					// 绑定关系
+					group.select = control.public;
+					groupCollection.push(group);
+					listScroll.getContent().append(group.getContent());
+					// 如存在option，则加入option
+					if (j = group.options.length, j !== 0) {
+						for (i = 0; i < j; i++) {
+							group.options[i].selectIn(control.public);
+						}
+					}
 				}
-
 				return control.public;
 			}
 			// 选项组移除
 			// group[ud2.select.group]: 待移除的选项组对象
 			// return[ud2.select]: 返回该控件对象
 			function groupRemove(group) {
-				// 判断参数传入是否正确
-				if (group && group.type && group.type === TYPE_GROUP
+				var i, l;
+				// 判断传入group的类型是否符合
+				if (group && group.type === TYPE_GROUP
 					&& group.select === control.public) {
-					group.selectOut();
-				}
+					l = group.options.length;
+					// 解绑选项对象与选项控件的关系
+					if (l > 0) {
+						for (i = 0; i < l; i++) {
+							// 如果选项已被选中，则取消选中
+							if (group.options[i].selected()) {
+								// 取消选项集合中的已选状态
+								valOption(group.options[i], false);
+								// 恢复本对象原本的已选状态
+								group.options[i].selected(1);
+							}
+							// 删除与选项控件的关系
+							optionCollection.splice(optionCollection.indexOf(group.options[i]), 1);
+							group.options[i].select = null;
+						}
+					}
 
+					// 解绑选项对象与组对象的关系
+					groupCollection.splice(groupCollection.indexOf(group), 1);
+					group.select = null;
+					group.getContent().detach();
+				}
 				return control.public;
 			}
 			// 选项添加
 			// option[ud2.select.option]: 待添加的选项对象
 			// return[ud2.select]: 返回该控件对象
 			function optionAdd(option) {
-				if (option && option.type && option.type === TYPE_OPTION
+				var len;
+
+				// 判断传入option的类型是否符合
+				if (option && option.type === TYPE_OPTION
 					&& !option.select) {
-					option.selectIn(control.public);
+					// 如果是默认分组下，绑定到选项控件的默认分组，且将选项内容对象加入到控件中
+					// 如果是在选项组下，则只绑定选项对象与选项控件的关系
+					if (!option.group) {
+						option.select = control.public;
+						optionCollection.push(option);
+						optionNoGroupCollection.push(option);
+						len = optionNoGroupCollection.length;
+						if (len === 1) {
+							listScroll.getContent().prepend(option.getContent());
+						}
+						else {
+							optionNoGroupCollection[len - 2].getContent().after(option.getContent());
+						}
+					}
+					else {
+						option.select = control.public;
+						optionCollection.push(option);
+					}
+
+					// 如果该选项状态为已选中，则在选项控件中，选中此对象
+					if (option.selected()) valOption(option);
 				}
+				return control.public;
 			}
 			// 选项移除
 			// option[ud2.select.option]: 待移除的选项对象
 			// return[ud2.select]: 返回该控件对象
 			function optionRemove(option) {
-				if (option && option.type && option.type === TYPE_OPTION
+				// 判断传入option的类型是否符合
+				if (option && option.type === TYPE_OPTION
 					&& option.select === control.public) {
-					option.selectOut();
+					// 如果在默认组，则清除默认组的option
+					if (!option.group) optionNoGroupCollection.splice(optionNoGroupCollection.indexOf(option), 1);
+					// 如果选项已被选中，则取消选中
+					if (option.selected()) {
+						// 取消选项集合中的已选状态
+						valOption(option, false);
+						// 恢复本对象原本的已选状态
+						option.selected(1);
+					}
+					// 删除与选项控件的关系
+					optionCollection.splice(optionCollection.indexOf(option), 1);
+					option.select = null;
+					option.getContent().detach();
+
+					// 如果存在组，则清除组
+					if (option.group) option.groupOut();
 				}
+				return control.public;
 			}
 
 			// #endregion

@@ -57,19 +57,19 @@ module.exports = function (grunt) {
 						'src/less/style/base/message.less',
 						'src/less/style/base/panel.less',
 
-						'src/less/style/components/ud2-scroll.less',
-
 						'src/less/style/components/common.less',
-						'src/less/style/components/ud2-dialog.less',
-						'src/less/style/components/ud2-message.less',
-						'src/less/style/components/ud2-switch.less',
-						'src/less/style/components/ud2-date.less',
-						'src/less/style/components/ud2-select.less',
-						'src/less/style/components/ud2-number.less',
-						'src/less/style/components/ud2-range.less',
-						'src/less/style/components/ud2-file.less',
-						'src/less/style/components/ud2-tabs.less',
-						'src/less/style/components/ud2-page.less'
+						'src/less/style/components/popups/dialog.less',
+						'src/less/style/components/popups/message.less',
+						'src/less/style/components/controls/switch.less',
+						'src/less/style/components/controls/date.less',
+						'src/less/style/components/controls/select.less',
+						'src/less/style/components/controls/number.less',
+						'src/less/style/components/controls/range.less',
+						'src/less/style/components/controls/file.less',
+						'src/less/style/components/contents/scroll.less',
+						'src/less/style/components/contents/tabs.less',
+						'src/less/style/components/contents/page.less',
+						'src/less/style/components/contents/datagrid.less'
 					]
 				}
 			}

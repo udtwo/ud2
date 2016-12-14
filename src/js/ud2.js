@@ -1976,13 +1976,13 @@ var ud2 = (function (window, $) {
 			// 创建一个库扩展对象
 			constructor = creater(name, function create() {
 				var // 获取一个空控件对象
-						ctrl = control.call(ctrlCollection, name),
-						// 获取当前方法的参数集合
-						args = arguments,
-						// 获取参数数量
-						len = args.length,
-						// 控件公共属性
-						id, origin, userOptions;
+					ctrl = control.call(ctrlCollection, name),
+					// 获取当前方法的参数集合
+					args = arguments,
+					// 获取参数数量
+					len = args.length,
+					// 控件公共属性
+					id, origin, userOptions;
 
 				// 检测长度
 				switch (len) {
@@ -2008,6 +2008,7 @@ var ud2 = (function (window, $) {
 						break;
 					}
 					case 3: {
+						// !! 对id未进行重复性判断
 						id = type.isString(args[0]) && args[0].length > 0 ? args[0] : createControlID();
 						// 如果传入的jQuery对象长度大于1，则默认选择第一个元素做为origin
 						origin = convertToJQ(args[1]).first();
@@ -2109,7 +2110,7 @@ var ud2 = (function (window, $) {
 	// #region ud2 功能组件
 
 	// 数据表功能组件
-	(function datatable() {
+	var datatable = (function () {
 
 		var // 数据表集合
 			collection = [], 
@@ -2566,7 +2567,7 @@ var ud2 = (function (window, $) {
 				else {
 					!options && (options = {});
 					valueType = options.type;
-					// !! 目前数组值和函数值在此解决
+					// !! 目前数组值和函数值在此解决，未支持数组值和函数值
 					value = options.value === void 0
 						|| type.isArray(options.value) || type.isFunction(options.value) ? null : options.value;
 				}
@@ -2594,6 +2595,9 @@ var ud2 = (function (window, $) {
 			});
 
 		};
+
+		// 返回构造器
+		return constructor;
 
 	}());
 
@@ -2718,9 +2722,6 @@ var ud2 = (function (window, $) {
 			scrollEndTimer = null,
 			// 触摸启动最小长度
 			touchStartMinLength = 10,
-			// 鼠标滚轮定时器
-			// 用于阻止滚轮在边缘的多次滚动
-			mouseWheelTimer = null,
 			// 记录鼠标是否在滚动条区域中按下滚动条，并拖拽操作
 			mouseInScroll = false,
 			// 记录鼠标是否在滚动容器中
@@ -4404,6 +4405,11 @@ var ud2 = (function (window, $) {
 	});
 	// 数据网格控件
 	controlCreater('datagrid', function (collection, constructor) {
+
+		// 重写集合初始化方法
+		collection.init = function () {
+
+		};
 
 	});
 

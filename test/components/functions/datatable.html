@@ -26,7 +26,39 @@
 				<button class="btn btn-solid c-red">删除第一行数据</button>
 				<button class="btn btn-solid c-green">添加一列数据</button>
 				<button class="btn btn-solid c-red">删除第一列数据</button>
+				<button class="btn btn-solid c-blue">将下方table插入到datatable</button>
 			</p>
+
+			<table style="margin-top: 10px;" class="table" data-table>
+				<tr>
+					<td>1</td>
+					<td>2</td>
+					<td>3</td>
+					<td>4</td>
+					<td>5</td>
+				</tr>
+				<tr>
+					<td rowspan="3">a</td>
+					<td>2</td>
+					<td colspan="3">b</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td ud2-data-type="number">3</td>
+					<td rowspan="3">d</td>
+					<td>5</td>
+				</tr>
+				<tr>
+					<td>2</td>
+					<td>3</td>
+					<td>5</td>
+				</tr>
+				<tr>
+					<td colspan="3">c</td>
+					<td>5</td>
+				</tr>
+			</table>
+
 			<script>
 				ud2.ready(function () {
 
@@ -45,8 +77,8 @@
 					});
 
 					function html() {
-						$('table').remove();
-						var jTable = $('<table class="table"><tbody /></table>');
+						$('table.temp').remove();
+						var jTable = $('<table class="table temp"><tbody /></table>');
 						var html = [];
 						for (var ri = 0, rl = dt.rows.length; ri < rl; ri++) {
 							html.push('<tr>');
@@ -60,9 +92,10 @@
 
 						jTable.children().append(html.join(''));
 						jTable.prependTo('div');
-						console.log(dt);
 					}
 					html();
+					window.dt = dt;
+					window.html = html;
 
 					var btns = $('.btn');
 					ud2.event(btns.eq(0)).setTap(function () {
@@ -75,11 +108,14 @@
 					});
 					ud2.event(btns.eq(2)).setTap(function () {
 						dt.columnAdd();
-						for (var i in dt.rows) dt.rows[i].cellAdd();
 						html();
 					});
 					ud2.event(btns.eq(3)).setTap(function () {
 						dt.columnRemove(dt.columns[0]);
+						html();
+					});
+					ud2.event(btns.eq(4)).setTap(function () {
+						dt.dataFill($('[data-table]'));
 						html();
 					});
 				});

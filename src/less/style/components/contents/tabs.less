@@ -6,16 +6,20 @@
 // 导入必要的文件
 @import "../../../common/import.less";
 
-@TabNormalSize: @BaseSize * 3.6;
-@TabNormalBackground: @ColorWhiteDeepest; //lighten(@ColorWhiteDeeper, 2%);
-@TabNormalFontColor: lighten(@ColorText, 25%);
-@TabNormalHeight: 300px;
+// 选项卡默认尺寸
+@TabsSize: @BaseSize * 3.6;
+// 选项卡背景颜色
+@TabsBackColor: @ColorWhiteDeepest; //lighten(@ColorWhiteDeeper, 2%);
+// 选项卡文本颜色
+@TabsColor: lighten(@ColorText, 25%);
+// 选项卡控件默认默认高度
+@TabsDefaultHeight: 400px;
 
 // 选项组控件主容器
 .ud2-tabs {
 	display: block;
 	width: 100%;
-	height: @TabNormalHeight;
+	height: @TabsDefaultHeight;
 	overflow: hidden;
 
 	&.ud2-tabs-full {
@@ -44,8 +48,8 @@
 // 目录容器
 .ud2-tabs-menu {
 	z-index: 4;
-	width: @TabNormalSize;
-	height: @TabNormalSize;
+	width: @TabsSize;
+	height: @TabsSize;
 
 	&.on {
 		.ud2-tabs-menu-btn {
@@ -67,8 +71,8 @@
 .ud2-tabs-menu-btn {
 	width: 100%;
 	height: 100%;
-	background: @TabNormalBackground;
-	line-height: @TabNormalSize;
+	background: @TabsBackColor;
+	line-height: @TabsSize;
 	text-align: center;
 	cursor: pointer;
 	overflow: hidden;
@@ -146,13 +150,13 @@
 }
 // 选项容器
 .ud2-tabs-tab {
-	height: @TabNormalSize;
-	line-height: @TabNormalSize;
-	color: @TabNormalFontColor;
-	background-image: -webkit-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
-	background-image: -o-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
-	background-image: -moz-linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
-	background-image: linear-gradient(@TabNormalBackground, darken(@TabNormalBackground, 2%));
+	height: @TabsSize;
+	line-height: @TabsSize;
+	color: @TabsColor;
+	background-image: -webkit-linear-gradient(@TabsBackColor, darken(@TabsBackColor, 2%));
+	background-image: -o-linear-gradient(@TabsBackColor, darken(@TabsBackColor, 2%));
+	background-image: -moz-linear-gradient(@TabsBackColor, darken(@TabsBackColor, 2%));
+	background-image: linear-gradient(@TabsBackColor, darken(@TabsBackColor, 2%));
 	cursor: pointer;
 	
 	i {
@@ -210,8 +214,8 @@
 .ud2-tabs-top, .ud2-tabs-bottom {
 	.ud2-tabs-bar {
 		left: 0;
-		right: @TabNormalSize;
-		height: @TabNormalSize;
+		right: @TabsSize;
+		height: @TabsSize;
 
 		&:first-child {
 			right: 0;
@@ -229,7 +233,7 @@
 	}
 
 	.ud2-tabs-menu-list {
-		height: @TabNormalHeight - @TabNormalSize;
+		height: @TabsDefaultHeight - @TabsSize;
 	}
 
 	.ud2-tabs-main, .ud2-tabs-mask {
@@ -247,8 +251,8 @@
 .ud2-tabs-left, .ud2-tabs-right {
 	.ud2-tabs-bar {
 		top: 0;
-		bottom: @TabNormalSize;
-		width: @TabNormalSize * 3.5;
+		bottom: @TabsSize;
+		width: @TabsSize * 3.5;
 
 		&:first-child {
 			bottom: 0;
@@ -256,16 +260,16 @@
 	}
 
 	.ud2-tabs-tab {
-		width: @TabNormalSize * 3.5;
+		width: @TabsSize * 3.5;
 		margin-bottom: @CtrlSizeGradient;
 	}
 
 	.ud2-tabs-menu {
-		width: @TabNormalSize * 3.5;
+		width: @TabsSize * 3.5;
 	}
 
 	.ud2-tabs-menu-list {
-		height: @TabNormalHeight;
+		height: @TabsDefaultHeight;
 	}
 
 	.ud2-tabs-main, .ud2-tabs-mask {
@@ -287,7 +291,7 @@
 	}
 
 	.ud2-tabs-main, .ud2-tabs-mask {
-		top: @TabNormalSize;
+		top: @TabsSize;
 		bottom: 0;
 	}
 
@@ -306,7 +310,7 @@
 	}
 
 	.ud2-tabs-menu-list {
-		top: @TabNormalSize; 
+		top: @TabsSize; 
 		right: 0;
 		.transform(translateY(3%) translateZ(0));
 	}
@@ -319,7 +323,7 @@
 
 	.ud2-tabs-main, .ud2-tabs-mask {
 		top: 0;
-		bottom: @TabNormalSize;
+		bottom: @TabsSize;
 	}
 
 	.ud2-tabs-menu {
@@ -341,7 +345,7 @@
 	}
 
 	.ud2-tabs-menu-list {
-		bottom: @TabNormalSize; 
+		bottom: @TabsSize; 
 		right: 0;
 		.transform(translateY(-3%) translateZ(0));
 	}
@@ -353,7 +357,7 @@
 	}
 
 	.ud2-tabs-main, .ud2-tabs-mask {
-		left: @TabNormalSize * 3.5;
+		left: @TabsSize * 3.5;
 		right: 0;
 	}
 
@@ -377,7 +381,7 @@
 
 	.ud2-tabs-menu-list {
 		bottom: 0; 
-		left: @TabNormalSize * 3.5;
+		left: @TabsSize * 3.5;
 		.transform(translateX(3%) translateZ(0));
 	}
 }
@@ -389,7 +393,7 @@
 
 	.ud2-tabs-main, .ud2-tabs-mask {
 		left: 0;
-		right: @TabNormalSize * 3.5;
+		right: @TabsSize * 3.5;
 	}
 
 	.ud2-tabs-menu {
@@ -412,7 +416,7 @@
 
 	.ud2-tabs-menu-list {
 		bottom: 0; 
-		right: @TabNormalSize * 3.5;
+		right: @TabsSize * 3.5;
 		.transform(translateX(-3%) translateZ(0));
 	}
 }

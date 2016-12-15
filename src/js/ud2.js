@@ -1,6 +1,6 @@
 ﻿/// <reference path="../../vendor/js/jquery.js" />
 
-if (typeof $ === 'undefined') throw new Error('ud2库需要JQuery支持');
+if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 var ud2 = (function (window, $) {
 	"use strict";
 
@@ -361,7 +361,7 @@ var ud2 = (function (window, $) {
 			// 创建一个空的div元素
 			div = document.createElement('div'),
 			// 获取userAgent
-			u = window.navigator.userAgent, ipad ,iphone, mac;
+			u = window.navigator.userAgent, ipad, iphone, mac;
 
 		// 判断是否为IPAD
 		ipad = u.match(/ipad/i);
@@ -422,6 +422,24 @@ var ud2 = (function (window, $) {
 			origin[i] = source[i];
 		}
 		return origin;
+	}
+	// 对象合并
+	// 将两个对象依次合并，并返回合并后的新对象
+	// objA[object]: 第一个待合并的对象
+	// objB[object]: 第二个待合并的对象
+	// return[object]: 返回合并后的新对象
+	function mergeObjects(objA, objB) {
+		var merge = {};
+		extendObjects(merge, objA);
+		extendObjects(merge, objB);
+		return merge;
+	}
+	// 对象克隆
+	// 将传入对象克隆一个新对象，并返回
+	// source[object]: 待克隆的对象
+	// return[object]: 返回克隆后的新对象
+	function cloneObjects(source) {
+		return extendObjects({}, source);
 	}
 	// 属性设计器
 	// getter[function]: 设置getter处理方法
@@ -569,23 +587,35 @@ var ud2 = (function (window, $) {
 	// return[object]: 转换后的坐标值
 	function getCoordinate(val, bX, bY) {
 		if (type.isArray(val) && val.length === 2) {
-			val = { x: val[0], y: val[1] };
+			val = {
+				x: val[0], y: val[1]
+			};
 		}
 		else if (type.isObject(val)) {
-			val = { x: val.x || val.width || val.w, y: val.y || val.height || val.h };
+			val = {
+				x: val.x || val.width || val.w, y: val.y || val.height || val.h
+			};
 		}
 		else if (type.isString(val)) {
 			val = val.split(val.indexOf(',') > -1 ? ',' : ' ');
 			if (val.length === 2)
-				val = { x: val[0], y: val[1] };
+				val = {
+					x: val[0], y: val[1]
+				};
 			else
-				val = { x: val[0], y: val[1] };
+				val = {
+					x: val[0], y: val[1]
+				};
 		}
 		else if (type.isNumber(val)) {
-			val = { x: val, y: val };
+			val = {
+				x: val, y: val
+			};
 		}
 		else {
-			val = { x: 0, y: 0 };
+			val = {
+				x: 0, y: 0
+			};
 		}
 		val.x = parseInt(val.x) || bX;
 		val.y = parseInt(val.y) || bY;
@@ -603,6 +633,58 @@ var ud2 = (function (window, $) {
 		if (!type.isJQuery(jq)) jq = $(jq);
 		return jq;
 	}
+	// 将传入的表格强制转换为二维数组
+	// table[jQuery, string, object]: 待转换值
+	// return[array]: 转换后的二维数组
+	function convertTableToArray(table) {
+		var $table = convertToJQ(table),
+			$tr = $table.find('tr'), $td = $table.find('td'), datas = [];
+
+		// !! 解决colspan与rowspan的问题，目前的解决方式采用复制单元格的值
+		$td.filter('[colspan]').each(function () {
+			var $me = $(this), cs = parseInt($me.attr('colspan')),
+				i, l;
+
+			$me.removeAttr('colspan');
+			if (cs > 1) {
+				for (i = 0, l = cs - 1; i < l; i++) {
+					$me.after($me.clone());
+				}
+			}
+		});
+		$td.filter('[rowspan]').each(function () {
+			var $me = $(this), rs = parseInt($me.attr('rowspan')),
+				i, l, index, pIndex, $p;
+
+			$me.removeAttr('rowspan');
+			if (rs > 1) {
+				for (i = 0, l = rs - 1; i < l; i++) {
+					$p = $me.parent();
+					pIndex = $p.index();
+					index = $me.index();
+					if (index === 0) {
+						$tr.eq(pIndex + i + 1).prepend($me.clone());
+					}
+					else {
+						$tr.eq(pIndex + i + 1).children().eq(index - 1).after($me.clone());
+					}
+				}
+			}
+		});
+
+		// 获取数据
+		$tr.each(function () {
+			var d = [];
+			$(this).children().each(function () {
+				var $td = $(this), dataType = $td.attr(prefixLibName + 'data-type'), cellDataType = $td.attr(prefixLibName + 'cell-data-type');
+				if (dataType || cellDataType) d.push({ value: $td.html(), type: dataType, cellType: cellDataType });
+				else d.push($td.html());
+			});
+			datas.push(d);
+		});
+		return datas;
+	}
+
 	// 生成控件可支持的样式枚举
 	// [...string]: 可支持的样式名称
 	function createStyle() {
@@ -712,63 +794,90 @@ var ud2 = (function (window, $) {
 		//   eventObj[eventObj]: 事件event对象
 		//   move[object]: 移动偏移量 { x, y }
 		// return[event]: 当前事件对象，方便链式调用
-		function setPan(fn) { callbacks.pan = fn; return eventObj; }
+		function setPan(fn) {
+			callbacks.pan = fn;
+			return eventObj;
+		}
 		// 设置短按回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// - fn(eventObj)
 		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
-		function setTap(fn) { callbacks.tap = fn; return eventObj; }
+		function setTap(fn) {
+			callbacks.tap = fn;
+			return eventObj;
+		}
 		// 设置长按回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// - fn(eventObj)
 		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
-		function setPress(fn) { callbacks.press = fn; return eventObj; }
+		function setPress(fn) {
+			callbacks.press = fn;
+			return eventObj;
+		}
 		// 设置快速左滑动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// - fn(eventObj)
 		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
-		function setSwipeLeft(fn) { callbacks.swipeLeft = fn; return eventObj; }
+		function setSwipeLeft(fn) {
+			callbacks.swipeLeft = fn;
+			return eventObj;
+		}
 		// 设置快速右滑动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// - fn(eventObj)
 		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
-		function setSwipeRight(fn) { callbacks.swipeRight = fn; return eventObj; }
+		function setSwipeRight(fn) {
+			callbacks.swipeRight = fn;
+			return eventObj;
+		}
 		// 设置快速上滑动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// - fn(eventObj)
 		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
-		function setSwipeTop(fn) { callbacks.swipeTop = fn; return eventObj; }
+		function setSwipeTop(fn) {
+			callbacks.swipeTop = fn;
+			return eventObj;
+		}
 		// 设置快速下滑动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// - fn(eventObj)
 		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
-		function setSwipeBottom(fn) { callbacks.swipeBottom = fn; return eventObj; }
+		function setSwipeBottom(fn) {
+			callbacks.swipeBottom = fn;
+			return eventObj;
+		}
 		// 设置触点按下时的回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// - fn(eventObj)
 		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
-		function setDown(fn) { callbacks.down = fn; return eventObj; }
+		function setDown(fn) {
+			callbacks.down = fn;
+			return eventObj;
+		}
 		// 设置触点抬起时的回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// - fn(eventObj)
 		//   eventObj[eventObj]: 事件event对象
 		// return[event]: 当前事件对象，方便链式调用
-		function setUp(fn) { callbacks.up = fn; return eventObj; }
+		function setUp(fn) {
+			callbacks.up = fn;
+			return eventObj;
+		}
 
 		// #endregion
 
@@ -1148,7 +1257,9 @@ var ud2 = (function (window, $) {
 				isParentsScrolling = false;
 				// 当元素外层对象的全部集合中，存在某个对象是scroll控件，且此scroll正在滚动中，则判定tap与press不成立
 				var parents = origin.parents(), pLen = parents.length, i = 0;
-				for (; i < pLen; i++) if (parents.eq(i).attr(prefixLibName + 'scroll-runing') === '1') { isParentsScrolling = true; break; }
+				for (; i < pLen; i++) if (parents.eq(i).attr(prefixLibName + 'scroll-runing') === '1') {
+					isParentsScrolling = true; break;
+				}
 
 				// 执行down回调
 				callbacks.down.call(origin, event);
@@ -1170,10 +1281,14 @@ var ud2 = (function (window, $) {
 					// 获取触点移动长度
 					move = pointers[id].getMoveLength(),
 					// 获取触点移动绝对长度
-					absMove = { x: Math.abs(move.x), y: Math.abs(move.y) };
+					absMove = {
+						x: Math.abs(move.x), y: Math.abs(move.y)
+					};
 
 				// 如果抬起的是第一次按压的触点
-				if (first.id === id) { interval = new Date() - first.time; first.id = null; first.time = null; }
+				if (first.id === id) {
+					interval = new Date() - first.time; first.id = null; first.time = null;
+				}
 
 				// 确定是否为第一次触碰点的弹起操作
 				if (interval) {
@@ -1390,17 +1505,26 @@ var ud2 = (function (window, $) {
 		//   move: 此回调函数拥有一个参数 move，用于时时返回鼠标滚轮触发的方向
 		//		   1: 向下 -1: 向上
 		// return[object]: 当前事件对象，方便链式调用
-		function setScroll(fn) { callbacks.scroll = fn; return eventObj; }
+		function setScroll(fn) {
+			callbacks.scroll = fn;
+			return eventObj;
+		}
 		// 设置拖动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// return[object]: 当前事件对象，方便链式调用
-		function setDown(fn) { callbacks.down = fn; return eventObj; }
+		function setDown(fn) {
+			callbacks.down = fn;
+			return eventObj;
+		}
 		// 设置拖动回调函数
 		// 所回调的函数 this 指向事件触发的 jQuery 对象
 		// fn[function]: 回调函数
 		// return[object]: 当前事件对象，方便链式调用
-		function setUp(fn) { callbacks.up = fn; return eventObj; }
+		function setUp(fn) {
+			callbacks.up = fn;
+			return eventObj;
+		}
 
 		// #endregion
 
@@ -1655,7 +1779,9 @@ var ud2 = (function (window, $) {
 			ico = ['', '\ued20', '\ued1e', '\ued21', '\ued1f'],
 			// 迭代变量
 			i = 0, len = stylesName.length;
-		for (; i < len; i++) styles[stylesName[i]] = { name: stylesName[i], no: i, ico: ico[i] };
+		for (; i < len; i++) styles[stylesName[i]] = {
+			name: stylesName[i], no: i, ico: ico[i]
+		};
 		return styles;
 	}());
 	// ud2库颜色对象
@@ -1666,7 +1792,9 @@ var ud2 = (function (window, $) {
 			stylesName = ['red', 'orange', 'green', 'blue', 'yellow', 'teal', 'pink', 'violet', 'purple', 'brown', 'dark', 'grey', 'white'],
 			// 迭代变量
 			i = 0, len = stylesName.length;
-		for (; i < len; i++) colors[stylesName[i]] = { name: 'c-' + stylesName[i], id: stylesName[i] };
+		for (; i < len; i++) colors[stylesName[i]] = {
+			name: 'c-' + stylesName[i], id: stylesName[i]
+		};
 		return colors;
 	}());
 
@@ -2112,8 +2240,10 @@ var ud2 = (function (window, $) {
 	// 数据表功能组件
 	var datatable = (function () {
 
+		// #region 私有字段
+
 		var // 数据表集合
-			collection = [], 
+			collection = [],
 			// 数据类型
 			dataType = {
 				string: 'string', // 未知类型时的默认类型
@@ -2124,10 +2254,14 @@ var ud2 = (function (window, $) {
 			// 类型常量
 			TYPE_CELL = 'cell', TYPE_ROW = 'row', TYPE_COLUMN = 'column';
 
+		// #endregion
+
+		// #region 静态方法
+
 		// 通过数据值获取对应的数据值类型
 		// value[*]: 数据值
 		// return[ud2.datatable.dataType]: 返回数据值类型
-		function getDataTypeByValue(value){
+		function getDataTypeByValue(value) {
 			switch (true) {
 				case type.isString(value): { return dataType.string; }
 				case type.isNumber(value): { return dataType.number; }
@@ -2169,6 +2303,10 @@ var ud2 = (function (window, $) {
 			return value;
 		}
 
+		// #endregion
+
+		// #region 数据表构造方法
+
 		// 数据表初始化
 		// options[object]: 参数对象
 		// - id[string]: 数据表ID(名称)
@@ -2178,18 +2316,32 @@ var ud2 = (function (window, $) {
 		//   - []: 每一个数组对应一个行数据
 		//     - <*>: 单元格的值
 		//     - <object>: 单元格参数对象
-		var constructor = creater('datatable', function (options) {
+		var constructor = creater('datatable', function (userOptions) {
 
 			// #region 私有字段
 
-			var // 行对象集合
+			var // 数据表对象
+				dtObj = {},
+				// 数据表选项
+				columns, rows, id,
+				// 默认项
+				options = getOptions({
+					columns: [],
+					rows: []
+				}, userOptions, function (options) {
+					// 初始化ID
+					id = options.id || createControlID();
+					// 初始化列参数
+					if (!type.isArray(options.columns)) columns = [];
+					else columns = options.columns;
+					// 初始化行参数
+					if (!type.isArray(options.rows)) rows = [];
+					else rows = options.rows;
+				}),
+				// 行对象集合
 				rowCollection = [],
 				// 列对象集合
-				columnCollection = [],
-				// 数据表对象
-				dtObj = {},
-				// id(表名)
-				id;
+				columnCollection = [];
 
 			// #endregion
 
@@ -2198,13 +2350,10 @@ var ud2 = (function (window, $) {
 			// 初始化行和列
 			function initColumnsAndRows(columns, rows) {
 				var i, l;
-				if (!columns || !type.isArray(columns)) columns = null;
-				if (!rows || !type.isArray(rows)) rows = null;
-
 				// 获取列对象
-				if (columns !== null) for (i = 0, l = columns.length; i < l; i++) columnAdd(columns[i]);
+				for (i = 0, l = columns.length; i < l; i++) columnAdd(columns[i]);
 				// 获取行对象
-				if (rows !== null) for (i = 0, l = rows.length; i < l; i++) rowAdd(rows[i]);
+				for (i = 0, l = rows.length; i < l; i++) rowAdd(rows[i]);
 			}
 			// 单元格数据补全
 			function completionCells() {
@@ -2233,7 +2382,7 @@ var ud2 = (function (window, $) {
 			}
 
 			// #endregion
-			
+
 			// #region 公共方法
 
 			// 添加数据列
@@ -2244,7 +2393,16 @@ var ud2 = (function (window, $) {
 			// - type[ud2.datatable.dataType]: 值的数据类型
 			// return[ud2.datatable]: 返回该控件对象
 			function columnAdd(options) {
-				columnCollection.push(column(options));
+				var cl = column(options), c;
+				columnCollection.push(cl);
+				// 在有数据情况下添加列，则补全其他行中的列单元格
+				if (rowCollection.length > 0) {
+					for (var i in rowCollection) {
+						c = cell({ row: rowCollection[i], column: cl });
+						cl.cells.push(c);
+						rowCollection[i].cells.push(c);
+					}
+				}
 				return dtObj;
 			}
 			// 添加数据行
@@ -2256,7 +2414,6 @@ var ud2 = (function (window, $) {
 			function rowAdd(options) {
 				var r = row(options),
 					i = 0, rl = r.cells.length, cl = columnCollection.length, ct;
-				rowCollection.push(r);
 
 				// 加入单元格对象
 				for (; i < rl; i++) {
@@ -2264,7 +2421,7 @@ var ud2 = (function (window, $) {
 					columnCollection[i].cells.push(r.cells[i]);
 					r.cells[i].bindColumn(columnCollection[i]);
 				}
-				// 如果
+				// 如果数据列的数量大于行中添加的单元格数量，则补全当前行中的单元格
 				if (cl > rl) {
 					for (; i < cl; i++) {
 						ct = cell({ row: r, column: columnCollection[i] });
@@ -2272,8 +2429,11 @@ var ud2 = (function (window, $) {
 						columnCollection[i].cells.push(ct);
 					}
 				}
+				// 向数据行中添加此行对象
+				rowCollection.push(r);
 
 				// 当传入的行数据中的列数量不统一时，进行单元格数据补全
+				// 此项发生在本次添加的行中单元格的列数超过原数据行中的单元格数量
 				completionCells();
 
 				return dtObj;
@@ -2321,6 +2481,36 @@ var ud2 = (function (window, $) {
 				}
 				return dtObj;
 			}
+			// 数据填装
+			// 可以通过table元素的jQuery对象填装数据
+			// 可以通过table元素的字符串填装数据 
+			// 可以通过二维数组填装数据
+			// 填装数据会先清空旧数据
+			function dataFill(datas) {
+				var i, l;
+				dataEmpty();
+				switch (true) {
+					case type.isArray(datas): {
+						i = 0;
+						l = datas.length;
+						for (; i < l; i++) {
+							if (type.isArray(datas[i])) rowAdd(datas[i]);
+						}
+						break;
+					}
+					default: {
+						return dataFill(convertTableToArray(datas));
+					}
+				}
+				return dtObj;
+			}
+			// 数据清空
+			// return[ud2.datatable]: 返回该控件对象
+			function dataEmpty() {
+				var i = 0, l = rowCollection.length;
+				for (; i < l; i++) rowRemove(0);
+				return dtObj;
+			}
 
 			// #endregion
 
@@ -2328,12 +2518,9 @@ var ud2 = (function (window, $) {
 
 			// 初始化
 			(function init() {
-				// 获取参数
-				!options && (options = {});
-				initColumnsAndRows(options.columns, options.rows);
+				// 初始化行和列
+				initColumnsAndRows(columns, rows);
 
-				// 初始化数据表名
-				id = options.id || '';
 				// 向集合添加当前控件
 				collection.push(dtObj);
 				// 将数据表对象放入集合
@@ -2351,7 +2538,9 @@ var ud2 = (function (window, $) {
 				columnAdd: columnAdd,
 				columnRemove: columnRemove,
 				rowAdd: rowAdd,
-				rowRemove: rowRemove
+				rowRemove: rowRemove,
+				dataFill: dataFill,
+				dataEmpty: dataEmpty
 			});
 
 			// #endregion
@@ -2361,6 +2550,14 @@ var ud2 = (function (window, $) {
 		constructor.dataType = dataType;
 		// 绑定控件集合到数据表控件
 		constructor.collection = collection;
+		// 通过值获取值所对应的数据类型
+		constructor.getDataType = getDataTypeByValue;
+		// 将传入值的类型强制转换为传入的数据类型
+		constructor.convertValue = convertValueByDataType;
+
+		// #endregion
+
+		// #region 内部对象
 
 		// 数据列初始化
 		// (title) 通过标题创建数据列
@@ -2449,30 +2646,15 @@ var ud2 = (function (window, $) {
 				if (!type.isArray(cells)) cells = [];
 				for (i = 0, l = cells.length; i < l; i++) {
 					c = cells[i];
-					if (type.isObject(c) && c.type === TYPE_CELL) {
-						cells[i].bindRow(rowObj);
-						cellCollection.push(cells[i]);
+					if (type.isObject(c)) {
+						if (c.type !== TYPE_CELL) c = cell(c);
+						c.bindRow(rowObj);
+						cellCollection.push(c);
 					}
 					else {
 						cellCollection.push(cell({ value: c, row: rowObj }));
 					}
 				}
-			}
-			// 添加一个单元格对象到数据行中
-			// (value) 通过值创建单元格
-			// - value[*]: 单元格的值
-			// (options) 通过参数对象创建单元格
-			// - value[*]: 单元格的值
-			// - type[ud2.datatable.dataType]: 值的数据类型
-			// return[row]: 返回数据行对象
-			function cellAdd(options) {
-				var c = cell(options);
-				cellCollection.push(c);
-				return rowObj;
-			}
-
-			function cellRemove(options) {
-
 			}
 
 			// 初始化
@@ -2492,9 +2674,7 @@ var ud2 = (function (window, $) {
 
 			// 返回
 			return extendObjects(rowObj, {
-				cells: cellCollection,
-				cellAdd: cellAdd,
-				cellRemove: cellRemove
+				cells: cellCollection
 			});
 
 		};
@@ -2506,7 +2686,6 @@ var ud2 = (function (window, $) {
 		// - type[ud2.datatable.dataType]: 值的数据类型
 		// return[cell]: 返回创建的单元格对象
 		var cell = function (options) {
-
 			var // 单元格对象
 				cellObj = { type: TYPE_CELL, column: null, row: null },
 				// 值   值数据类型
@@ -2565,7 +2744,14 @@ var ud2 = (function (window, $) {
 					value = options;
 				}
 				else {
-					!options && (options = {});
+					if (!type.isObject(options)) options = {};
+					// 绑定行列对象
+					cellObj.column = options.column || null;
+					cellObj.row = options.row || null;
+					// !! 绑定其他属性
+					cellObj.cellType = options.cellType || null;
+
+					// 获取数据值类型
 					valueType = options.type;
 					// !! 目前数组值和函数值在此解决，未支持数组值和函数值
 					value = options.value === void 0
@@ -2578,12 +2764,10 @@ var ud2 = (function (window, $) {
 					valueOperate(value);
 				}
 				else {
-					valueType = getDataTypeByValue(value);
+					valueType = null; // !!! 对未设置数据类型的单元格标记为null，并采用string类型 getDataTypeByValue(value);
 				}
 
-				// 绑定行列对象
-				cellObj.column = options.column || null;
-				cellObj.row = options.row || null;
+
 			}());
 
 			// 返回
@@ -2596,8 +2780,14 @@ var ud2 = (function (window, $) {
 
 		};
 
+		// #endregion
+
+		// #region 返回
+
 		// 返回构造器
 		return constructor;
+
+		// #endregion
 
 	}());
 
@@ -2710,9 +2900,13 @@ var ud2 = (function (window, $) {
 				// 是否移动标记
 				moved: false,
 				// 触点开始移动记录点
-				startMove: { x: 0, y: 0 },
+				startMove: {
+					x: 0, y: 0
+				},
 				// 触点上次的移动距离
-				lastMove: { x: 0, y: 0 }
+				lastMove: {
+					x: 0, y: 0
+				}
 			},
 			// 是否正在滚动
 			isScrolling = false,
@@ -2741,7 +2935,9 @@ var ud2 = (function (window, $) {
 				// 盒子的可滚动宽度
 				sw: 0,
 				// 盒子当前移动的距离
-				now: { x: 0, y: 0 },
+				now: {
+					x: 0, y: 0
+				},
 				// 当前是否处于触点移动中
 				isMoved: false
 			},
@@ -2864,7 +3060,9 @@ var ud2 = (function (window, $) {
 			matrix = matrix.split(')')[0].split(', ');
 			x = Math.round(+(matrix[12] || matrix[4]));
 			y = Math.round(+(matrix[13] || matrix[5]));
-			return { x: x, y: y };
+			return {
+				x: x, y: y
+			};
 		}
 		// 设置当前滚动状态
 		// state[bool]: 是否正在滚动 true: 滚动 false: 未滚动
@@ -2976,7 +3174,9 @@ var ud2 = (function (window, $) {
 			$wrapper.css('transform', 'translate(' + x + 'px, ' + y + 'px)' + (support.perspective ? ' translateZ(0)' : ''));
 			if (options.hasVertical) $barVertical.css('transform', 'translate(0, ' + getBarPositionByScrollPosition(-y, 1) + 'px)' + (support.perspective ? ' translateZ(0)' : ''));
 			if (options.hasHorizontal) $barHorizontal.css('transform', 'translate(' + getBarPositionByScrollPosition(-x, 0) + 'px, 0)' + (support.perspective ? ' translateZ(0)' : ''));
-			scrollData.now = { x: x, y: y };
+			scrollData.now = {
+				x: x, y: y
+			};
 
 			len = followers.length;
 			if (len !== 0) {
@@ -3003,7 +3203,9 @@ var ud2 = (function (window, $) {
 			// 当滚动完成时强制停止
 			// 由于transition-end在部分浏览器中时间不准确，这里的定时器方式替代了transition-end
 			if (t !== 0) {
-				if (scrollEndTimer) { window.clearTimeout(scrollEndTimer); }
+				if (scrollEndTimer) {
+					window.clearTimeout(scrollEndTimer);
+				}
 				scrollEndTimer = window.setTimeout(function () {
 					translateMove(scrollData.now.x, scrollData.now.y, 0);
 					setScrollingState(false);
@@ -3096,8 +3298,12 @@ var ud2 = (function (window, $) {
 
 			mainPointer.moved = false;
 			mainPointer.start = getTime();
-			mainPointer.startMove = { x: scrollData.now.x, y: scrollData.now.y };
-			mainPointer.lastMove = { x: 0, y: 0 };
+			mainPointer.startMove = {
+				x: scrollData.now.x, y: scrollData.now.y
+			};
+			mainPointer.lastMove = {
+				x: 0, y: 0
+			};
 		}
 		// 触点移动时触发的事件
 		// move[moveObject]: 移动数据对象
@@ -3119,7 +3325,9 @@ var ud2 = (function (window, $) {
 			// 设置当前滚动状态为滚动中
 			barOpen();
 			// 记录最后 move 方法移动的坐标点
-			mainPointer.lastMove = { x: x, y: y };
+			mainPointer.lastMove = {
+				x: x, y: y
+			};
 
 			// 设置移动启动长度
 			if (timeStamp - mainPointer.end > 300
@@ -3378,7 +3586,7 @@ var ud2 = (function (window, $) {
 	controlCreater('tabs', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className, 
+			cls = collection.className,
 			// 内容对象模版
 			$contentTemplate = $div.clone().addClass(cls + '-content'),
 			// 替代文本常量
@@ -3527,7 +3735,7 @@ var ud2 = (function (window, $) {
 			function getContent() {
 				return $content;
 			}
-			
+
 			// 初始化
 			(function init() {
 
@@ -3581,7 +3789,7 @@ var ud2 = (function (window, $) {
 						break;
 					}
 				}
-				
+
 				// 通过此项设置让safari中的iframe正常滚动
 				if (ud2.support.safari) {
 					$content.css({
@@ -3697,7 +3905,7 @@ var ud2 = (function (window, $) {
 				if (layout === 1) $tabs.removeClass(cls + '-bottom');
 				if (layout === 2) $tabs.removeClass(cls + '-left');
 				if (layout === 3) $tabs.removeClass(cls + '-right');
-				
+
 				// 加入新CSS属性
 				switch (layoutNo) {
 					default:
@@ -3801,7 +4009,7 @@ var ud2 = (function (window, $) {
 
 				var selector = '[' + cls + '-page]',
 					$pages = control.origin.children(selector),
-					i = 0, l = $pages.length, 
+					i = 0, l = $pages.length,
 					p, type, title, name, content, btnClose, openState;
 
 				for (; i < l; i++) {
@@ -4040,7 +4248,7 @@ var ud2 = (function (window, $) {
 			// #endregion
 
 		};
-		
+
 	});
 	// 页码控件
 	controlCreater('page', function (collection, constructor) {
@@ -4059,7 +4267,7 @@ var ud2 = (function (window, $) {
 			// #region 私有字段
 
 			var // 默认当前页码 默认最大页码 默认两端显示页码数量 是否包含页码 
-				now, max, show, isMenu, 
+				now, max, show, isMenu,
 				// 图标显示状态 文本显示状态
 				isIco, isText,
 				// 布局模式 动态布局模式 动态布局模式触发宽度
@@ -4311,12 +4519,15 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.page]: 返回该控件对象
-			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
+			function setChange(fn) {
+				controlCallbacks.change = fn;
+				return control.public;
+			}
 
 			// #endregion
 
 			// #region 事件处理
-			
+
 			// 窗口尺寸改变的事件回调
 			function resize() {
 				var $parent = $page.parent(), width = $parent.width();
@@ -4335,7 +4546,9 @@ var ud2 = (function (window, $) {
 						case 0: { btnChange(1); break; }
 						case 1: { btnChange(now - 1); break; }
 						case 2: { btnChange(now + 1); break; }
-						case 3: { btnChange(max); break; }
+						case 3: {
+							btnChange(max); break;
+						}
 					}
 				});
 
@@ -4406,8 +4619,209 @@ var ud2 = (function (window, $) {
 	// 数据网格控件
 	controlCreater('datagrid', function (collection, constructor) {
 
+		var // className存于变量
+			cls = collection.className,
+			// 数据列初始化默认参数
+			columnDefaultOptions = {
+				// 列标题
+				title: '',
+				// 单元格的数据类型
+				type: null,
+				// 当前宽度 number(px) | auto
+				width: 100,
+				// 单元格的最小宽度，通过flex压缩不能小于此宽度
+				minWidth: 50,
+				// 1 left fixed 2 right fixed
+				fixed: 0,
+				// 是否自动计算宽度
+				flex: true,
+				// 是否可编辑
+				edit: false,
+				// 是否可编辑
+				sort: false
+			};
+
 		// 重写集合初始化方法
-		collection.init = function () {
+		collection.init = function (control) {
+
+			// #region 私有字段
+
+			var // elements数据源、jQuery数据源
+				// 或二维数组数据
+				// 数据    头部数据    尾部数据
+				datas, datasHeader, datasFooter,
+				// 列参数对象集合  列默认参数
+				columns,   columnDefault,
+				// 单元格高度 数据组件用于存储数据
+				cellHeight,
+				// 获取用户自定义项
+				options = control.getOptions([
+					'datas', 'columns', 'columnDefault',
+
+
+
+					'cellHeight',
+					'recountByResize',
+					'checkbox', 'storage', 'striped', 'hoverRow', 'hoverRowColor'
+				], function (options) {
+					// 初始化传入数据
+					initDatas(options.datas);
+					// 初始化列默认对象
+					initColumnDefault(options.columnDefault);
+					// 初始化列对象
+					initColumns(options.columns);
+
+				}),
+				// 控件结构
+				template = '<div class="' + cls + '-left">'
+					+ '<div class="' + cls + '-header"><div class="' + cls + '-grid" /></div>'
+					+ '<div class="' + cls + '-content"><div class="' + cls + '-grid" /></div>'
+					+ '<div class="' + cls + '-footer"><div class="' + cls + '-grid" /></div></div>'
+					+ '<div class="' + cls + '-right">'
+					+ '<div class="' + cls + '-header"><div class="' + cls + '-grid" /></div>'
+					+ '<div class="' + cls + '-content"><div class="' + cls + '-grid" /></div>'
+					+ '<div class="' + cls + '-footer"><div class="' + cls + '-grid" /></div></div>'
+					+ '<div class="' + cls + '-center">'
+					+ '<div class="' + cls + '-header"><div class="' + cls + '-grid" /></div>'
+					+ '<div class="' + cls + '-content"><div class="' + cls + '-grid" /></div>'
+					+ '<div class="' + cls + '-footer"><div class="' + cls + '-grid" /></div></div>',
+				// 获取初始化的控件对象
+				current = control.current,
+				// 控件对象
+				$datagrid = current.html(template),
+				// 区域容器
+				$area = $datagrid.children(),
+				// 左侧fixed容器
+				$left = $area.eq(0),
+				$leftArea = $left.children(),
+				$leftHeader = $leftArea.eq(0),
+				$leftContent = $leftArea.eq(1),
+				$leftFooter = $leftArea.eq(2),
+				$leftHeaderGrid = $leftHeader.children(),
+				$leftContentGrid = $leftContent.children(),
+				$leftFooterGrid = $leftFooter.children(),
+				// 右侧fixed容器
+				$right = $area.eq(1),
+				$rightArea = $right.children(),
+				$rightHeader = $rightArea.eq(0),
+				$rightContent = $rightArea.eq(1),
+				$rightFooter = $rightArea.eq(2),
+				$rightHeaderGrid = $rightHeader.children(),
+				$rightContentGrid = $rightContent.children(),
+				$rightFooterGrid = $rightFooter.children(),
+				// 主容器
+				$center = $area.eq(2),
+				$centerArea = $center.children(),
+				$centerHeader = $centerArea.eq(0),
+				$centerContent = $centerArea.eq(1),
+				$centerFooter = $centerArea.eq(2),
+				$centerHeaderGrid = $centerHeader.children(),
+				$centerContentGrid = $centerContent.children(),
+				$centerFooterGrid = $centerFooter.children();
+
+			// #endregion
+
+			// 初始化传入数据
+			// optionsData[array, string, jQuery]: options.data 传入数据参数
+			function initDatas(optionsData) {
+				var // 传入的数据是否符合jQuery对象
+					isJQ = true,
+					// 头部主体及尾部容器
+					$h, $b, $f;
+
+				datas = optionsData;
+
+				// 如果传入参数为字符串或jQuery对象，则强制按照符合jQuery标准获取jQuery对象，并通过此对象创建datatable
+				// 由jQuery对象创建datatable时，会将thead、tbody、tfoot分成三个datatable，分别存入datasHeader、datas、datasFooter
+				// 否则传入的参数如果是二维数组或其他参数，则直接按照dataFill方法推入datatable中处理
+				// 如果参数不存在，但存在control.origin元素时，则将此元素按照jQuery对象创建datatable的方式处理
+				if (datas) {
+					if (type.isString(datas) || type.isJQuery(datas)) {
+						datas = convertToJQ(datas);
+					}
+					else {
+						datas = datatable().dataFill(datas);
+						isJQ = false;
+					}
+				}
+				else if (control.origin) datas = convertToJQ(control.origin);
+				else datas = datatable();
+				// jQuery对象创建datatable时的处理方式
+				if (isJQ) {
+					$h = datas.find('thead');
+					$b = datas.find('tbody');
+					$f = datas.find('tfoot');
+					datasHeader = datatable().dataFill($h);
+					datas = datatable().dataFill($b);
+					datasFooter = datatable().dataFill($f);
+				}
+			}
+			// 初始化列默认参数对象
+			// optionColumnDefault[object]: options.columnDefault 传入列初始化默认参数
+			function initColumnDefault(optionsColumnDefault) {
+				columnDefault = columnDefaultOptions;
+				if (type.isObject(optionsColumnDefault)) columnDefault = mergeObjects(columnDefault, optionsColumnDefault);
+			}
+			// 初始化单元格
+			// optionsColumns[array]: options.columns 传入单元格参数
+			function initColumns(optionsColumns) {
+				var // 数据列数 当前控件列数
+					dcl, cl,
+					// 迭代变量
+					i, l, icol;
+
+				// 将传入参数赋值给列参数集合
+				columns = optionsColumns;
+
+				// 将已传入的数据列参数对象加入到数据列参数组中
+				if (!type.isArray(columns)) columns = [];
+				for (i = 0, l = columns.length; i < l; i++) {
+					if (!type.isObject(columns[i])) columns[i] = {};
+					columns[i] = mergeObjects(columnDefault, columns[i]);
+				}
+
+				// 分析当前数据，将存在数据单元格却不存在数据列参数对象的数据列添加列参数
+				// 整合目前数据情况，补全列参数信息
+				dcl = datas.columns.length;
+				cl = columns.length;
+				for (i = 0, l = dcl; i < l; i++) {
+					icol = columns[i];
+					if (!icol) { icol = cloneObjects(columnDefault); columns.push(icol); }
+					icol.title = datas.columns[i].title()
+						|| datasHeader && datasHeader.rows[0] && datasHeader.rows[0].cells[i] && datasHeader.rows[0].cells[i].val()
+						|| icol.title;
+					icol.type = datas.columns[i].dataType()
+						|| datasHeader && datasHeader.rows[0] && datasHeader.rows[0].cells[i] && datasHeader.rows[0].cells[i].cellType
+						|| icol.type;
+				}
+			}
+
+			/*
+
+			function recountLayout() {
+
+			}
+
+			function rowAdd() {
+			}
+			function rowRemove() {
+			}
+			function dataFill() {
+			}
+			function dataEmpty() {
+			}
+
+			*/
+
+			// 初始化
+			(function init() {
+				// 控件初始化
+				if (control.origin.length) {
+					control.origin.after($datagrid);
+					control.origin.remove();
+					control.transferStyles();
+				}
+			}());
 
 		};
 
@@ -4656,12 +5070,18 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.dialog]: 返回该控件对象
-			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
+			function setOpen(fn) {
+				controlCallbacks.open = fn;
+				return control.public;
+			}
 			// 设置关闭回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.dialog]: 返回该控件对象
-			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
+			function setClose(fn) {
+				controlCallbacks.close = fn;
+				return control.public;
+			}
 
 			// #endregion
 
@@ -4688,11 +5108,15 @@ var ud2 = (function (window, $) {
 				else if (position === POS_BOTTOMRIGHT) { dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH; }
 				else if (position === POS_FULL) { dialogCSS.top = NORMAL_LENGTH; dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.left = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH; }
 				else if (position === POS_CENTER) { dialogCSS.top = '50%'; dialogCSS.left = '50%'; dialogCSS.marginLeft = -size.x / 2; dialogCSS.marginTop = -size.y / 2; }
-				else { dialogCSS.top = position.y; dialogCSS.left = position.x; }
+				else {
+					dialogCSS.top = position.y; dialogCSS.left = position.x;
+				}
 				$dialog.css(dialogCSS);
 
 				// 关闭按钮
-				if (!btnClose) { $close.detach(); }
+				if (!btnClose) {
+					$close.detach();
+				}
 
 				// 内容初始化
 				if (control.origin.length) {
@@ -4755,7 +5179,9 @@ var ud2 = (function (window, $) {
 					// 对话框页脚内容
 					$footer = $dialogBaseFooter.clone(),
 					// 事件对象
-					eventObj = { send: 1 };
+					eventObj = {
+						send: 1
+					};
 
 				// 初始化
 				(function init() {
@@ -4785,7 +5211,9 @@ var ud2 = (function (window, $) {
 					// 对话框页脚内容
 					$footer = $dialogBaseFooter.clone(),
 					// 事件对象
-					eventObj = { send: 1, cancel: 1 };
+					eventObj = {
+						send: 1, cancel: 1
+					};
 
 				// 初始化
 				(function init() {
@@ -4816,7 +5244,9 @@ var ud2 = (function (window, $) {
 					// 输入框内容对象
 					$input = $('<input type="text" class="textbox" />'),
 					// 事件对象
-					eventObj = { send: 1, cancel: 1 };
+					eventObj = {
+						send: 1, cancel: 1
+					};
 
 				// 初始化
 				(function init() {
@@ -4934,7 +5364,9 @@ var ud2 = (function (window, $) {
 						case POS_TOPRIGHT: { css = { top: tb, right: NORMAL_LENGTH }; break; }
 						case POS_BOTTOMCENTER: { css = { bottom: tb, left: '50%', marginLeft: -w / 2 }; break; }
 						case POS_BOTTOMLEFT: { css = { bottom: tb, left: NORMAL_LENGTH }; break; }
-						case POS_BOTTOMRIGHT: { css = { bottom: tb, right: NORMAL_LENGTH }; break; }
+						case POS_BOTTOMRIGHT: {
+							css = { bottom: tb, right: NORMAL_LENGTH }; break;
+						}
 					}
 
 					control.public.data = { tb: tb };
@@ -4999,12 +5431,18 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.message]: 返回该控件对象
-			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
+			function setOpen(fn) {
+				controlCallbacks.open = fn;
+				return control.public;
+			}
 			// 设置关闭回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.message]: 返回该控件对象
-			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
+			function setClose(fn) {
+				controlCallbacks.close = fn;
+				return control.public;
+			}
 
 			// #endregion
 
@@ -5037,7 +5475,7 @@ var ud2 = (function (window, $) {
 				// 是否有关闭按钮
 				if (btnClose) $message.append($close);
 				// 是否自动开启
-				if (autoSwitch) open();				
+				if (autoSwitch) open();
 
 				// 事件绑定
 				bindEvent();
@@ -5061,20 +5499,28 @@ var ud2 = (function (window, $) {
 
 		};
 		// 信息浮动消息控件
-		constructor.info = function (text) { constructor({ message: text, style: style.info }); };
+		constructor.info = function (text) {
+			constructor({ message: text, style: style.info });
+		};
 		// 警告浮动消息控件
-		constructor.warning = function (text) { constructor({ message: text, style: style.warning }); };
+		constructor.warning = function (text) {
+			constructor({ message: text, style: style.warning });
+		};
 		// 成功浮动消息控件
-		constructor.success = function (text) { constructor({ message: text, style: style.success }); };
+		constructor.success = function (text) {
+			constructor({ message: text, style: style.success });
+		};
 		// 危险浮动消息控件
-		constructor.danger = function (text) { constructor({ message: text, style: style.danger }); };
+		constructor.danger = function (text) {
+			constructor({ message: text, style: style.danger });
+		};
 	});
 
 	// 开关控件
 	controlCreater('switch', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className, 
+			cls = collection.className,
 			// checked状态常量
 			CHECKED = 'checked';
 
@@ -5207,17 +5653,26 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
-			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
+			function setOpen(fn) {
+				controlCallbacks.open = fn;
+				return control.public;
+			}
 			// 设置关闭回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[select]: 当前事件对象，方便链式调用
-			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
+			function setClose(fn) {
+				controlCallbacks.close = fn;
+				return control.public;
+			}
 			// 设置值改变回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[range]: 当前事件对象，方便链式调用
-			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
+			function setChange(fn) {
+				controlCallbacks.change = fn;
+				return control.public;
+			}
 
 			// #endregion
 
@@ -5225,7 +5680,9 @@ var ud2 = (function (window, $) {
 
 			function bindEvent() {
 				event($switch).setTap(function () {
-					if (!isDisabled) { toggle(); }
+					if (!isDisabled) {
+						toggle();
+					}
 				});
 			}
 
@@ -5776,7 +6233,7 @@ var ud2 = (function (window, $) {
 				if (!control.origin.length) return;
 
 				var groupsSelector = 'optgroup, [' + cls + '-optgroup]',
-					$groups = control.origin.children(groupsSelector);                                   
+					$groups = control.origin.children(groupsSelector);
 				analysisOptions();
 				for (var i = 0, l = $groups.length, group; i < l; i++) {
 					var $group = $groups.eq(i),
@@ -6050,7 +6507,7 @@ var ud2 = (function (window, $) {
 							$btn.attr(cls + '-value', true).html(option.label());
 						}
 					}
-					
+
 					controlCallbacks.change.call(control.public, val());
 					return control.public;
 				}
@@ -6180,17 +6637,26 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.select]: 返回该控件对象
-			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
+			function setOpen(fn) {
+				controlCallbacks.open = fn;
+				return control.public;
+			}
 			// 设置关闭回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.select]: 返回该控件对象
-			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
+			function setClose(fn) {
+				controlCallbacks.close = fn;
+				return control.public;
+			}
 			// 设置开启回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.select]: 返回该控件对象
-			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
+			function setChange(fn) {
+				controlCallbacks.change = fn;
+				return control.public;
+			}
 
 			// #endregion
 
@@ -6241,7 +6707,7 @@ var ud2 = (function (window, $) {
 				updateControlPublic();
 				// 解析对象
 				analysisGroups();
-				
+
 			}());
 
 			// #endregion
@@ -6365,7 +6831,9 @@ var ud2 = (function (window, $) {
 				if (lock) return; lock = true;
 				// 判断上下限
 				if (isNext && value + step > max
-					|| !isNext && value - step < min) { lock = false; return; }
+					|| !isNext && value - step < min) {
+					lock = false; return;
+				}
 
 				var // 临时容器标签
 					tInput = '<input class="ud2-ctrl-textbox" />',
@@ -6451,7 +6919,10 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[number]: 当前事件对象，方便链式调用
-			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
+			function setChange(fn) {
+				controlCallbacks.change = fn;
+				return control.public;
+			}
 
 			// #endregion
 
@@ -6781,17 +7252,26 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.range]: 当前事件对象，方便链式调用
-			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
+			function setOpen(fn) {
+				controlCallbacks.open = fn;
+				return control.public;
+			}
 			// 设置关闭回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.range]: 当前事件对象，方便链式调用
-			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
+			function setClose(fn) {
+				controlCallbacks.close = fn;
+				return control.public;
+			}
 			// 设置值改变回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.range]: 当前事件对象，方便链式调用
-			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
+			function setChange(fn) {
+				controlCallbacks.change = fn;
+				return control.public;
+			}
 
 			// #endregion
 
@@ -7221,7 +7701,9 @@ var ud2 = (function (window, $) {
 							html.push('<td class="', cls, '-nomonth">', k, '</td>');
 						}
 					}
-					if ((i + 1) % 7 === 0) { html.push('</tr><tr>'); }
+					if ((i + 1) % 7 === 0) {
+						html.push('</tr><tr>');
+					}
 				}
 
 				$html.children().remove();
@@ -7424,17 +7906,26 @@ var ud2 = (function (window, $) {
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.date]: 返回日期控件
-			function setOpen(fn) { controlCallbacks.open = fn; return control.public; }
+			function setOpen(fn) {
+				controlCallbacks.open = fn;
+				return control.public;
+			}
 			// 设置关闭回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.date]: 返回日期控件
-			function setClose(fn) { controlCallbacks.close = fn; return control.public; }
+			function setClose(fn) {
+				controlCallbacks.close = fn;
+				return control.public;
+			}
 			// 设置开启回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.date]: 返回日期控件
-			function setChange(fn) { controlCallbacks.change = fn; return control.public; }
+			function setChange(fn) {
+				controlCallbacks.change = fn;
+				return control.public;
+			}
 
 			// #endregion
 
@@ -7638,7 +8129,9 @@ var ud2 = (function (window, $) {
 					// 当前文件扩展名
 					ext = files[i].name.split(STR_POINT);
 					ext = ext[ext.length - 1].toLowerCase();
-					if (!ext || filter[ext] === void 0) { return false; }
+					if (!ext || filter[ext] === void 0) {
+						return false;
+					}
 				}
 
 				return true;
@@ -7830,25 +8323,46 @@ var ud2 = (function (window, $) {
 			}
 			// 为文件添加功能绑定处理方法
 			// fn[function]: 处理方法
-			function bindFileAdd(fn) { fileFunction.add = fn; return fileStyle; }
+			function bindFileAdd(fn) {
+				fileFunction.add = fn;
+				return fileStyle;
+			}
 			// 为文件删除功能绑定处理方法
 			// fn[function]: 处理方法
-			function bindFileRemove(fn) { fileFunction.remove = fn; return fileStyle; }
+			function bindFileRemove(fn) {
+				fileFunction.remove = fn;
+				return fileStyle;
+			}
 			// 为文件上传功能绑定处理方法
 			// fn[function]: 处理方法
-			function bindFileUpload(fn) { fileFunction.upload = fn; return fileStyle; }
+			function bindFileUpload(fn) {
+				fileFunction.upload = fn;
+				return fileStyle;
+			}
 			// 为文件清空功能绑定处理方法
 			// fn[function]: 处理方法
-			function bindFileClear(fn) { fileFunction.clear = fn; return fileStyle; }
+			function bindFileClear(fn) {
+				fileFunction.clear = fn;
+				return fileStyle;
+			}
 			// 为文件进度函数功能绑定处理方法
 			// fn[function]: 处理方法
-			function bindFileProgress(fn) { fileFunction.progress = fn; return fileStyle; }
+			function bindFileProgress(fn) {
+				fileFunction.progress = fn;
+				return fileStyle;
+			}
 			// 为文件完成功能绑定处理方法
 			// fn[function]: 处理方法
-			function bindFileDone(fn) { fileFunction.done = fn; return fileStyle; }
+			function bindFileDone(fn) {
+				fileFunction.done = fn;
+				return fileStyle;
+			}
 			// 为文件失败功能绑定处理方法
 			// fn[function]: 处理方法
-			function bindFileFail(fn) { fileFunction.fail = fn; return fileStyle; }
+			function bindFileFail(fn) {
+				fileFunction.fail = fn;
+				return fileStyle;
+			}
 
 			// #endregion
 
@@ -7861,12 +8375,18 @@ var ud2 = (function (window, $) {
 			//   errType[string]: 错误类型
 			//   userArg[object]: 用户参数
 			// return[ud2.file]: 返回该控件对象
-			function setError(fn) { controlCallbacks.error = fn; return control.public; }
+			function setError(fn) {
+				controlCallbacks.error = fn;
+				return control.public;
+			}
 			// 设置全部上传完成回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.file]: 返回该控件对象
-			function setComplete(fn) { controlCallbacks.complete = fn; return control.public; }
+			function setComplete(fn) {
+				controlCallbacks.complete = fn;
+				return control.public;
+			}
 			// 设置单个上传完成回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
@@ -7874,7 +8394,10 @@ var ud2 = (function (window, $) {
 			//   data[string]: 服务器回传数据
 			//   file[file]: 回传数据所属的上传文件
 			// return[ud2.file]: 返回该控件对象
-			function setDone(fn) { controlCallbacks.done = fn; return control.public; }
+			function setDone(fn) {
+				controlCallbacks.done = fn;
+				return control.public;
+			}
 			// 设置单个上传失败回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
@@ -7882,7 +8405,10 @@ var ud2 = (function (window, $) {
 			//   data[string]: 服务器回传数据
 			//   file[file]: 回传数据所属的上传文件
 			// return[ud2.file]: 返回该控件对象
-			function setFail(fn) { controlCallbacks.fail = fn; return control.public; }
+			function setFail(fn) {
+				controlCallbacks.fail = fn;
+				return control.public;
+			}
 
 			// #endregion
 
@@ -8213,6 +8739,8 @@ var ud2 = (function (window, $) {
 	return extendObjects(ud2, {
 		// 对象扩展方法
 		extend: extendObjects,
+		merge: mergeObjects,
+		clone: cloneObjects,
 		propertier: propertier,
 		deviceScreenState: deviceScreenState,
 		creater: creater,

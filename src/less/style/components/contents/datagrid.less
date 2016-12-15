@@ -6,65 +6,88 @@
 // 导入必要的文件
 @import "../../../common/import.less";
 
-@DatagridBorder: @ColorWhiteBorder;
-@DatagridHeaderBackground: @ColorWhiteDeeper;
+// 数据网格边框颜色
+@DatagridBorderColor: @ColorWhiteBorder;
+// 数据网格首尾单元格背景色
+@DatagridHomeEndTHBackColor: @ColorWhiteDeeper;
+// 数据网格两侧单元格背景色
+@DatagridLeftRightTDBackColor: lighten(@ColorWhiteDeeper, 3%);
+// 单元格高度
 @DatagridCellHeight: @CtrlHeight;
+// 单元格行高
 @DatagridCellLineHeight: @CtrlLineHeight;
+// 单元格内边距
 @DatagridCellPadding: @CtrlPaddingTB @CtrlPaddingLR;
+// 数据网格默认高度
+@DatagridDefaultHeight: 400px;
 
 // 设置控件、头部、主体、尾部的定位方式
 .ud2-datagrid, .ud2-datagrid-header, .ud2-datagrid-content, .ud2-datagrid-footer {
 	position: relative;
 	width: 100%;
 }
-
-.ud2-datagrid-left, .ud2-datagrid-right, .ud2-datagrid-center, .ud2-datagrid-grid {
+// 设置控件内容器定位方式
+.ud2-datagrid-center, .ud2-datagrid-grid {
 	position: relative;
+}
+// 单元格和行的定位方式
+.ud2-datagrid-row, .ud2-datagrid-cell {
+	position: absolute;
+	top: 0;
+	left: 0;
 }
 
 // 页码控件主容器
 .ud2-datagrid {
-	.layout();
 	display: block;
+	height: @DatagridDefaultHeight;
 	background: @ColorWhite;
-	border: 1px solid @DatagridBorder;
+	border: 1px solid @DatagridBorderColor;
 	border-radius: @BorderRadius;
 }
 
+// 左侧容器样式
 .ud2-datagrid-left {
-	float: left;
+	left: 0;
 
 	.ud2-datagrid-cell:last-child {
-		border-right-color: @DatagridBorder;
+		border-right-color: @DatagridBorderColor;
+	}
+}
+// 右侧容器样式
+.ud2-datagrid-right {
+	right: 0;
+	.ud2-datagrid-cell:first-child {
+		border-left-color: @DatagridBorderColor;
 	}
 }
 
-.ud2-datagrid-right {
-	float: right;
+// 左右两侧容器样式
+.ud2-datagrid-left, .ud2-datagrid-right {
+	position: absolute;
+	top: 0;
+	width: 0; 
 
-	.ud2-datagrid-cell:first-child {
-		border-left-color: @DatagridBorder;
+	.ud2-datagrid-cell {
+		background: @DatagridLeftRightTDBackColor;
 	}
 }
 
 // 设置头部和尾部的单元格样式
 .ud2-datagrid-header, .ud2-datagrid-footer {
 	.ud2-datagrid-cell {
-		background: @DatagridHeaderBackground;
+		background: @DatagridHomeEndTHBackColor;
 		font-weight: 800;
 	}
 }
 
-.ud2-datagrid-row, .ud2-datagrid-cell {
-	position: absolute;
-}
-
+// 单元格样式
 .ud2-datagrid-cell {
 	width: 200px;
 	height: @DatagridCellHeight;
 	line-height: @DatagridCellLineHeight;
 	padding: @DatagridCellPadding;
-	border: 1px solid @DatagridBorder;
+	border: 1px solid @DatagridBorderColor;
 	border-top-color: transparent;
 	border-left-color: transparent;
 
@@ -72,13 +95,13 @@
 		border-right-color: transparent;
 	}
 }
-
+// 设置单元格显示上边框的情况
 .ud2-datagrid-footer {
 	.ud2-datagrid-row:first-child > .ud2-datagrid-cell {
-		border-top-color: @DatagridBorder;
+		border-top-color: @DatagridBorderColor;
 	}
 }
-
+// 设置单元格显示下边框的情况
 .ud2-datagrid-content, .ud2-datagrid-header:last-child, .ud2-datagrid-footer {
 	.ud2-datagrid-row:last-child > .ud2-datagrid-cell {
 		border-bottom-color: transparent;

@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<meta charset="utf-8" />
+	<link href="../../../dist/css/ud2.css" rel="stylesheet" />
+	<link href="../../src/test.css" rel="stylesheet" />
+	<script src="../../../vendor/js/jquery.js"></script>
+	<script src="../../../dist/js/ud2.js"></script>
+</head>
+<body>
+	<h3>数据网格控件</h3>
+
+	<fieldset>
+		<legend>样式</legend>
+		<div>
+			<h5>默认</h5>
+			<p>
+				<table ud2="datagrid" style="height: 200px;">
+					<thead>
+						<tr>
+							<td ud2-datagrid-align="center" ud2-datagrid-fixed="1">序号</td>
+							<td ud2-datagrid-width="400">姓名</td>
+							<td>性别</td>
+							<td>生日</td>
+							<td ud2-datagrid-width="250">职位</td>
+							<td>工资</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>1</td>
+							<td>苏娜</td>
+							<td>女</td>
+							<td>1988/04/15</td>
+							<td>软件开发工程师</td>
+							<td>￥25990.00</td>
+						</tr>
+						<tr>
+							<td>2</td>
+							<td>静楠</td>
+							<td>女</td>
+							<td>1989/11/09</td>
+							<td>软件开发工程师</td>
+							<td>￥35211.00</td>
+						</tr>
+						<tr>
+							<td>3</td>
+							<td>王利</td>
+							<td>男</td>
+							<td>1990/07/16</td>
+							<td>软件开发工程师</td>
+							<td>￥22101.00</td>
+						</tr>
+						<tr>
+							<td>4</td>
+							<td>奇拉</td>
+							<td>男</td>
+							<td>1975/02/23</td>
+							<td>移动应用开发工程师</td>
+							<td>￥12544.00</td>
+						</tr>
+					</tbody>
+				</table>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>JS生成</h5>
+			<p>
+				<div class="dg"></div>
+				<script>
+					ud2.ready(function () {
+
+						ud2.datagrid({
+							height: 200,
+							columns: [
+								{ title: '序号', fixed: ud2.datagrid.fixed.left, align: ud2.datagrid.align.center },
+								{ title: '姓名', width: 400 },
+								{ title: '性别' },
+								{ title: '生日' },
+								{ title: '职位', width: 250 },
+								{ title: '工资' }
+							],
+							datas: [
+								[1, '苏娜', '女', '1988/04/15', '软件开发工程师', '￥25990.00'],
+								[2, '静楠', '女', '1989/11/09', '软件开发工程师', '￥35211.00'],
+								[3, '王利', '男', '1990/07/16', '软件开发工程师', '￥22101.00'],
+								[4, '奇拉', '男', '1975/02/23', '移动应用开发工程师', '￥12544.00']
+							]
+						}).appendTo('.dg');
+
+					});
+				</script>
+			</p>
+
+		</div>
+	</fieldset>
+
+
+</body>
+</html>

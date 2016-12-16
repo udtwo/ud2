@@ -676,9 +676,23 @@ var ud2 = (function (window, $) {
 		$tr.each(function () {
 			var d = [];
 			$(this).children().each(function () {
-				var $td = $(this), dataType = $td.attr(prefixLibName + 'data-type'), cellDataType = $td.attr(prefixLibName + 'cell-data-type');
-				if (dataType || cellDataType) d.push({ value: $td.html(), type: dataType, cellType: cellDataType });
-				else d.push($td.html());
+				var $td = $(this),
+					datagrid = prefixLibName + 'datagrid-',
+					dataType = $td.attr(datagrid + 'data-type'),
+					cellType = $td.attr(datagrid + 'cell-data-type'),
+					align = $td.attr(datagrid + 'align'),
+					width = $td.attr(datagrid + 'width'),
+					fixed = $td.attr(datagrid + 'fixed'),
+					opt = {};
+
+				opt.value = $td.html();
+				if (dataType) opt.type = dataType;
+				if (cellType) opt.cellType = cellType;
+				if (align) opt.cellAlign = align;
+				if (width) opt.cellWidth = width;
+				if (fixed) opt.cellFixed = fixed;
+
+				d.push(opt);
 			});
 			datas.push(d);
 		});
@@ -1017,6 +1031,7 @@ var ud2 = (function (window, $) {
 				}
 			}
 			// 临时遮罩阻止touch穿透行为
+			// ?? 取消此方法的使用，原使用在 ??#1处
 			function temporaryMask() {
 				if (!support.mobile) return;
 				var $mask = $div.clone().css({
@@ -1043,9 +1058,17 @@ var ud2 = (function (window, $) {
 
 			// #region 事件回调及处理
 
+			function preventHandler(event) {
+				var $target = $(event.target), targetName = $target.prop('tagName').toLowerCase();
+				if (targetName !== 'input' && targetName !== 'textarea') {
+					event.preventDefault();
+				}
+			}
+
 			// pointerDown事件触发函数
 			// event[eventObject]: 事件对象
 			function pointerDown(event) {
+				preventHandler(event);
 				if (stopPropagation) event.stopPropagation();
 
 				var // 获取浏览器event对象
@@ -1077,8 +1100,8 @@ var ud2 = (function (window, $) {
 			// pointerMove事件触发函数
 			// event[eventObject]: 事件对象
 			function pointerMove(event) {
-				if (stopPropagation) event.stopPropagation();
 				event.preventDefault();
+				if (stopPropagation) event.stopPropagation();
 
 				var // 获取浏览器event对象
 					o = event.originalEvent,
@@ -1119,7 +1142,7 @@ var ud2 = (function (window, $) {
 			// eventStart事件触发函数
 			// event[eventObject]: 事件对象
 			function eventStart(event) {
-				event.preventDefault();
+				preventHandler(event);
 				if (stopPropagation) event.stopPropagation();
 
 				var // 事件类型
@@ -1171,9 +1194,9 @@ var ud2 = (function (window, $) {
 			// touchMove事件触发函数
 			// event[eventObject]: 事件对象
 			function touchMove(event) {
-				if (stopPropagation) event.stopPropagation();
 				// 阻止浏览器事件
 				event.preventDefault();
+				if (stopPropagation) event.stopPropagation();
 
 				var // 获取浏览器event对象
 					o = event.originalEvent,
@@ -1220,10 +1243,9 @@ var ud2 = (function (window, $) {
 			// mouseMove事件触发函数
 			// event[eventObject]: 事件对象
 			function mouseMove(event) {
+				event.preventDefault();
 				if (stopPropagation) event.stopPropagation();
 
-				// 停止冒泡
-				event.stopPropagation();
 
 				var // 获取浏览器event对象
 					o = event.originalEvent;
@@ -1299,7 +1321,7 @@ var ud2 = (function (window, $) {
 							// 检测是否tap方式
 							// 存在一个按压时间，且时间小于tapMaxTime
 							if (interval < tapMaxTime) {
-								temporaryMask();
+								// ??#1 temporaryMask();
 								callbacks.tap.call(origin, event);
 							}
 							else {
@@ -1358,16 +1380,10 @@ var ud2 = (function (window, $) {
 					else {
 						origin.on(eventsName[4] + ' ' + eventsName[8], eventStart);
 					}
-
+					
 					origin.css({
-						// 清除触控效果
 						'-ms-touch-action': 'none',
-						'touch-action': 'none',
-						// 关闭用户选择
-						'-webkit-user-select': 'none',
-						'-moz-user-select': 'none',
-						'-ms-user-select': 'none',
-						'user-select': 'none'
+						'touch-action': 'none'
 					});
 				} else {
 					if (pointer) {
@@ -1375,16 +1391,11 @@ var ud2 = (function (window, $) {
 					} else {
 						origin.off(eventsName[4] + ' ' + eventsName[8], eventStart);
 					}
-
+					
 					origin.css({
 						// 取消清除触控效果
 						'-ms-touch-action': 'auto',
-						'touch-action': 'auto',
-						// 开启用户选择
-						'-webkit-user-select': 'text',
-						'-moz-user-select': 'text',
-						'-ms-user-select': 'text',
-						'user-select': 'text'
+						'touch-action': 'auto'
 					});
 				}
 			}
@@ -2748,8 +2759,11 @@ var ud2 = (function (window, $) {
 					// 绑定行列对象
 					cellObj.column = options.column || null;
 					cellObj.row = options.row || null;
-					// !! 绑定其他属性
+					// 绑定其他属性
 					cellObj.cellType = options.cellType || null;
+					cellObj.cellAlign = options.cellAlign || null;
+					cellObj.cellWidth = options.cellWidth || null;
+					cellObj.cellFixed = options.cellFixed || null;
 
 					// 获取数据值类型
 					valueType = options.type;
@@ -3216,6 +3230,10 @@ var ud2 = (function (window, $) {
 				barClose();
 			}
 		}
+		// 更新跟随控件位置
+		function followerPosition() {
+			if (followers.length > 0) for (var i in followers) followers[i].recountPosition();
+		}
 
 		// #endregion
 
@@ -3290,6 +3308,7 @@ var ud2 = (function (window, $) {
 		// 触点按下时触发的事件
 		function pointerDown() {
 			if (isOplock) return;
+			followerPosition();
 			getScrollData();
 			barOpen();
 
@@ -3409,6 +3428,7 @@ var ud2 = (function (window, $) {
 				time = 300,
 				moveLen = options.mouseWheelLength;
 
+			followerPosition();
 			getScrollData();
 
 			// 判断移动距离
@@ -3428,6 +3448,7 @@ var ud2 = (function (window, $) {
 			this.move = 0;
 			mouseInScroll = true;
 			barOpen();
+			followerPosition();
 			$(this).css('background', options.barColorOn);
 		}
 		// 滚动条被释放时触发的事件
@@ -3469,6 +3490,15 @@ var ud2 = (function (window, $) {
 				}).on([MOUSE_LEAVE, TOUCH_END].join(' '), function () {
 					mouseInBox = false;
 					barClose();
+				});
+			}
+			if (options.barState === 1) {
+				$scroll.on(MOUSE_ENTER, function () {
+					getScrollData();
+					mouseInBox = true;
+				});
+				$scroll.on([MOUSE_LEAVE, TOUCH_END].join(' '), function () {
+					mouseInBox = false;
 				});
 			}
 
@@ -3553,8 +3583,8 @@ var ud2 = (function (window, $) {
 				$barHorizontal.css('border-radius', barSize / 2);
 			}
 			if (barState === 1) {
-				$barVertical.show();
-				$barHorizontal.show();
+				$barVertical.css('display', 'block');
+				$barHorizontal.css('display', 'block');
 			}
 
 			// 获取scroll的数据值
@@ -4621,6 +4651,18 @@ var ud2 = (function (window, $) {
 
 		var // className存于变量
 			cls = collection.className,
+			// 单元格对齐方式
+			cellAlign = {
+				left: 0,
+				center: 1,
+				right: 2
+			},
+			// 列的固定方式
+			columnFixed = {
+				noflex: 0,
+				left: 1,
+				right: 2
+			},
 			// 数据列初始化默认参数
 			columnDefaultOptions = {
 				// 列标题
@@ -4628,17 +4670,19 @@ var ud2 = (function (window, $) {
 				// 单元格的数据类型
 				type: null,
 				// 当前宽度 number(px) | auto
-				width: 100,
+				width: 120,
 				// 单元格的最小宽度，通过flex压缩不能小于此宽度
 				minWidth: 50,
-				// 1 left fixed 2 right fixed
+				// 0 no fixed 1 left fixed 2 right fixed
 				fixed: 0,
 				// 是否自动计算宽度
 				flex: true,
 				// 是否可编辑
 				edit: false,
 				// 是否可编辑
-				sort: false
+				sort: false,
+				// 0 左侧 1 剧中 2 右侧
+				align: 0
 			};
 
 		// 重写集合初始化方法
@@ -4650,27 +4694,28 @@ var ud2 = (function (window, $) {
 				// 或二维数组数据
 				// 数据    头部数据    尾部数据
 				datas, datasHeader, datasFooter,
-				// 列参数对象集合  列默认参数
-				columns,   columnDefault,
-				// 单元格高度 数据组件用于存储数据
-				cellHeight,
+				// 列参数对象集合 列默认参数    单元格高度   控件高度  行参数对象集合
+				columnsInfo, columnDefault, cellHeight, height, rowsInfo,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'datas', 'columns', 'columnDefault',
-
-
-
-					'cellHeight',
-					'recountByResize',
+					'datas', 'datasFooter', 'columns', 'columnDefault',
+					'cellHeight', 'height',
 					'checkbox', 'storage', 'striped', 'hoverRow', 'hoverRowColor'
 				], function (options) {
+					// 初始化单元格高度
+					cellHeight = parseInt(options.cellHeight) || 34;
+					// 初始化控件高度
+					// 值为null，则取css高度
+					height = parseInt(options.height) || null;
+
 					// 初始化传入数据
-					initDatas(options.datas);
+					initDatas(options.datas, options.datasFooter);
 					// 初始化列默认对象
 					initColumnDefault(options.columnDefault);
 					// 初始化列对象
 					initColumns(options.columns);
-
+					// 初始化行对象
+					initRows();
 				}),
 				// 控件结构
 				template = '<div class="' + cls + '-left">'
@@ -4717,19 +4762,29 @@ var ud2 = (function (window, $) {
 				$centerFooter = $centerArea.eq(2),
 				$centerHeaderGrid = $centerHeader.children(),
 				$centerContentGrid = $centerContent.children(),
-				$centerFooterGrid = $centerFooter.children();
+				$centerFooterGrid = $centerFooter.children(),
+				// 空行，用于克隆
+				$emptyRow = $div.clone().addClass(cls + '-row'),
+				// 空单元格，用于克隆
+				$emptyCell = $div.clone().addClass(cls + '-cell'),
+				// 滚动条控件	
+				leftScroll, rightScroll, topScroll, bottomScroll, contentScroll;
 
 			// #endregion
 
+			// #region 私有方法
+
 			// 初始化传入数据
 			// optionsData[array, string, jQuery]: options.data 传入数据参数
-			function initDatas(optionsData) {
+			function initDatas(optionsDatas, optionsDatasFooter) {
 				var // 传入的数据是否符合jQuery对象
 					isJQ = true,
 					// 头部主体及尾部容器
-					$h, $b, $f;
+					$h, $b, $f,
+					// 迭代变量
+					i, j;
 
-				datas = optionsData;
+				datas = optionsDatas;
 
 				// 如果传入参数为字符串或jQuery对象，则强制按照符合jQuery标准获取jQuery对象，并通过此对象创建datatable
 				// 由jQuery对象创建datatable时，会将thead、tbody、tfoot分成三个datatable，分别存入datasHeader、datas、datasFooter
@@ -4755,6 +4810,14 @@ var ud2 = (function (window, $) {
 					datas = datatable().dataFill($b);
 					datasFooter = datatable().dataFill($f);
 				}
+
+				if (optionsDatasFooter) {
+					datasFooter = datatable().dataFill(optionsDatasFooter);
+				}
+
+				if (datasFooter && datasFooter.columns.length < datas.columns.length) {
+					for (i = 0, j = datas.columns.length - datasFooter.columns.length; i < j; i++) datasFooter.columnAdd();
+				}
 			}
 			// 初始化列默认参数对象
 			// optionColumnDefault[object]: options.columnDefault 传入列初始化默认参数
@@ -4765,53 +4828,243 @@ var ud2 = (function (window, $) {
 			// 初始化单元格
 			// optionsColumns[array]: options.columns 传入单元格参数
 			function initColumns(optionsColumns) {
-				var // 数据列数 当前控件列数
-					dcl, cl,
+				var // 数据列数
+					dcl,
 					// 迭代变量
-					i, l, icol;
+					i, l, icol, hop;
 
 				// 将传入参数赋值给列参数集合
-				columns = optionsColumns;
+				columnsInfo = optionsColumns;
 
 				// 将已传入的数据列参数对象加入到数据列参数组中
-				if (!type.isArray(columns)) columns = [];
-				for (i = 0, l = columns.length; i < l; i++) {
-					if (!type.isObject(columns[i])) columns[i] = {};
-					columns[i] = mergeObjects(columnDefault, columns[i]);
+				if (!type.isArray(columnsInfo)) columnsInfo = [];
+				for (i = 0, l = datas.columns.length; i < l; i++) {
+					hop = datasHeader && datasHeader.rows[0] && datasHeader.rows[0].cells[i];
+					if (!type.isObject(columnsInfo[i])) columnsInfo[i] = {};
+					icol = columnsInfo[i] = mergeObjects(columnDefault, columnsInfo[i]);
+					icol.title = datas.columns[i].title() || hop && hop.val() || icol.title;
+					icol.type = datas.columns[i].dataType() || hop && hop.cellType || icol.type;
+					icol.align = hop && hop.cellAlign || icol.align;
+					icol.width = parseInt(hop && hop.cellWidth) || icol.width;
+					icol.fixed = hop && hop.cellFixed || icol.fixed;
+
+					icol.align = (function () {
+						switch (icol.align) {
+							case 1: case '1': case 'center': { return 'center'; }
+							case 2: case '2': case 'right': { return 'right'; }
+							default: case 0: case '0': case 'left': { return 'left'; }
+						}
+					}());
+					icol.fixed = (function () {
+						switch (icol.fixed) {
+							case 1: case '1': case 'left': { return 1; }
+							case 2: case '2': case 'right': { return 2; }
+							default: case 0: case '0': case 'noflex': { return 0; }
+						}
+					}());			
 				}
+			}
 
-				// 分析当前数据，将存在数据单元格却不存在数据列参数对象的数据列添加列参数
-				// 整合目前数据情况，补全列参数信息
-				dcl = datas.columns.length;
-				cl = columns.length;
-				for (i = 0, l = dcl; i < l; i++) {
-					icol = columns[i];
-					if (!icol) { icol = cloneObjects(columnDefault); columns.push(icol); }
-					icol.title = datas.columns[i].title()
-						|| datasHeader && datasHeader.rows[0] && datasHeader.rows[0].cells[i] && datasHeader.rows[0].cells[i].val()
-						|| icol.title;
-					icol.type = datas.columns[i].dataType()
-						|| datasHeader && datasHeader.rows[0] && datasHeader.rows[0].cells[i] && datasHeader.rows[0].cells[i].cellType
-						|| icol.type;
+			function initRows(optionsRows) {
+				// 将传入参数赋值给行参数集合
+				rowsInfo = optionsRows;
+
+				// 将已传入的数据行参数对象加入到数据行参数组中
+				if (!type.isArray(rowsInfo)) rowsInfo = [];
+
+				// 创建内部对象缓存数组
+				rowsInfo.header = [];
+				rowsInfo.content = [];
+				rowsInfo.footer = [];
+			}
+
+			// 更新尺寸样式
+			function updateStyles() {
+				var wl = columnsInfo.widthLeft, wc = columnsInfo.widthCenter, wr = columnsInfo.widthRight,
+					fl = datasFooter && datasFooter.rows.length || 0, fh = cellHeight * fl,
+					h = { height: cellHeight },
+					t = { top: cellHeight },
+					b = { bottom: fh },
+					e = { height: fh, bottom: 0 };
+
+				if (height) $datagrid.css('height', height);
+				$datagrid.css('line-height', cellHeight - 2 + 'px');
+
+				$left.css({ width: wl });
+				$leftHeader.css(h);
+				$leftContent.css(t);
+				$leftHeaderGrid.css({ width: wl, height: cellHeight });
+				$leftContentGrid.css({ width: wl, height: cellHeight * datas.rows.length });
+
+				$center.css({ left: wl, right: wr });
+				$centerHeader.css(h);
+				$centerContent.css(t);
+				$centerHeaderGrid.css({ width: wc, height: cellHeight });
+				$centerContentGrid.css({ width: wc - 1, height: cellHeight * datas.rows.length - 1 });
+
+				$right.css({ width: wr });
+				$rightHeader.css(h);
+				$rightContent.css(t);
+				$rightHeaderGrid.css({ width: wr, height: cellHeight });
+				$rightContentGrid.css({ width: wr, height: cellHeight * datas.rows.length });
+					
+				updateCellStyles(datasHeader, rowsInfo.header);
+				updateCellStyles(datas, rowsInfo.content);
+
+				if (fl > 0) {
+					$leftContent.css(b);
+					$leftFooter.css(e);
+					$leftFooterGrid.css({ width: wl, height: fh });
+
+					$centerContent.css(b);
+					$centerFooter.css(e);
+					$centerFooterGrid.css({ width: wc, height: fh });
+
+					$rightContent.css(b);
+					$rightFooter.css(e);
+					$rightFooterGrid.css({ width: wr, height: fh });
+					
+					updateCellStyles(datasFooter, rowsInfo.footer);
+				}
+			}
+			// 更新单元格样式
+			function updateCellStyles(datatable, arr) {
+				var // 迭代变量
+					isHeader = arr === rowsInfo.header,
+					i = 0, l = !isHeader && datatable.rows.length || 1,
+					j, m, ci;
+
+				for (; i < l; i++) {
+					for (j = 0, m = columnsInfo.length; j < m; j++) {
+						ci = columnsInfo[j];
+						arr[i].cells[j].css({ width: ci.widthNow, left: ci.cellLeft, height: cellHeight });
+					}
 				}
 			}
 
-			/*
+			// 计算列宽度和偏移量
+			function sizeCount() {
+				var // 迭代变量
+					i = 0, l = columnsInfo.length, ci,
+					// 宽度累计
+					wc = 0, wl = 0, wr = 0;
+				for (; i < l; i++) {
+					ci = columnsInfo[i];
+					ci.widthNow = ci.width;
+					switch(ci.fixed){
+						case 0: { ci.cellLeft = wc; wc += ci.widthNow; break; }
+						case 1: { ci.cellLeft = wl; wl += ci.widthNow; break; }
+						case 2: { ci.cellLeft = wr; wr += ci.widthNow; break; }
+					}
 
-			function recountLayout() {
+					if (i === l - 1) {
+						columnsInfo.widthLeft = wl;
+						columnsInfo.widthCenter = wc;
+						columnsInfo.widthRight = wr;
+					}
+				}
+			}
+			// 创建网格分区元素
+			function createTableElements(datatable, $left, $center, $right, arr) {
+				var // 迭代变量
+					isHeader = arr === rowsInfo.header,
+					i = 0, l = !isHeader && datatable.rows.length || 1,
+					j, m, ci, $rl, $rc, $rr, $cell;
 
+				// 创建元素
+				for (; i < l; i++) {
+					$rl = $emptyRow.clone().appendTo($left).css('top', i * cellHeight);
+					$rc = $emptyRow.clone().appendTo($center).css('top', i * cellHeight);
+					$rr = $emptyRow.clone().appendTo($right).css('top', i * cellHeight);
+					arr[i] = { $l: $rl, $c: $rc, $r: $rr, cells: [] };
+
+					for (j = 0, m = columnsInfo.length; j < m; j++) {
+						ci = columnsInfo[j];
+						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(arr === rowsInfo.header ? ci.title : datatable.rows[i].cells[j].val());
+
+						switch (ci.fixed) {
+							case 0: { $cell.appendTo($rc); break; }
+							case 1: { $cell.appendTo($rl); break; }
+							case 2: { $cell.appendTo($rr); break; }
+						}
+
+						arr[i].cells[j] = $cell;
+					}
+				}
+			}
+			// 创建网格元素
+			function createElements() {
+				var // 迭代变量
+					i, j, k, l, m, n,
+					// 样式变量 列参数对象
+					css, ci,
+					// 行及单元格变量
+					$rl, $rc, $rr, $cell;
+
+				// 计算尺寸
+				sizeCount();
+
+				createTableElements(datasHeader, $leftHeaderGrid, $centerHeaderGrid, $rightHeaderGrid, rowsInfo.header);
+				createTableElements(datas, $leftContentGrid, $centerContentGrid, $rightContentGrid, rowsInfo.content);
+				if (datasFooter && datasFooter.rows.length > 0) {
+					createTableElements(datasFooter, $leftFooterGrid, $centerFooterGrid, $rightFooterGrid, rowsInfo.footer);
+				}
 			}
 
-			function rowAdd() {
-			}
-			function rowRemove() {
-			}
-			function dataFill() {
-			}
-			function dataEmpty() {
+			// #endregion
+
+			// #region 事件处理
+
+			// 事件绑定
+			function bindEvent() {
+				var // 内容滚动条参数
+					contentScrollOption = {
+						barState: 0,
+						barColor: 'rgba(60, 60, 60, .3)',
+						barColorOn: 'rgba(60, 60, 60, .6)',
+						barSize: 5,
+						hasVertical: true,
+						hasHorizontal: true,
+						isScrollMode: true,
+						recountByResize: true
+					}, 
+					// 两侧滚动条参数
+					lrScrollOption = {
+						barState: 2,
+						hasHorizontal: false,
+						hasVertical: true,
+						isTouchMode: false,
+						isMouseWheelMode: false,
+						isScrollMode: false,
+						recountByResize: true
+					}, 
+					// 首尾滚动条参数
+					tbScrollOption = {
+						barState: 2,
+						hasHorizontal: true,
+						hasVertical: false,
+						isTouchMode: false,
+						isMouseWheelMode: false,
+						isScrollMode: false,
+						recountByResize: true
+					};
+
+				// 创建滚动条
+				contentScroll = scroll($centerContent, contentScrollOption);
+				leftScroll = scroll($leftContent, lrScrollOption);
+				rightScroll = scroll($rightContent, lrScrollOption);
+				topScroll = scroll($centerHeader, tbScrollOption);
+				bottomScroll = scroll($centerFooter, tbScrollOption);
+				contentScroll
+					.followerBind(leftScroll)
+					.followerBind(rightScroll)
+					.followerBind(topScroll)
+					.followerBind(bottomScroll);
 			}
 
-			*/
+			// #endregion
+
+			// #region 初始化
 
 			// 初始化
 			(function init() {
@@ -4821,9 +5074,29 @@ var ud2 = (function (window, $) {
 					control.origin.remove();
 					control.transferStyles();
 				}
+
+				// 创建元素
+				createElements();
+				// 更新尺寸样式
+				updateStyles();
+
+				bindEvent();
 			}());
 
+			// #endregion
+
+			// #region 返回
+
+			// 返回
+			return extendObjects(control.public, {});
+
+			// #endregion
+
 		};
+		// 单元格对齐方式
+		constructor.align = cellAlign;
+		// 列的固定方式
+		constructor.fixed = columnFixed;
 
 	});
 

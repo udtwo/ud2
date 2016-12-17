@@ -7,7 +7,7 @@
 	<link href="../../../dist/css/ud2.css" rel="stylesheet" />
 	<link href="../../src/test.css" rel="stylesheet" />
 	<script src="../../../vendor/js/jquery.js"></script>
-	<script src="../../../dist/js/ud2.js"></script>
+	<script src="../../../src/js/ud2.js"></script>
 </head>
 <body>
 	<h3>数据网格控件</h3>
@@ -20,7 +20,7 @@
 				<table ud2="datagrid" style="height: 200px;">
 					<thead>
 						<tr>
-							<td ud2-datagrid-align="center" ud2-datagrid-fixed="1">序号</td>
+							<td ud2-datagrid-align="center" ud2-datagrid-mode="2">序号</td>
 							<td ud2-datagrid-width="400">姓名</td>
 							<td>性别</td>
 							<td>生日</td>
@@ -76,7 +76,7 @@
 						ud2.datagrid({
 							height: 200,
 							columns: [
-								{ title: '序号', fixed: ud2.datagrid.fixed.left, align: ud2.datagrid.align.center },
+								{ title: '序号', mode: 2, align: ud2.datagrid.align.center },
 								{ title: '姓名', width: 400 },
 								{ title: '性别' },
 								{ title: '生日' },
@@ -91,6 +91,152 @@
 							]
 						}).appendTo('.dg');
 
+					});
+				</script>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>thead、tfoot样式</h5>
+			<p>
+				<table ud2="datagrid" style="height: 305px;">
+					<thead>
+						<tr>
+							<td ud2-datagrid-align="center">星期</td>
+							<td ud2-datagrid-align="center">面包</td>
+							<td ud2-datagrid-align="center">牛奶</td>
+							<td ud2-datagrid-align="center">糖果</td>
+							<td ud2-datagrid-align="center">圣代</td>
+							<td ud2-datagrid-align="center">披萨</td>
+							<td ud2-datagrid-align="center">薯条</td>
+							<td ud2-datagrid-align="center">合计</td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>星期一</td>
+							<td>1</td>
+							<td>3</td>
+							<td>5</td>
+							<td>2</td>
+							<td>1</td>
+							<td>8</td>
+							<td>20</td>
+						</tr>
+						<tr>
+							<td>星期二</td>
+							<td>9</td>
+							<td>6</td>
+							<td>6</td>
+							<td>2</td>
+							<td>3</td>
+							<td>3</td>
+							<td>29</td>
+						</tr>
+						<tr>
+							<td>星期三</td>
+							<td>5</td>
+							<td>3</td>
+							<td>8</td>
+							<td>5</td>
+							<td>2</td>
+							<td>7</td>
+							<td>30</td>
+						</tr>
+						<tr>
+							<td>星期四</td>
+							<td>4</td>
+							<td>5</td>
+							<td>5</td>
+							<td>1</td>
+							<td>2</td>
+							<td>2</td>
+							<td>19</td>
+						</tr>
+						<tr>
+							<td>星期五</td>
+							<td>8</td>
+							<td>6</td>
+							<td>4</td>
+							<td>4</td>
+							<td>3</td>
+							<td>6</td>
+							<td>31</td>
+						</tr>
+						<tr>
+							<td>星期六</td>
+							<td>3</td>
+							<td>4</td>
+							<td>3</td>
+							<td>6</td>
+							<td>6</td>
+							<td>8</td>
+							<td>30</td>
+						</tr>
+						<tr>
+							<td>星期日</td>
+							<td>4</td>
+							<td>2</td>
+							<td>5</td>
+							<td>1</td>
+							<td>1</td>
+							<td>2</td>
+							<td>15</td>
+						</tr>
+					</tbody>
+					<tfoot>
+						<tr>
+							<td>合计</td>
+							<td>34</td>
+							<td>29</td>
+							<td>36</td>
+							<td>21</td>
+							<td>18</td>
+							<td>36</td>
+							<td>174</td>
+						</tr>
+					</tfoot>
+				</table>
+			</p>
+
+			<hr class="hr" />
+
+			<h5>大量数据(暂未支持及时数据懒加载)</h5>
+			<p>
+				<div class="dg2"></div>
+				<script>
+					ud2.ready(function () {
+
+						var t1 = new Date();
+						var r = [];
+						for (var i = 0; i < 100; i++) {
+							r[i] = [];
+							r[i][0] = i + 1;
+							r[i][1] = parseInt(Math.random() * 1000000);
+							r[i][2] = parseInt(Math.random() * 1000000);
+							r[i][3] = parseInt(Math.random() * 1000000);
+							r[i][4] = parseInt(Math.random() * 1000000);
+							r[i][5] = parseInt(Math.random() * 1000000);
+						}
+						var t2 = new Date();
+
+						var t3 = new Date();
+						ud2.datagrid({
+							height: 400,
+							columns: [
+								{ title: '序号', mode: 2, align: ud2.datagrid.align.center },
+								{ title: '数据1', align: ud2.datagrid.align.center },
+								{ title: '数据2', align: ud2.datagrid.align.center },
+								{ title: '数据3', align: ud2.datagrid.align.center },
+								{ title: '数据4', align: ud2.datagrid.align.center },
+								{ title: '数据5', align: ud2.datagrid.align.center }
+							],
+							datas: r
+						}).appendTo('.dg2');
+						var t4 = new Date();
+
+						ud2.message.info('生成100行(x6列)随机数据用时：' + (t2 - t1) + 'ms');
+						ud2.message.info('生成100行(x6列)数据网格用时：' + (t4 - t3) + 'ms');
 					});
 				</script>
 			</p>

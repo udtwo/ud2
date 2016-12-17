@@ -18,6 +18,12 @@
 *, ::before, ::after {
 	.boxSizing(border-box);
 }
+// 避免因内容加高而导致的滚动条出现却不触发resize，进而引起控件父层(外层)的宽度变小而导致排版异常
+// 目前会引起的问题的控件 ud2-datagrid
+// 此问题也可采用控件定时自检(例如:50ms检测父层宽度，超出则init)的方式来控制
+html {
+	overflow-y: scroll;
+}
 // 为特定标签定义默认的字体类型、大小和行距
 html, button, input, textarea {
 	.font();

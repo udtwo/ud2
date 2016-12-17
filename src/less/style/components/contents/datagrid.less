@@ -38,13 +38,20 @@
 	height: @DatagridCellHeight;
 	line-height: inherit;
 	padding: @DatagridCellPadding;
+	background: @ColorWhite;
 	border: 1px solid @DatagridBorderColor;
 	border-top-color: transparent;
 	border-left-color: transparent;
+	.textOverflow();
 
 	&:last-child {
 		border-right-color: transparent;
 	}
+}
+// 网格头部、底部单元格样式
+.ud2-datagrid-header .ud2-datagrid-cell,
+.ud2-datagrid-footer .ud2-datagrid-cell {
+	background: @DatagridHomeEndTHBackColor;
 }
 
 // 网格主容器、滚动主容器定位方式
@@ -99,16 +106,13 @@
 // 网格头部容器样式
 .ud2-datagrid-header {
 	top: 0;
-	background: @DatagridHomeEndTHBackColor;
 	border-bottom: 1px solid @DatagridBorderColor;
 }
-// 网格尾部容器样式
+// 网格底部容器样式
 .ud2-datagrid-footer {
 	bottom: -1px;
-	background: @DatagridHomeEndTHBackColor;
 	border-top: 1px solid @DatagridBorderColor;
 }
-
 // 设置单元格显示下边框的情况
 .ud2-datagrid-header:last-child, .ud2-datagrid-footer {
 	.ud2-datagrid-row:last-child > .ud2-datagrid-cell {

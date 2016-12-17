@@ -682,15 +682,15 @@ var ud2 = (function (window, $) {
 					cellType = $td.attr(datagrid + 'cell-data-type'),
 					align = $td.attr(datagrid + 'align'),
 					width = $td.attr(datagrid + 'width'),
-					fixed = $td.attr(datagrid + 'fixed'),
+					mode = $td.attr(datagrid + 'mode'),
 					opt = {};
-
+				
 				opt.value = $td.html();
 				if (dataType) opt.type = dataType;
 				if (cellType) opt.cellType = cellType;
 				if (align) opt.cellAlign = align;
 				if (width) opt.cellWidth = width;
-				if (fixed) opt.cellFixed = fixed;
+				if (mode) opt.cellMode = mode;
 
 				d.push(opt);
 			});
@@ -2763,7 +2763,7 @@ var ud2 = (function (window, $) {
 					cellObj.cellType = options.cellType || null;
 					cellObj.cellAlign = options.cellAlign || null;
 					cellObj.cellWidth = options.cellWidth || null;
-					cellObj.cellFixed = options.cellFixed || null;
+					cellObj.cellMode = options.cellMode || null;
 
 					// 获取数据值类型
 					valueType = options.type;
@@ -2780,8 +2780,6 @@ var ud2 = (function (window, $) {
 				else {
 					valueType = null; // !!! 对未设置数据类型的单元格标记为null，并采用string类型 getDataTypeByValue(value);
 				}
-
-
 			}());
 
 			// 返回
@@ -4657,11 +4655,12 @@ var ud2 = (function (window, $) {
 				center: 1,
 				right: 2
 			},
-			// 列的固定方式
-			columnFixed = {
-				noflex: 0,
-				left: 1,
-				right: 2
+			// 列的排版模式
+			columnMode = {
+				normal: 0,
+				flex: 1,
+				left: 2,
+				right: 3
 			},
 			// 数据列初始化默认参数
 			columnDefaultOptions = {
@@ -4673,10 +4672,8 @@ var ud2 = (function (window, $) {
 				width: 120,
 				// 单元格的最小宽度，通过flex压缩不能小于此宽度
 				minWidth: 50,
-				// 0 no fixed 1 left fixed 2 right fixed
-				fixed: 0,
-				// 是否自动计算宽度
-				flex: true,
+				// 0 normal 1 flex 2 left 3 right
+				mode: 1,
 				// 是否可编辑
 				edit: false,
 				// 是否可编辑
@@ -4692,15 +4689,14 @@ var ud2 = (function (window, $) {
 
 			var // elements数据源、jQuery数据源
 				// 或二维数组数据
-				// 数据    头部数据    尾部数据
+				// 数据    头部数据    底部数据
 				datas, datasHeader, datasFooter,
 				// 列参数对象集合 列默认参数    单元格高度   控件高度  行参数对象集合
 				columnsInfo, columnDefault, cellHeight, height, rowsInfo,
 				// 获取用户自定义项
 				options = control.getOptions([
 					'datas', 'datasFooter', 'columns', 'columnDefault',
-					'cellHeight', 'height',
-					'checkbox', 'storage', 'striped', 'hoverRow', 'hoverRowColor'
+					'cellHeight', 'height'
 				], function (options) {
 					// 初始化单元格高度
 					cellHeight = parseInt(options.cellHeight) || 34;
@@ -4779,7 +4775,7 @@ var ud2 = (function (window, $) {
 			function initDatas(optionsDatas, optionsDatasFooter) {
 				var // 传入的数据是否符合jQuery对象
 					isJQ = true,
-					// 头部主体及尾部容器
+					// 头部主体及底部容器
 					$h, $b, $f,
 					// 迭代变量
 					i, j;
@@ -4810,11 +4806,12 @@ var ud2 = (function (window, $) {
 					datas = datatable().dataFill($b);
 					datasFooter = datatable().dataFill($f);
 				}
-
+				// 是否存在底部数据
 				if (optionsDatasFooter) {
 					datasFooter = datatable().dataFill(optionsDatasFooter);
 				}
-
+				// 底部数据是否存在行
+				// 如果存在行，且底部数据行中的列数少于列参数的个数，则补全单元格
 				if (datasFooter && datasFooter.columns.length < datas.columns.length) {
 					for (i = 0, j = datas.columns.length - datasFooter.columns.length; i < j; i++) datasFooter.columnAdd();
 				}
@@ -4846,8 +4843,9 @@ var ud2 = (function (window, $) {
 					icol.type = datas.columns[i].dataType() || hop && hop.cellType || icol.type;
 					icol.align = hop && hop.cellAlign || icol.align;
 					icol.width = parseInt(hop && hop.cellWidth) || icol.width;
-					icol.fixed = hop && hop.cellFixed || icol.fixed;
-
+					icol.model = hop && hop.cellMode || icol.mode;
+					if (icol.width < 20) icol.width = 20;
+					if (icol.minWidth > icol.width) icol.minWidth = icol.width;
 					icol.align = (function () {
 						switch (icol.align) {
 							case 1: case '1': case 'center': { return 'center'; }
@@ -4855,16 +4853,17 @@ var ud2 = (function (window, $) {
 							default: case 0: case '0': case 'left': { return 'left'; }
 						}
 					}());
-					icol.fixed = (function () {
-						switch (icol.fixed) {
-							case 1: case '1': case 'left': { return 1; }
-							case 2: case '2': case 'right': { return 2; }
-							default: case 0: case '0': case 'noflex': { return 0; }
+					icol.mode = (function () {
+						switch (icol.model) {
+							case 1: case '1': case 'flex': { return 1; }
+							case 2: case '2': case 'left': { return 2; }
+							case 3: case '3': case 'rigth': { return 3; }
+							default: case 0: case '0': case 'normal': { return 0; }
 						}
-					}());			
+					}());
 				}
 			}
-
+			// 初始化行
 			function initRows(optionsRows) {
 				// 将传入参数赋值给行参数集合
 				rowsInfo = optionsRows;
@@ -4879,9 +4878,32 @@ var ud2 = (function (window, $) {
 			}
 
 			// 更新尺寸样式
-			function updateStyles() {
-				var wl = columnsInfo.widthLeft, wc = columnsInfo.widthCenter, wr = columnsInfo.widthRight,
-					fl = datasFooter && datasFooter.rows.length || 0, fh = cellHeight * fl,
+			function updateWidthStyles() {
+				var g = gridWidthCount(),
+					wl = g.l, wc = g.c, wr = g.r,
+					fl = datasFooter && datasFooter.rows.length || 0;
+
+				$left.css({ width: wl });
+				$leftHeaderGrid.css({ width: wl });
+				$leftContentGrid.css({ width: wl });
+
+				$center.css({ left: wl, right: wr });
+				$centerHeaderGrid.css({ width: wc });
+				$centerContentGrid.css({ width: wc - 1 });
+
+				$right.css({ width: wr });
+				$rightHeaderGrid.css({ width: wr });
+				$rightContentGrid.css({ width: wr });
+
+				if (fl > 0) {
+					$leftFooterGrid.css({ width: wl });
+					$centerFooterGrid.css({ width: wc });
+					$rightFooterGrid.css({ width: wr });
+				}
+			}
+			// 更新高度样式
+			function updateHeightStyles() {
+				var fl = datasFooter && datasFooter.rows.length || 0, fh = cellHeight * fl,
 					h = { height: cellHeight },
 					t = { top: cellHeight },
 					b = { bottom: fh },
@@ -4890,79 +4912,135 @@ var ud2 = (function (window, $) {
 				if (height) $datagrid.css('height', height);
 				$datagrid.css('line-height', cellHeight - 2 + 'px');
 
-				$left.css({ width: wl });
 				$leftHeader.css(h);
 				$leftContent.css(t);
-				$leftHeaderGrid.css({ width: wl, height: cellHeight });
-				$leftContentGrid.css({ width: wl, height: cellHeight * datas.rows.length });
-
-				$center.css({ left: wl, right: wr });
 				$centerHeader.css(h);
 				$centerContent.css(t);
-				$centerHeaderGrid.css({ width: wc, height: cellHeight });
-				$centerContentGrid.css({ width: wc - 1, height: cellHeight * datas.rows.length - 1 });
-
-				$right.css({ width: wr });
 				$rightHeader.css(h);
 				$rightContent.css(t);
-				$rightHeaderGrid.css({ width: wr, height: cellHeight });
-				$rightContentGrid.css({ width: wr, height: cellHeight * datas.rows.length });
-					
-				updateCellStyles(datasHeader, rowsInfo.header);
-				updateCellStyles(datas, rowsInfo.content);
 
-				if (fl > 0) {
+				$leftHeaderGrid.css({ height: cellHeight });
+				$leftContentGrid.css({ height: cellHeight * datas.rows.length });
+
+				$centerHeaderGrid.css({ height: cellHeight });
+				$centerContentGrid.css({ height: cellHeight * datas.rows.length - 1 });
+
+				$rightHeaderGrid.css({ height: cellHeight });
+				$rightContentGrid.css({ height: cellHeight * datas.rows.length });
+
+				if (fl) {
 					$leftContent.css(b);
 					$leftFooter.css(e);
-					$leftFooterGrid.css({ width: wl, height: fh });
+					$leftFooterGrid.css({ height: fh });
 
 					$centerContent.css(b);
 					$centerFooter.css(e);
-					$centerFooterGrid.css({ width: wc, height: fh });
+					$centerFooterGrid.css({ height: fh });
 
 					$rightContent.css(b);
 					$rightFooter.css(e);
-					$rightFooterGrid.css({ width: wr, height: fh });
-					
-					updateCellStyles(datasFooter, rowsInfo.footer);
+					$rightFooterGrid.css({ height: fh });
 				}
 			}
+			// 更新全部单元格样式
+			function updateAllCellSizeStyles() {
+				var fl = datasFooter && datasFooter.rows.length || 0;
+				gridFlexCount();
+				// 更新每个单元格样式
+				updateCellSizeStyles(datasHeader, rowsInfo.header);
+				updateCellSizeStyles(datas, rowsInfo.content);
+				if (fl) updateCellSizeStyles(datasFooter, rowsInfo.footer);
+			}
 			// 更新单元格样式
-			function updateCellStyles(datatable, arr) {
+			function updateCellSizeStyles(datatable, arr) {
 				var // 迭代变量
 					isHeader = arr === rowsInfo.header,
 					i = 0, l = !isHeader && datatable.rows.length || 1,
 					j, m, ci;
 
 				for (; i < l; i++) {
-					for (j = 0, m = columnsInfo.length; j < m; j++) {
-						ci = columnsInfo[j];
-						arr[i].cells[j].css({ width: ci.widthNow, left: ci.cellLeft, height: cellHeight });
-					}
+					columnsInfo.forEach(function (obj, index) {
+						arr[i].cells[index].css({
+							width: obj.widthNow,
+							left: obj.cellLeft,
+							height: cellHeight
+						});
+					});
 				}
 			}
+			// 更新初始化
+			function updateInit() {
+				updateWidthStyles();
+				updateHeightStyles();
+				updateAllCellSizeStyles();
+			}
 
-			// 计算列宽度和偏移量
-			function sizeCount() {
-				var // 迭代变量
-					i = 0, l = columnsInfo.length, ci,
-					// 宽度累计
+			// grid容器计算列宽度和偏移量
+			function gridWidthCount() {
+				var // 宽度累计
 					wc = 0, wl = 0, wr = 0;
-				for (; i < l; i++) {
-					ci = columnsInfo[i];
-					ci.widthNow = ci.width;
-					switch(ci.fixed){
-						case 0: { ci.cellLeft = wc; wc += ci.widthNow; break; }
-						case 1: { ci.cellLeft = wl; wl += ci.widthNow; break; }
-						case 2: { ci.cellLeft = wr; wr += ci.widthNow; break; }
-					}
 
-					if (i === l - 1) {
-						columnsInfo.widthLeft = wl;
-						columnsInfo.widthCenter = wc;
-						columnsInfo.widthRight = wr;
+				columnsInfo.forEach(function (obj) {
+					obj.widthNow = obj.width;
+					switch (obj.mode) {
+						case 0: case 1: { wc += obj.widthNow; break; }
+						case 2: { obj.cellLeft = wl; wl += obj.widthNow; break; }
+						case 3: { obj.cellLeft = wr; wr += obj.widthNow; break; }
 					}
-				}
+				});
+
+				columnsInfo.gridSize = { l: wl, c: wc, r: wr };
+				return columnsInfo.gridSize;
+			}
+			// grid弹性列计算
+			function gridFlexCount() {
+				var topWidth = $centerContent.width(),
+					// 自适应的单元格  自适应宽度汇总 固定宽度汇总 单元格平分份数
+					flexCell = [], fw = 0, nw = 0, fp,
+					// 居左统计
+					cl = 0;
+
+				columnsInfo.forEach(function (obj) {
+					if (obj.mode === 1) {
+						fw += obj.width;
+						flexCell.push(obj);
+					}
+					else if (obj.mode === 0) {
+						nw += obj.width;
+					}
+				});
+
+				fp = (topWidth - nw) / fw;
+				fw = 0;
+				flexCell.forEach(function (obj) {
+					var gw = fp * obj.width, mw = obj.minWidth;
+					if (gw < mw) gw = mw;
+					obj.widthNow = gw;
+					fw += gw;
+				});
+
+				columnsInfo.forEach(function (obj) {
+					if (obj.mode === 0 || obj.mode === 1) {
+						obj.cellLeft = cl;
+						cl += obj.widthNow;
+					}
+				});
+
+				$centerContentGrid.css('width', fw + nw);
+			}
+			// 创建网格元素
+			function createElements() {
+				var // 迭代变量
+					i, j, k, l, m, n,
+					// 样式变量 列参数对象
+					css, ci,
+					// 行及单元格变量
+					$rl, $rc, $rr, $cell;
+
+				// 创建全部元素
+				createTableElements(datasHeader, $leftHeaderGrid, $centerHeaderGrid, $rightHeaderGrid, rowsInfo.header);
+				createTableElements(datas, $leftContentGrid, $centerContentGrid, $rightContentGrid, rowsInfo.content);
+				if (datasFooter && datasFooter.rows.length) createTableElements(datasFooter, $leftFooterGrid, $centerFooterGrid, $rightFooterGrid, rowsInfo.footer);
 			}
 			// 创建网格分区元素
 			function createTableElements(datatable, $left, $center, $right, arr) {
@@ -4982,39 +5060,25 @@ var ud2 = (function (window, $) {
 						ci = columnsInfo[j];
 						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(arr === rowsInfo.header ? ci.title : datatable.rows[i].cells[j].val());
 
-						switch (ci.fixed) {
-							case 0: { $cell.appendTo($rc); break; }
-							case 1: { $cell.appendTo($rl); break; }
-							case 2: { $cell.appendTo($rr); break; }
+						switch (ci.mode) {
+							case 0: case 1: { $cell.appendTo($rc); break; }
+							case 2: { $cell.appendTo($rl); break; }
+							case 3: { $cell.appendTo($rr); break; }
 						}
 
 						arr[i].cells[j] = $cell;
 					}
 				}
 			}
-			// 创建网格元素
-			function createElements() {
-				var // 迭代变量
-					i, j, k, l, m, n,
-					// 样式变量 列参数对象
-					css, ci,
-					// 行及单元格变量
-					$rl, $rc, $rr, $cell;
 
-				// 计算尺寸
-				sizeCount();
-
-				createTableElements(datasHeader, $leftHeaderGrid, $centerHeaderGrid, $rightHeaderGrid, rowsInfo.header);
-				createTableElements(datas, $leftContentGrid, $centerContentGrid, $rightContentGrid, rowsInfo.content);
-				if (datasFooter && datasFooter.rows.length > 0) {
-					createTableElements(datasFooter, $leftFooterGrid, $centerFooterGrid, $rightFooterGrid, rowsInfo.footer);
-				}
-			}
-
-			// #endregion
+			// #endregion	
 
 			// #region 事件处理
 
+			// 窗口尺寸改变处理
+			function resize() {
+				updateAllCellSizeStyles();
+			}
 			// 事件绑定
 			function bindEvent() {
 				var // 内容滚动条参数
@@ -5027,7 +5091,7 @@ var ud2 = (function (window, $) {
 						hasHorizontal: true,
 						isScrollMode: true,
 						recountByResize: true
-					}, 
+					},
 					// 两侧滚动条参数
 					lrScrollOption = {
 						barState: 2,
@@ -5037,7 +5101,7 @@ var ud2 = (function (window, $) {
 						isMouseWheelMode: false,
 						isScrollMode: false,
 						recountByResize: true
-					}, 
+					},
 					// 首尾滚动条参数
 					tbScrollOption = {
 						barState: 2,
@@ -5060,6 +5124,9 @@ var ud2 = (function (window, $) {
 					.followerBind(rightScroll)
 					.followerBind(topScroll)
 					.followerBind(bottomScroll);
+
+				// 绑定窗口尺寸改变回调
+				callbacks.pageResize.add(resize);
 			}
 
 			// #endregion
@@ -5068,35 +5135,67 @@ var ud2 = (function (window, $) {
 
 			// 初始化
 			(function init() {
+				// 创建元素
+				createElements();
+				updateInit();
+
 				// 控件初始化
 				if (control.origin.length) {
 					control.origin.after($datagrid);
 					control.origin.remove();
 					control.transferStyles();
+					updateInit();
 				}
 
-				// 创建元素
-				createElements();
-				// 更新尺寸样式
-				updateStyles();
-
+				// 事件绑定
 				bindEvent();
 			}());
+
+			// #endregion
+
+			// #region 重写方法
+
+			// 重写方法
+			var oldAppendTo = control.public.appendTo;
+			var oldPrependTo = control.public.prependTo;
+			var oldInsertAfter = control.public.insertAfter;
+			var oldInsertBefore = control.public.insertBefore;
+			function appendTo() {
+				oldAppendTo.apply(control.public, arguments);
+				updateInit();
+			}
+			function prependTo() {
+				oldPrependTo.apply(control.public, arguments);
+				updateInit();
+			}
+			function insertAfter() {
+				oldInsertAfter.apply(control.public, arguments);
+				updateInit();
+			}
+			function insertBefore() {
+				oldInsertBefore.apply(control.public, arguments);
+				updateInit();
+			}
 
 			// #endregion
 
 			// #region 返回
 
 			// 返回
-			return extendObjects(control.public, {});
+			return extendObjects(control.public, {
+				appendTo: appendTo,
+				prependTo: prependTo,
+				insertAfter: insertAfter,
+				insertBefore: insertBefore
+			});
 
 			// #endregion
 
 		};
 		// 单元格对齐方式
 		constructor.align = cellAlign;
-		// 列的固定方式
-		constructor.fixed = columnFixed;
+		// 列的排版模式
+		constructor.mode = columnMode;
 
 	});
 

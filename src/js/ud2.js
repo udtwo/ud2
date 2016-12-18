@@ -5344,11 +5344,7 @@ var ud2 = (function (window, $) {
 					// 初始化位置
 					position = options.position;
 					position = position === void 0 ? POS_CENTER : position;
-					if (position !== POS_CENTER && position !== POS_FULL
-						&& position !== POS_TOPLEFT && position !== POS_TOPRIGHT
-						&& position !== POS_BOTTOMLEFT && position !== POS_BOTTOMRIGHT) {
-						position = getCoordinate(position, NORMAL_LENGTH, NORMAL_LENGTH);
-					}
+					setPosition(position);
 
 					// 初始化关闭按钮状态
 					btnClose = attrBoolCheck(options.btnClose, true);
@@ -5380,6 +5376,24 @@ var ud2 = (function (window, $) {
 					// 关闭回调
 					close: fnNoop
 				};
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 设置位置
+			// pos[object, string, number]: 位置参数
+			function setPosition(pos) {
+				switch (pos) {
+					case POS_CENTER: case '0': { position = POS_CENTER; break; }
+					case POS_FULL: case '1': case 'full': { position = POS_FULL; break; }
+					case POS_TOPLEFT: case '2': case 'topLeft': { position = POS_TOPLEFT; break; }
+					case POS_TOPRIGHT: case '3': case 'topRight': { position = POS_TOPRIGHT; break; }
+					case POS_BOTTOMLEFT: case '4': case 'bottomLeft': { position = POS_BOTTOMLEFT; break; }
+					case POS_BOTTOMRIGHT: case '5': case 'bottomRight': { position = POS_BOTTOMRIGHT; break; }
+					default: { position = getCoordinate(position, NORMAL_LENGTH, NORMAL_LENGTH); break; }
+				}
+			}
 
 			// #endregion
 
@@ -5536,6 +5550,15 @@ var ud2 = (function (window, $) {
 			// #endregion
 
 		};
+		// 对话框位置
+		constructor.position = {
+			center: POS_CENTER,
+			full: POS_FULL,
+			topLeft: POS_TOPLEFT,
+			topRight: POS_TOPRIGHT,
+			bottomLeft: POS_BOTTOMLEFT,
+			bottomRight: POS_BOTTOMRIGHT
+		};
 		// 弹出对话框
 		constructor.alert = function () {
 
@@ -5666,11 +5689,7 @@ var ud2 = (function (window, $) {
 					// 初始化是否默认开启及关闭
 					autoSwitch = attrBoolCheck(options.autoSwitch, true);
 					// 初始化位置
-					position = options.position || POS_TOPCENTER;
-					if (position !== POS_TOPCENTER && position !== POS_BOTTOMCENTER && position !== POS_TOPLEFT
-						&& position !== POS_TOPRIGHT && position !== POS_BOTTOMLEFT && position !== POS_BOTTOMRIGHT) {
-						position = POS_TOPCENTER;
-					}
+					setPosition(options.position);
 					// 初始化消息内容
 					if (control.origin.length) {
 						message = options.message || control.origin.text() || '未知消息';
@@ -5709,6 +5728,19 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
+			// 设置位置
+			// pos[object, string, number]: 位置参数
+			function setPosition(pos) {
+				switch (pos) {
+					case POS_TOPLEFT: case 'topLeft': case '1': case 1: { position = POS_TOPLEFT; break; }
+					case POS_TOPRIGHT: case 'topRight': case '2': case 2: { position = POS_TOPRIGHT; break; }
+					case POS_BOTTOMCENTER: case 'bottomCenter': case '3': case 3: { position = POS_BOTTOMCENTER; break; }
+					case POS_BOTTOMLEFT: case 'bottomLeft': case '4': case 4: { position = POS_BOTTOMLEFT; break; }
+					case POS_BOTTOMRIGHT: case 'bottomRight': case '5': case 5: { position = POS_BOTTOMRIGHT; break; }
+					default: case POS_TOPCENTER: case 'topCenter': case '0': case 0: { position = POS_TOPCENTER; break; }
+				}
+			}
+
 			// #region 公共方法
 
 			// 获取浮动消息内容对象
@@ -5724,7 +5756,6 @@ var ud2 = (function (window, $) {
 				if (!isOpen) {
 					w = $message.outerWidth();
 					h = $message.outerHeight();
-
 					len = showBox[position].length;
 					isOpen = true;
 					showBox[position].push(control.public);
@@ -5869,6 +5900,15 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
+		};
+		// 浮动消息位置
+		constructor.position = {
+			topCenter: POS_TOPCENTER,
+			topLeft: POS_TOPLEFT,
+			topRight: POS_TOPRIGHT,
+			bottomCenter: POS_BOTTOMCENTER,
+			bottomLeft: POS_BOTTOMLEFT,
+			bottomRight: POS_BOTTOMRIGHT
 		};
 		// 信息浮动消息控件
 		constructor.info = function (text) {

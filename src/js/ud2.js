@@ -83,6 +83,9 @@ var ud2 = (function (window, $) {
 		POS_TOPLEFT = 'top-left', POS_TOPRIGHT = 'top-right',
 		POS_BOTTOMLEFT = 'bottom-left', POS_BOTTOMRIGHT = 'bottom-right',
 		POS_TOPCENTER = 'top-center', POS_BOTTOMCENTER = 'bottom-center',
+		// 样式常量
+		CSS_ON = 'on', CSS_EMPTY = 'empty', CSS_VALUE = 'value',
+		CSS_DISABLED = 'disabled', CSS_SELECTED = 'selected',
 		// 键盘编码
 		KEYCODE = {
 			'A': 65, 'B': 66, 'C': 67, 'D': 68, 'E': 69, 'F': 70, 'G': 71,
@@ -480,23 +483,35 @@ var ud2 = (function (window, $) {
 
 	// #region ud2 库私有方法
 
-	// 为未命名控件生成ud2-id属性值
-	// 生成的id从编号0开始顺延
-	var createControlID = (function () {
+	
+	var // 为未命名控件生成ud2-id属性值
+		// 生成的id从编号0开始顺延
+		createControlID = (function () {
 
-		var // ID种子    子元素种子
-			idSeed = 0, subSeed = 0;
+			var // ID种子    子元素种子
+				idSeed = 0, subSeed = 0;
 
-		return function (subSeedName) {
-			if (subSeedName) {
-				return prefixLibName + subSeedName + '-' + subSeed++;
-			}
-			else {
-				return prefixLibName + idSeed++;
-			}
+			return function (subSeedName) {
+				if (subSeedName) {
+					return prefixLibName + subSeedName + '-' + subSeed++;
+				}
+				else {
+					return prefixLibName + idSeed++;
+				}
+			};
+
+		}()),
+		// 获取className的短写法
+		// cls[string]: 控件当前的类名
+		// return[function]: 返回当前控件用于生成className的方法
+		getClassName = function (cls) {
+			return function cn(str, point) {
+				str = str || '';
+				point = point === void 0 ? false : point;
+				return (point ? '.' : '') + cls + '-' + str;
+			};
 		};
 
-	}());
 	// 获取控件自定义项
 	// 调用此方法须通过call、apply方法传入control对象或调用对象
 	// (optNameArr, callbacks) 通过属性名数组，获取数组内的全部名称对应的属性，获取数序为control.userOptions、ud2-前缀元素属性、元素属性
@@ -2223,13 +2238,13 @@ var ud2 = (function (window, $) {
 		// 开启遮罩层
 		// caller[object]: 调用遮罩层的对象
 		function open(caller) {
-			if (callerAdd(caller)) $backmask.addClass('on');
+			if (callerAdd(caller)) $backmask.addClass(CSS_ON);
 			return backmaskObj;
 		}
 		// 关闭遮罩层
 		// caller[object]: 调用遮罩层的对象
 		function close(caller) {
-			if (callerRemove(caller) && !callerCollection.length) $backmask.removeClass('on');
+			if (callerRemove(caller) && !callerCollection.length) $backmask.removeClass(CSS_ON);
 			return backmaskObj;
 		}
 
@@ -2836,7 +2851,7 @@ var ud2 = (function (window, $) {
 		// #region 私有字段
 
 		var // 滚动对象
-			scrollObj = {},
+			scrollObj = {}, cls = prefixLibName + 'scroll', cn = getClassName(cls),
 			// 滚动选项
 			recountByResize, barState, barSize, barMinLength, barOffset, barColor, barColorOn,
 			barBorderRadiusState, hasHorizontal, hasVertical, isMouseWheelMode, isTouchMode,
@@ -2891,15 +2906,20 @@ var ud2 = (function (window, $) {
 				isScrollMode = options.isScrollMode;
 				mouseWheelLength = options.mouseWheelLength;
 				isSlowMovning = options.isSlowMovning;
+
+				// 判断传入的鼠标滚轮滚动长度是否符合要求
+				if (mouseWheelLength !== 'normal') {
+					mouseWheelLength = !type.isNaturalNumber(mouseWheelLength) ? 'normal' : parseInt(mouseWheelLength);
+				}
 			}),
 			// 滚动对象
 			$scroll = convertToJQ(elements),
 			// 滚动包裹容器
-			$wrapper = $div.clone().addClass(prefixLibName + 'scroll-wrapper'),
+			$wrapper = $div.clone().addClass(cn('wrapper')),
 			// 横滚动条
-			$barHorizontal = $div.clone().addClass(prefixLibName + 'scroll-bar'),
+			$barHorizontal = $div.clone().addClass(cn('bar')),
 			// 竖滚动条
-			$barVertical = $div.clone().addClass(prefixLibName + 'scroll-bar'),
+			$barVertical = $barHorizontal.clone(),
 			// 缓动
 			easing = {
 				quadratic: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
@@ -2979,7 +2999,7 @@ var ud2 = (function (window, $) {
 			// 滚动对象名称
 			SCROLL_NAME = 'scroll',
 			// 滚动状态标记属性
-			ATTRNAME_IS_SCROLL = prefixLibName + 'scroll-runing';
+			ATTRNAME_IS_SCROLL = cn('runing');
 
 		// #endregion
 
@@ -3428,7 +3448,7 @@ var ud2 = (function (window, $) {
 			var x = scrollData.now.x,
 				y = scrollData.now.y,
 				time = 300,
-				moveLen = options.mouseWheelLength;
+				moveLen = mouseWheelLength;
 
 			followerPosition();
 			getScrollData();
@@ -3541,10 +3561,6 @@ var ud2 = (function (window, $) {
 				$scroll = $scroll.eq(0);
 			}
 
-			// 判断传入的鼠标滚轮滚动长度是否符合要求
-			if (mouseWheelLength !== 'normal' && !type.isNaturalNumber(mouseWheelLength))
-				mouseWheelLength = 'normal';
-
 			// 对象内部集合
 			var $child = $scroll.contents();
 			// 如果内部对象集合长度为0(说明$scroll内容为空)，则把$wrapper元素插入到$scroll内
@@ -3553,7 +3569,7 @@ var ud2 = (function (window, $) {
 				$scroll.append($wrapper);
 			} else {
 				$child.wrapAll($wrapper);
-				$wrapper = $scroll.children(STR_POINT + prefixLibName + 'scroll-wrapper');
+				$wrapper = $scroll.children(cn('wrapper', 1));
 			}
 
 			// 延续scroll盒的padding值
@@ -3567,7 +3583,7 @@ var ud2 = (function (window, $) {
 				+ ' ' + $scroll.css('padding-left'));
 
 			// 对$scroll添加.ud2-scroll类(滚动条基础样式)
-			$scroll.addClass('ud2-scroll');
+			$scroll.addClass(cls);
 
 			// 添加滚动条并设置尺寸
 			if (hasVertical) {
@@ -3618,9 +3634,9 @@ var ud2 = (function (window, $) {
 	controlCreater('tabs', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className,
+			cls = collection.className, cn = getClassName(cls),
 			// 内容对象模版
-			$contentTemplate = $div.clone().addClass(cls + '-content'),
+			$contentTemplate = $div.clone().addClass(cn('content')),
 			// 替代文本常量
 			TYPE_TABS = 'tabs', TYPE_PAGE = TYPE_TABS + '.page', TYPE_PAGE_NAME = 'tabs-page';
 
@@ -3739,14 +3755,14 @@ var ud2 = (function (window, $) {
 				else {
 					isOpen = !!state;
 					if (isOpen) {
-						$tab.addClass('on');
-						$content.addClass('on');
-						$tabLink.addClass('on');
+						$tab.addClass(CSS_ON);
+						$content.addClass(CSS_ON);
+						$tabLink.addClass(CSS_ON);
 					}
 					else {
-						$tab.removeClass('on');
-						$content.removeClass('on');
-						$tabLink.removeClass('on');
+						$tab.removeClass(CSS_ON);
+						$content.removeClass(CSS_ON);
+						$tabLink.removeClass(CSS_ON);
 					}
 					return pageObj;
 				}
@@ -3804,8 +3820,8 @@ var ud2 = (function (window, $) {
 				btnClose = attrBoolCheck(btnClose, true);
 
 				// 生成选项和描述内容对象
-				$tab = $div.clone().addClass(cls + '-tab').attr('title', title).append($span.clone().html(title));
-				$tabLink = $div.clone().addClass(cls + '-menu-item').attr('title', title).append($span.clone().html(title));
+				$tab = $div.clone().addClass(cn('tab')).attr('title', title).append($span.clone().html(title));
+				$tabLink = $div.clone().addClass(cn('menu-item')).attr('title', title).append($span.clone().html(title));
 				$content = $contentTemplate.clone();
 				if (btnClose) {
 					$tab.append($ico.clone().addClass('ico-solid-cancel'));
@@ -3894,28 +3910,28 @@ var ud2 = (function (window, $) {
 					layout = options.layout;
 				}),
 				// 控件结构
-				template = '<div class="' + cls + '-bar"><div class="' + cls + '-bar-inner" /></div><div class="' + cls + '-main" />',
+				template = '<div class="' + cn('bar') + '"><div class="' + cn('bar-inner') + '" /></div><div class="' + cn('main') +'" />',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
 				$tabs = current.html(template),
 				// 选项滚动容器对象
-				$tabScroll = $tabs.children(STR_POINT + cls + '-bar'),
+				$tabScroll = $tabs.children(cn('bar', 1)),
 				// 选项容器对象
-				$tabBox = $tabs.find(STR_POINT + cls + '-bar-inner'),
+				$tabBox = $tabs.find(cn('bar-inner', 1)),
 				// 内容容器对象
-				$contentBox = $tabs.find(STR_POINT + cls + '-main'),
+				$contentBox = $tabs.find(cn('main', 1)),
 				// 目录对象
-				$menu = $('<div class="' + cls + '-menu"><div class="' + cls + '-menu-btn" />'
-					+ '<div class="' + cls + '-menu-list empty" ' + cls + '-empty="这里是空的"><div class="' + cls + '-menu-inner" /></div></div>'),
+				$menu = $('<div class="' + cn('menu') + '"><div class="' + cn('menu-btn') + '" />'
+					+ '<div class="' + cn('menu-list') + ' empty" ' + cn(CSS_EMPTY) + '="这里是空的"><div class="' + cn('menu-inner') + '" /></div></div>'),
 				// 事件遮罩
-				$mask = $('<div class="' + cls + '-mask" />'),
+				$mask = $('<div class="' + cn('mask') + '" />'),
 				// 目录按钮对象
 				$menuBtn = $menu.children(':first'),
 				// 目录容器对象
 				$menuScroll = $menu.children(':last'),
 				// 目录滚动容器对象
-				$menuBox = $menu.find(STR_POINT + cls + '-menu-inner'),
+				$menuBox = $menu.find(cn('menu-inner', 1)),
 				// 选项卡页对象集合
 				pageCollection = [],
 				// 目录列表容器滚动条对象
@@ -3933,10 +3949,10 @@ var ud2 = (function (window, $) {
 			// direction[ud2.select.direction]: 方向值
 			function setLayout(layoutNo) {
 				// 移除旧CSS属性
-				if (layout === 0) $tabs.removeClass(cls + '-top');
-				if (layout === 1) $tabs.removeClass(cls + '-bottom');
-				if (layout === 2) $tabs.removeClass(cls + '-left');
-				if (layout === 3) $tabs.removeClass(cls + '-right');
+				if (layout === 0) $tabs.removeClass(cn('top'));
+				if (layout === 1) $tabs.removeClass(cn('bottom'));
+				if (layout === 2) $tabs.removeClass(cn('left'));
+				if (layout === 3) $tabs.removeClass(cn('right'));
 
 				// 加入新CSS属性
 				switch (layoutNo) {
@@ -3945,28 +3961,28 @@ var ud2 = (function (window, $) {
 					case '0':
 					case 0: {
 						layout = 0;
-						$tabs.addClass(cls + '-top');
+						$tabs.addClass(cn('top'));
 						break;
 					}
 					case 'bottom':
 					case '1':
 					case 1: {
 						layout = 1;
-						$tabs.addClass(cls + '-bottom');
+						$tabs.addClass(cn('bottom'));
 						break;
 					}
 					case 'left':
 					case '2':
 					case 2: {
 						layout = 2;
-						$tabs.addClass(cls + '-left');
+						$tabs.addClass(cn('left'));
 						break;
 					}
 					case 'right':
 					case '3':
 					case 3: {
 						layout = 3;
-						$tabs.addClass(cls + '-right');
+						$tabs.addClass(cn('right'));
 						break;
 					}
 				}
@@ -4039,7 +4055,7 @@ var ud2 = (function (window, $) {
 			function analysisElements() {
 				if (!control.origin.length) return;
 
-				var selector = '[' + cls + '-page]',
+				var selector = '[' + cn('page') + ']',
 					$pages = control.origin.children(selector),
 					i = 0, l = $pages.length,
 					p, type, title, name, content, btnClose, openState;
@@ -4105,7 +4121,7 @@ var ud2 = (function (window, $) {
 					}
 					// 清除空选项样式
 					if (pageCollection.length === 1) {
-						$menuScroll.removeClass('empty');
+						$menuScroll.removeClass(CSS_EMPTY);
 					}
 
 					// 绑定事件
@@ -4140,7 +4156,7 @@ var ud2 = (function (window, $) {
 
 					if (pageCollection.length === 1) {
 						pageOpenNow = null;
-						$menuScroll.addClass('empty');
+						$menuScroll.addClass(CSS_EMPTY);
 					}
 					else {
 						moveScroll(pageOpenNow);
@@ -4192,11 +4208,11 @@ var ud2 = (function (window, $) {
 
 			// 目录关闭
 			function menuClose() {
-				$menu.removeClass('on');
+				$menu.removeClass(CSS_ON);
 			}
 			// 目录开关
 			function menuToggle() {
-				$menu.toggleClass('on');
+				$menu.toggleClass(CSS_ON);
 			}
 
 			// 事件绑定
@@ -4252,7 +4268,7 @@ var ud2 = (function (window, $) {
 				// 如果目录存在，加入目录对象
 				if (isMenu) $tabs.prepend($menu);
 				// 是否填满父层
-				if (isFull) $tabs.addClass(cls + '-full');
+				if (isFull) $tabs.addClass(cn('full'));
 				// 加入遮罩
 				$tabs.append($mask);
 
@@ -4286,7 +4302,7 @@ var ud2 = (function (window, $) {
 	controlCreater('page', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className;
+			cls = collection.className, cn = getClassName(cls);
 
 		// 选项卡页类型
 		constructor.layout = {
@@ -4334,10 +4350,10 @@ var ud2 = (function (window, $) {
 					layout = options.layout;
 				}),
 				// 控件结构
-				template = '<a class="btn" ' + cls + '-fn="0"><i class="ico">&#xec00;</i><span>首页</span></a>'
-					+ '<a class="btn" ' + cls + '-fn="1"><i class="ico">&#xec01;</i><span>上页</span></a>'
-					+ '<a class="btn" ' + cls + '-fn="2"><span>下页</span><i class="ico">&#xec02;</i></a>'
-					+ '<a class="btn" ' + cls + '-fn="3"><span>末页</span><i class="ico">&#xec03;</i></a>',
+				template = '<a class="btn" ' + cn('fn') + '="0"><i class="ico">&#xec00;</i><span>首页</span></a>'
+					+ '<a class="btn" ' + cn('fn') + '="1"><i class="ico">&#xec01;</i><span>上页</span></a>'
+					+ '<a class="btn" ' + cn('fn') + '="2"><span>下页</span><i class="ico">&#xec02;</i></a>'
+					+ '<a class="btn" ' + cn('fn') + '="3"><span>末页</span><i class="ico">&#xec03;</i></a>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -4363,17 +4379,17 @@ var ud2 = (function (window, $) {
 
 			// 创建页码
 			function linksCreate() {
-				var links = [], i, $num = $page.find('[' + cls + '-num]');
+				var links = [], i, $num = $page.find('[' + cn('num') + ']');
 				$num.remove();
 				if (layout === 0) return;
 				if (eventNum) { eventNum.off(); }
-				for (i = show; i >= 1; i--) if (now - i > 0) links.push('<a class="btn btn-solid" ' + cls + '-num="' + (now - i) + '">' + (now - i) + '</a>');
-				links.push('<a class="btn" ' + cls + '-num="' + now + '" ' + cls + '-now>' + now + '</a>');
-				for (i = 1; i <= show; i++) if (now + i <= max) links.push('<a class="btn btn-solid" ' + cls + '-num="' + (now + i) + '">' + (now + i) + '</a>');
+				for (i = show; i >= 1; i--) if (now - i > 0) links.push('<a class="btn btn-solid" ' + cn('num') + '="' + (now - i) + '">' + (now - i) + '</a>');
+				links.push('<a class="btn" ' + cn('num') + '="' + now + '" ' + cn('now') + '>' + now + '</a>');
+				for (i = 1; i <= show; i++) if (now + i <= max) links.push('<a class="btn btn-solid" ' + cn('num') + '="' + (now + i) + '">' + (now + i) + '</a>');
 				$btns.eq(1).after(links.join(''));
-				$num = $page.find('[' + cls + '-num]');
+				$num = $page.find('[' + cn('num') + ']');
 				eventNum = event($num).setTap(function () {
-					var pageNum = this.attr(cls + '-num');
+					var pageNum = this.attr(cn('num'));
 					btnChange(pageNum);
 				});
 			}
@@ -4573,7 +4589,7 @@ var ud2 = (function (window, $) {
 			// 事件绑定
 			function bindEvent() {
 				event($btns).setTap(function () {
-					var index = parseInt(this.attr(cls + '-fn'));
+					var index = parseInt(this.attr(cn('fn')));
 					switch (index) {
 						case 0: { btnChange(1); break; }
 						case 1: { btnChange(now - 1); break; }
@@ -4652,7 +4668,7 @@ var ud2 = (function (window, $) {
 	controlCreater('datagrid', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className,
+			cls = collection.className, cn = getClassName(cls),
 			// 单元格对齐方式
 			cellAlign = {
 				left: 0,
@@ -4718,18 +4734,18 @@ var ud2 = (function (window, $) {
 					initRows();
 				}),
 				// 控件结构
-				template = '<div class="' + cls + '-left">'
-					+ '<div class="' + cls + '-header"><div class="' + cls + '-grid" /></div>'
-					+ '<div class="' + cls + '-content"><div class="' + cls + '-grid" /></div>'
-					+ '<div class="' + cls + '-footer"><div class="' + cls + '-grid" /></div></div>'
-					+ '<div class="' + cls + '-right">'
-					+ '<div class="' + cls + '-header"><div class="' + cls + '-grid" /></div>'
-					+ '<div class="' + cls + '-content"><div class="' + cls + '-grid" /></div>'
-					+ '<div class="' + cls + '-footer"><div class="' + cls + '-grid" /></div></div>'
-					+ '<div class="' + cls + '-center">'
-					+ '<div class="' + cls + '-header"><div class="' + cls + '-grid" /></div>'
-					+ '<div class="' + cls + '-content"><div class="' + cls + '-grid" /></div>'
-					+ '<div class="' + cls + '-footer"><div class="' + cls + '-grid" /></div></div>',
+				template = '<div class="' + cn('left') + '">'
+					+ '<div class="' + cn('header') + '"><div class="' + cn('grid') + '" /></div>'
+					+ '<div class="' + cn('content') + '"><div class="' + cn('grid') + '" /></div>'
+					+ '<div class="' + cn('footer') + '"><div class="' + cn('grid') + '" /></div></div>'
+					+ '<div class="' + cn('right') + '">'
+					+ '<div class="' + cn('header') + '"><div class="' + cn('grid') + '" /></div>'
+					+ '<div class="' + cn('content') + '"><div class="' + cn('grid') + '" /></div>'
+					+ '<div class="' + cn('footer') + '"><div class="' + cn('grid') + '" /></div></div>'
+					+ '<div class="' + cn('center') + '">'
+					+ '<div class="' + cn('header') + '"><div class="' + cn('grid') + '" /></div>'
+					+ '<div class="' + cn('content') + '"><div class="' + cn('grid') + '" /></div>'
+					+ '<div class="' + cn('footer') + '"><div class="' + cn('grid') + '" /></div></div>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -4764,9 +4780,9 @@ var ud2 = (function (window, $) {
 				$centerContentGrid = $centerContent.children(),
 				$centerFooterGrid = $centerFooter.children(),
 				// 空行，用于克隆
-				$emptyRow = $div.clone().addClass(cls + '-row'),
+				$emptyRow = $div.clone().addClass(cn('row')),
 				// 空单元格，用于克隆
-				$emptyCell = $div.clone().addClass(cls + '-cell'),
+				$emptyCell = $div.clone().addClass(cn('cell')),
 				// 滚动条控件	
 				leftScroll, rightScroll, topScroll, bottomScroll, contentScroll;
 
@@ -4988,6 +5004,7 @@ var ud2 = (function (window, $) {
 				var // 宽度累计
 					wc = 0, wl = 0, wr = 0;
 
+				// 获取列的宽度
 				columnsInfo.forEach(function (obj) {
 					obj.widthNow = obj.width;
 					switch (obj.mode) {
@@ -5008,6 +5025,7 @@ var ud2 = (function (window, $) {
 					// 居左统计
 					cl = 0;
 
+				// 获取弹性单元格
 				columnsInfo.forEach(function (obj) {
 					if (obj.mode === 1) {
 						fw += obj.width;
@@ -5017,7 +5035,7 @@ var ud2 = (function (window, $) {
 						nw += obj.width;
 					}
 				});
-
+				// 计算弹性单元格的宽度
 				fp = (topWidth - nw) / fw;
 				fw = 0;
 				flexCell.forEach(function (obj) {
@@ -5026,14 +5044,14 @@ var ud2 = (function (window, $) {
 					obj.widthNow = gw;
 					fw += gw;
 				});
-
+				// 计算列的定位
 				columnsInfo.forEach(function (obj) {
 					if (obj.mode === 0 || obj.mode === 1) {
 						obj.cellLeft = cl;
 						cl += obj.widthNow;
 					}
 				});
-
+				// 重新设置主内容区域grid容器宽度
 				$centerContentGrid.css('width', fw + nw);
 			}
 			// 创建网格元素
@@ -5107,8 +5125,7 @@ var ud2 = (function (window, $) {
 						hasVertical: true,
 						isTouchMode: false,
 						isMouseWheelMode: false,
-						isScrollMode: false,
-						recountByResize: true
+						isScrollMode: false
 					},
 					// 首尾滚动条参数
 					tbScrollOption = {
@@ -5117,8 +5134,7 @@ var ud2 = (function (window, $) {
 						hasVertical: false,
 						isTouchMode: false,
 						isMouseWheelMode: false,
-						isScrollMode: false,
-						recountByResize: true
+						isScrollMode: false
 					};
 
 				// 创建滚动条
@@ -5215,11 +5231,11 @@ var ud2 = (function (window, $) {
 	controlCreater('dialog', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className,
+			cls = collection.className, cn = getClassName(cls),
 			// 对话框基础内容对象
-			$dialogBaseContent = $('<div class="' + cls + '-built"><table><tr><td></td></tr></table></div>'),
+			$dialogBaseContent = $('<div class="' + cn('built') + '"><table><tr><td></td></tr></table></div>'),
 			// 对话框基础页脚内容对象
-			$dialogBaseFooter = $('<div class="' + cls + '-footer"><a class="btn">确 定</a><a class="btn">取 消</a></div>');
+			$dialogBaseFooter = $('<div class="' + cn('footer') + '"><a class="btn">确 定</a><a class="btn">取 消</a></div>');
 
 		// 对话框参数处理方法
 		// (option)
@@ -5358,9 +5374,9 @@ var ud2 = (function (window, $) {
 					btnClose = attrBoolCheck(options.btnClose, true);
 				}),
 				// 控件结构
-				template = '<div class="' + cls + '-header">' + title + '</div>'
-					+ '<div class="' + cls + '-body"></div>'
-					+ '<a class="' + cls + '-close ico">&#xed1f;</a>',
+				template = '<div class="' + cn('header') + '">' + title + '</div>'
+					+ '<div class="' + cn('body') + '"></div>'
+					+ '<a class="' + cn('close') + ' ico">&#xed1f;</a>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -5424,7 +5440,7 @@ var ud2 = (function (window, $) {
 					openState = true;
 					animateLock = true;
 					backmask.open(control.public);
-					window.setTimeout(function () { $dialog.addClass('on'); }, 10);
+					window.setTimeout(function () { $dialog.addClass(CSS_ON); }, 10);
 					window.setTimeout(function () { animateLock = false; }, 310);
 					controlCallbacks.open.call(control.public);
 				}
@@ -5437,7 +5453,7 @@ var ud2 = (function (window, $) {
 					openState = false;
 					animateLock = true;
 					backmask.close(control.public);
-					window.setTimeout(function () { $dialog.removeClass('on'); }, 10);
+					window.setTimeout(function () { $dialog.removeClass(CSS_ON); }, 10);
 					window.setTimeout(function () { animateLock = false; }, 310);
 					controlCallbacks.close.call(control.public);
 				}
@@ -5781,7 +5797,7 @@ var ud2 = (function (window, $) {
 					}
 
 					control.public.data = { tb: tb };
-					$message.css(css).addClass('on');
+					$message.css(css).addClass(CSS_ON);
 					controlCallbacks.open.call(control.public);
 
 					if (closeTime !== -1 && autoSwitch) {
@@ -5815,7 +5831,7 @@ var ud2 = (function (window, $) {
 					}
 
 					showBox[position].splice(index, 1);
-					$message.removeClass('on');
+					$message.removeClass(CSS_ON);
 					controlCallbacks.close.call(control.public);
 				}
 
@@ -5940,7 +5956,7 @@ var ud2 = (function (window, $) {
 	controlCreater('switch', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className,
+			cls = collection.className, cn = getClassName(cls),
 			// checked状态常量
 			CHECKED = 'checked';
 
@@ -5951,7 +5967,7 @@ var ud2 = (function (window, $) {
 			var // 默认值(1:开启, 0:关闭) 是否禁用 开关颜色
 				value, isDisabled, color,
 				// 获取用户自定义项
-				options = control.getOptions(['value', ['disabled', 'isDisabled'], 'color'], function (options) {
+				options = control.getOptions([CSS_VALUE, [CSS_DISABLED, 'isDisabled'], 'color'], function (options) {
 					// 默认值
 					value = parseInt(options.value) === 1 ? 1 : 0;
 					// 默认是否禁用
@@ -6027,10 +6043,10 @@ var ud2 = (function (window, $) {
 					if (isDisabled !== state) {
 						isDisabled = !!state;
 						if (state) {
-							$switch.attr(cls + '-disabled', 'true');
+							$switch.attr(cn(CSS_DISABLED), 'true');
 						}
 						else {
-							$switch.removeAttr(cls + '-disabled');
+							$switch.removeAttr(cn(CSS_DISABLED));
 						}
 					}
 					return control.public;
@@ -6127,7 +6143,7 @@ var ud2 = (function (window, $) {
 				if (value === 1) $switch.addClass(CHECKED);
 				$value.val(value);
 				// 设置默认禁用状态
-				if (isDisabled) $switch.attr(cls + '-disabled', true);
+				if (isDisabled) $switch.attr(cn(CSS_DISABLED), true);
 
 				// 事件绑定
 				bindEvent();
@@ -6159,7 +6175,7 @@ var ud2 = (function (window, $) {
 	controlCreater('select', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className,
+			cls = collection.className, cn = getClassName(cls),
 			// 替代文本常量
 			TYPE_SELECT = 'select', TYPE_GROUP = TYPE_SELECT + '.group', TYPE_OPTION = TYPE_SELECT + '.option';
 
@@ -6210,13 +6226,13 @@ var ud2 = (function (window, $) {
 					if (isDisabled !== state) {
 						isDisabled = !!state;
 						if (state) {
-							$group.attr(cls + '-disabled', 'true');
+							$group.attr(cn(CSS_DISABLED), 'true');
 							if (j = options.length, j !== 0) {
 								for (i = 0; i < j; i++) groupObj.select.valOption(options[i], 0);
 							}
 						}
 						else {
-							$group.removeAttr(cls + '-disabled');
+							$group.removeAttr(cn(CSS_DISABLED));
 						}
 					}
 					return groupObj;
@@ -6305,9 +6321,9 @@ var ud2 = (function (window, $) {
 				// 创建选项组内容元素
 				$group = $div.clone()
 					.attr('title', label)
-					.addClass(cls + '-group');
+					.addClass(cn('group'));
 				// 设置禁用状态
-				if (isDisabled) $group.attr(cls + '-disabled', 'true');
+				if (isDisabled) $group.attr(cn(CSS_DISABLED), 'true');
 			}());
 
 			// 返回
@@ -6372,7 +6388,7 @@ var ud2 = (function (window, $) {
 			function valueOperate(text) {
 				if (text !== void 0) {
 					value = String(text);
-					$option.attr(cls + '-value', value);
+					$option.attr(cn(CSS_VALUE), value);
 					return optionObj;
 				}
 				else {
@@ -6391,11 +6407,11 @@ var ud2 = (function (window, $) {
 					if (state && !isDisabled
 						&& (optionObj.group === null || optionObj.group !== null && !optionObj.group.disabled())) {
 						isSelected = true;
-						$option.addClass('on');
+						$option.addClass(CSS_ON);
 					}
 					else {
 						isSelected = false;
-						$option.removeClass('on');
+						$option.removeClass(CSS_ON);
 					}
 					return optionObj;
 				}
@@ -6415,7 +6431,7 @@ var ud2 = (function (window, $) {
 					// 判断禁用情况
 					if (state) {
 						isDisabled = true;
-						$option.attr(cls + '-disabled', 'true');
+						$option.attr(cn(CSS_DISABLED), 'true');
 						if (isSelected) {
 							// 此项顺序不可调换
 							if (optionObj.select !== null) optionObj.select.valOption(optionObj, false);
@@ -6423,7 +6439,7 @@ var ud2 = (function (window, $) {
 					}
 					else {
 						isDisabled = false;
-						$option.removeAttr(cls + '-disabled');
+						$option.removeAttr(cn(CSS_DISABLED));
 					}
 					return optionObj;
 				}
@@ -6500,10 +6516,10 @@ var ud2 = (function (window, $) {
 				$option = $a.clone()
 					.html(label)
 					.attr('title', label)
-					.attr(cls + '-value', value)
-					.addClass(cls + '-option');
+					.attr(cn(CSS_VALUE), value)
+					.addClass(cn('option'));
 				// 设置禁用状态
-				if (isDisabled) $option.attr(cls + '-disabled', 'true');
+				if (isDisabled) $option.attr(cn(CSS_DISABLED), 'true');
 				// 设置选中状态
 				if (isSelected) selectedOperate(true);
 
@@ -6572,8 +6588,8 @@ var ud2 = (function (window, $) {
 					dir = options.dir;
 				}),
 				// 控件结构
-				template = '<div class="' + cls + '-put"><a class="' + cls + '-btn" /><i class="ud2-ctrl-arrow" /></div>'
-					+ '<div class="' + cls + '-list" />'
+				template = '<div class="' + cn('put') + '"><a class="' + cn('btn') + '" /><i class="ud2-ctrl-arrow" /></div>'
+					+ '<div class="' + cn('list') + '" />'
 					+ '<input type="checkbox" /><input type="hidden" />',
 				// 获取初始化的控件对象
 				current = control.current,
@@ -6623,7 +6639,7 @@ var ud2 = (function (window, $) {
 					case '1':
 					case 1: {
 						dir = 1;
-						$select.removeClass(cls + '-dir-down').addClass(cls + '-dir-up');
+						$select.removeClass(cn('dir-down')).addClass(cn('dir-up'));
 						break;
 					}
 					default:
@@ -6631,7 +6647,7 @@ var ud2 = (function (window, $) {
 					case '0':
 					case 0: {
 						dir = 0;
-						$select.removeClass(cls + '-dir-up').addClass(cls + '-dir-down');
+						$select.removeClass(cn('dir-up')).addClass(cn('-dir-down'));
 						break;
 					}
 				}
@@ -6646,20 +6662,20 @@ var ud2 = (function (window, $) {
 			// text[string]: 待设置的文本
 			function setEmptyText(text) {
 				emptyText = text;
-				getContent().attr(cls + '-empty', emptyText);
+				getContent().attr(cn(CSS_EMPTY), emptyText);
 			}
 			// 解析原选项控件内的全部组对象
 			function analysisGroups() {
 				if (!control.origin.length) return;
 
-				var groupsSelector = 'optgroup, [' + cls + '-optgroup]',
+				var groupsSelector = 'optgroup, [' + cn('optgroup') + ']',
 					$groups = control.origin.children(groupsSelector);
 				analysisOptions();
 				for (var i = 0, l = $groups.length, group; i < l; i++) {
 					var $group = $groups.eq(i),
-						name = $group.attr('label') || $group.attr(cls + '-label') || '',
-						disabled = !!($group.attr('disabled') !== void 0 && $group.attr('disabled') !== 'false'
-							|| $group.attr(cls + '-disabled') !== void 0 && $group.attr(cls + '-disabled') !== 'false');
+						name = $group.attr('label') || $group.attr(cn('label')) || '',
+						disabled = !!($group.attr(CSS_DISABLED) !== void 0 && $group.attr(CSS_DISABLED) !== 'false'
+							|| $group.attr(cn(CSS_DISABLED)) !== void 0 && $group.attr(cn(CSS_DISABLED)) !== 'false');
 					group = constructor.group(name, disabled);
 					groupAdd(group);
 					analysisOptions(group, $group);
@@ -6670,17 +6686,17 @@ var ud2 = (function (window, $) {
 			// $group[jQuery]: 待解析的选项组内容对象
 			function analysisOptions(group, $group) {
 				var noGroup = group === void 0,
-					optionsSelector = 'option, [' + cls + '-option]',
+					optionsSelector = 'option, [' + cn('option') + ']',
 					$options = noGroup ? control.origin.children(optionsSelector) : $group.children(optionsSelector);
 
 				for (var i = 0, l = $options.length, option; i < l; i++) {
 					var $select = $options.eq(i),
 						name = $options.eq(i).html(),
-						val = $options.eq(i).val() || $options.eq(i).attr('value') || $options.eq(i).attr(cls + '-value'),
-						disabled = !!($options.eq(i).attr('disabled') !== void 0 && $options.eq(i).attr('disabled') !== 'false'
-							|| $options.eq(i).attr(cls + '-disabled') !== void 0 && $options.eq(i).attr(cls + '-disabled') !== 'false'),
-						selected = !!($options.eq(i).attr('selected') !== void 0 && $options.eq(i).attr('selected') !== 'false'
-							|| $options.eq(i).attr(cls + '-selected') !== void 0 && $options.eq(i).attr(cls + '-selected') !== 'false');
+						val = $options.eq(i).val() || $options.eq(i).attr(CSS_VALUE) || $options.eq(i).attr(cn(CSS_VALUE)),
+						disabled = !!($options.eq(i).attr(CSS_DISABLED) !== void 0 && $options.eq(i).attr(CSS_DISABLED) !== 'false'
+							|| $options.eq(i).attr(cn(CSS_DISABLED)) !== void 0 && $options.eq(i).attr(cn(CSS_DISABLED)) !== 'false'),
+						selected = !!($options.eq(i).attr(CSS_SELECTED) !== void 0 && $options.eq(i).attr(CSS_SELECTED) !== 'false'
+							|| $options.eq(i).attr(cn(CSS_SELECTED)) !== void 0 && $options.eq(i).attr(cn(CSS_SELECTED)) !== 'false');
 
 					option = constructor.option(name, val, disabled, selected);
 					if (noGroup) {
@@ -6802,7 +6818,7 @@ var ud2 = (function (window, $) {
 			function open() {
 				if (!isOpen) {
 					isOpen = true;
-					$select.addClass('on').focus();
+					$select.addClass(CSS_ON).focus();
 					recountHeight();
 					if (isMoveSelected) moveToSelected();
 
@@ -6815,7 +6831,7 @@ var ud2 = (function (window, $) {
 			function close() {
 				if (isOpen) {
 					isOpen = false;
-					$select.removeClass('on');
+					$select.removeClass(CSS_ON);
 
 					controlCallbacks.close.call(control.public);
 				}
@@ -6902,10 +6918,10 @@ var ud2 = (function (window, $) {
 						}
 
 						if (optionValueCollection.length === 0) {
-							$btn.removeAttr(cls + '-value').html(placeholder);
+							$btn.removeAttr(cn(CSS_VALUE)).html(placeholder);
 						}
 						else {
-							$btn.attr(cls + '-value', true).html(optionValueCollection.length + '个项目');
+							$btn.attr(cn(CSS_VALUE), true).html(optionValueCollection.length + '个项目');
 						}
 					}
 					else {
@@ -6919,12 +6935,12 @@ var ud2 = (function (window, $) {
 
 						// 如果强制取消选中
 						if (isHave > -1 && isSelectedExist && !isSelected) {
-							$btn.removeAttr(cls + '-value').html(placeholder);
+							$btn.removeAttr(cn(CSS_VALUE)).html(placeholder);
 						}
 						else {
 							option.selected(1);
 							optionValueCollection.push(option);
-							$btn.attr(cls + '-value', true).html(option.label());
+							$btn.attr(cn(CSS_VALUE), true).html(option.label());
 						}
 					}
 
@@ -7116,7 +7132,7 @@ var ud2 = (function (window, $) {
 					barColor: 'rgba(0,0,0,.2)',
 					barColorOn: 'rgba(0,0,0,.4)'
 				});
-				getContent().attr(cls + '-empty', emptyText);
+				getContent().attr(cn(CSS_EMPTY), emptyText);
 
 				// 设置自动关闭方法
 				control.autoClose = close;
@@ -7172,7 +7188,7 @@ var ud2 = (function (window, $) {
 	controlCreater('number', function (collection) {
 
 		var // className存于变量
-			cls = collection.className;
+			cls = collection.className, cn = getClassName(cls);
 
 		// 重写集合初始化方法
 		collection.init = function (control) {
@@ -7182,7 +7198,7 @@ var ud2 = (function (window, $) {
 			var // 步长, 步长位数, 最小值, 最大值, 值
 				step, stepDigit, min, max, value,
 				// 获取用户自定义项
-				options = control.getOptions(['step', 'min', 'max', 'value'], function (options) {
+				options = control.getOptions(['step', 'min', 'max', CSS_VALUE], function (options) {
 					// 处理步长
 					step = parseFloat(options.step);
 					if (isNaN(step) || step === 0) step = 1;
@@ -7202,9 +7218,9 @@ var ud2 = (function (window, $) {
 					else stepDigit = 0;
 				}),
 				// 控件结构
-				template = '<a class="' + cls + '-ico ud2-ctrl-ico">&#xe106;</a>'
-					+ '<div class="' + cls + '-move"><input type="text" value="0" class="ud2-ctrl-textbox" /></div>'
-					+ '<a class="' + cls + '-ico ud2-ctrl-ico">&#xe107;</a>',
+				template = '<a class="' + cn('ico') + ' ud2-ctrl-ico">&#xe106;</a>'
+					+ '<div class="' + cn('move') + '"><input type="text" value="0" class="ud2-ctrl-textbox" /></div>'
+					+ '<a class="' + cn('ico') + ' ud2-ctrl-ico">&#xe107;</a>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -7258,8 +7274,8 @@ var ud2 = (function (window, $) {
 				var // 临时容器标签
 					tInput = '<input class="ud2-ctrl-textbox" />',
 					// 建立临时容器
-					$tempL = $div.clone().addClass(cls + '-view').html(tInput),
-					$tempR = $div.clone().addClass(cls + '-view').html(tInput),
+					$tempL = $div.clone().addClass(cn('view')).html(tInput),
+					$tempR = $div.clone().addClass(cn('view')).html(tInput),
 					// 获取父容器
 					$parent = $value.parent(),
 					// 用于存储动画容器
@@ -7361,11 +7377,11 @@ var ud2 = (function (window, $) {
 				$value.focus(function () {
 					eventKeyObj.on();
 					callbacks.ctrlClose.fire($number);
-					$number.addClass('on');
+					$number.addClass(CSS_ON);
 				}).blur(function () {
 					eventKeyObj.off();
 					setValue($value.val());
-					$number.removeClass('on');
+					$number.removeClass(CSS_ON);
 				});
 			}
 
@@ -7407,7 +7423,7 @@ var ud2 = (function (window, $) {
 	controlCreater('range', function (collection) {
 
 		var // className存于变量
-			cls = collection.className;
+			cls = collection.className, cn = getClassName(cls);
 
 		// 重写集合初始化方法
 		collection.init = function (control) {
@@ -7418,7 +7434,7 @@ var ud2 = (function (window, $) {
 				both, step, stepDigit, min, max, valueLeft, valueRight,
 				// 获取用户自定义项
 				options = control.getOptions([
-					['both', 'isBoth'], 'min', 'max', 'value', 'step'
+					['both', 'isBoth'], 'min', 'max', CSS_VALUE, 'step'
 				], function (options) {
 					var v;
 					// 处理步长
@@ -7446,7 +7462,7 @@ var ud2 = (function (window, $) {
 				// 控件结构
 				template = '<input type="text" maxlength="20" class="ud2-ctrl-textbox" />'
 					+ '<div class="ud2-ctrl-power"><i class="ico ico-range-x"></i><i class="ico ico-solid-cancel"></i></div>'
-					+ '<div class="' + cls + '-list"><div class="' + cls + '-end" /><div class="' + cls + '-back" /></div>',
+					+ '<div class="' + cn('list') + '"><div class="' + cn('end') + '" /><div class="' + cn('back') + '" /></div>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -7458,11 +7474,11 @@ var ud2 = (function (window, $) {
 				// 列表容器
 				$list = $power.next(),
 				// 左侧拖拽手柄
-				$left = $a.clone().addClass(cls + '-hand'),
+				$left = $a.clone().addClass(cn('hand')),
 				// 右侧拖拽手柄
-				$right = $a.clone().addClass(cls + '-hand'),
+				$right = $left.clone(),
 				// 按钮背景
-				$back = $list.find(STR_POINT + cls + '-back'),
+				$back = $list.find(cn('back', 1)),
 				// 处理信息数据
 				handleInfo = {
 					// 按钮的最大位移
@@ -7601,7 +7617,7 @@ var ud2 = (function (window, $) {
 					updateHandleInfoValue();
 
 					isOpen = true;
-					$range.addClass('on');
+					$range.addClass(CSS_ON);
 					$power.addClass(prefixLibName + 'ctrl-power-on');
 
 					eventKeyObj.on();
@@ -7615,7 +7631,7 @@ var ud2 = (function (window, $) {
 			function close() {
 				if (isOpen) {
 					isOpen = false;
-					$range.removeClass('on');
+					$range.removeClass(CSS_ON);
 					$power.removeClass(prefixLibName + 'ctrl-power-on');
 
 					eventKeyObj.off();
@@ -7817,7 +7833,7 @@ var ud2 = (function (window, $) {
 	controlCreater('date', function (collection) {
 
 		var // className存于变量
-			cls = collection.className,
+			cls = collection.className, cn = getClassName(cls),
 			// 提示字符串
 			STR_TIPS = ['上一年', '下一年', '上个月', '下个月', '前12年', '后12年', '年份选择', '返回日期选择'],
 			// 星期字符串
@@ -7837,7 +7853,7 @@ var ud2 = (function (window, $) {
 			var // 初始化默认文本  预格式化公式  日期值
 				placeholder, format, dateValue,
 				// 获取用户自定义项
-				options = control.getOptions(['placeholder', 'format', 'value'], function (options) {
+				options = control.getOptions(['placeholder', 'format', CSS_VALUE], function (options) {
 					// 初始化默认文本
 					placeholder = options.placeholder || '请选择日期';
 					// 初始化格式化选项
@@ -7905,20 +7921,20 @@ var ud2 = (function (window, $) {
 				// 控件结构
 				template = '<input type="text" placeholder="' + placeholder + '" maxlength="20" class="ud2-ctrl-textbox" />'
 					+ '<span class="ud2-ctrl-power"><i class="ico ico-calendar"></i><i class="ico ico-solid-cancel"></i></span>'
-					+ '<div class="' + cls + '-list">'
+					+ '<div class="' + cn('list') + '">'
 
 					// 日期列表
-					+ '<div class="' + cls + '-datelist"><div class="' + cls + '-tools">'
-					+ '<div class="' + cls + '-tools-left"><a class="ico" title="' + STR_TIPS[0] + '">&#xec00;</a><a class="ico" title="' + STR_TIPS[2] + '">&#xec01;</a></div>'
-					+ '<div class="' + cls + '-tools-right"><a class="ico" title="' + STR_TIPS[3] + '">&#xec02;</a><a class="ico" title="' + STR_TIPS[1] + '">&#xec03;</a></div>'
-					+ '<div class="' + cls + '-tools-text" title="' + STR_TIPS[6] + '">- 年 - 月</div>'
-					+ '</div><table /><div class="' + cls + '-btns"><button class="btn sm" tabindex="-1">今日</button> <button class="btn sm" tabindex="-1">清空</button></div></div>'
+					+ '<div class="' + cn('datelist') + '"><div class="' + cn('tools') + '">'
+					+ '<div class="' + cn('tools-left') + '"><a class="ico" title="' + STR_TIPS[0] + '">&#xec00;</a><a class="ico" title="' + STR_TIPS[2] + '">&#xec01;</a></div>'
+					+ '<div class="' + cn('tools-right') + '"><a class="ico" title="' + STR_TIPS[3] + '">&#xec02;</a><a class="ico" title="' + STR_TIPS[1] + '">&#xec03;</a></div>'
+					+ '<div class="' + cn('tools-text') + '" title="' + STR_TIPS[6] + '">- 年 - 月</div>'
+					+ '</div><table /><div class="' + cn('btns') + '"><button class="btn sm" tabindex="-1">今日</button> <button class="btn sm" tabindex="-1">清空</button></div></div>'
 					// 时间列表
-					+ '<div class="' + cls + '-ymlist"><div class="' + cls + '-tools">'
-					+ '<div class="' + cls + '-tools-left"><a class="ico" title="' + STR_TIPS[4] + '">&#xec00;</a></div>'
-					+ '<div class="' + cls + '-tools-right"><a class="ico" title="' + STR_TIPS[5] + '">&#xec03;</a></div>'
-					+ '<div class="' + cls + '-tools-text" title="' + STR_TIPS[7] + '">年份 / 月份</div>'
-					+ '</div><table /><div class="' + cls + '-btns"><button class="btn sm" tabindex="-1">确定</button></div></div>'
+					+ '<div class="' + cn('ymlist') + '"><div class="' + cn('tools') + '">'
+					+ '<div class="' + cn('tools-left') + '"><a class="ico" title="' + STR_TIPS[4] + '">&#xec00;</a></div>'
+					+ '<div class="' + cn('tools-right') + '"><a class="ico" title="' + STR_TIPS[5] + '">&#xec03;</a></div>'
+					+ '<div class="' + cn('tools-text') + '" title="' + STR_TIPS[7] + '">年份 / 月份</div>'
+					+ '</div><table /><div class="' + cn('btns') + '"><button class="btn sm" tabindex="-1">确定</button></div></div>'
 
 					+ '</div>',
 				// 获取初始化的控件对象
@@ -7930,17 +7946,17 @@ var ud2 = (function (window, $) {
 				// 开关容器
 				$power = $value.next(),
 				// 日期容器
-				$listDate = $date.find(STR_POINT + cls + '-datelist'),
+				$listDate = $date.find(cn('datelist', 1)),
 				// 年份月份容器
-				$listYM = $date.find(STR_POINT + cls + '-ymlist'),
+				$listYM = $date.find(cn('ymlist', 1)),
 				// 日期文本容器 
-				$textDate = $date.find(STR_POINT + cls + '-tools-text'),
+				$textDate = $date.find(cn('tools-text', 1)),
 				// 年月文本容器
-				$textYM = $listYM.find(STR_POINT + cls + '-tools-text'),
+				$textYM = $listYM.find(cn('tools-text', 1)),
 				// 今日按钮
-				$todayBtn = $listDate.find(STR_POINT + cls + '-btns button:eq(0)'),
+				$todayBtn = $listDate.find(cn('btns button:eq(0)', 1)),
 				// 清空按钮
-				$emptyBtn = $listDate.find(STR_POINT + cls + '-btns button:eq(1)'),
+				$emptyBtn = $listDate.find(cn('btns button:eq(1)', 1)),
 				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 键盘快捷事件
@@ -8024,7 +8040,7 @@ var ud2 = (function (window, $) {
 			// 日期初始化
 			function dateInit() {
 				var // 工具按钮
-					$toolsBtn = $date.find(STR_POINT + cls + '-tools a');
+					$toolsBtn = $date.find(cn('tools a', 1));
 
 				dateHtmlCreate();
 				// 菜单按钮处理方法
@@ -8067,7 +8083,7 @@ var ud2 = (function (window, $) {
 				var // HTML 容器
 					$html = $listDate.children('table'),
 					// 文本容器 
-					$text = $listDate.find(STR_POINT + cls + '-tools-text'),
+					$text = $listDate.find(cn('tools-text', 1)),
 					// 存储 HTML
 					html = [],
 					// 闰年
@@ -8098,27 +8114,27 @@ var ud2 = (function (window, $) {
 				for (i = 0, j = -1, k = 0; i < 42; i++) {
 					if (i < week) {
 						j++;
-						html.push('<td class="', cls, '-nomonth">', lastMonthDateNum - week + i + 1, '</td>');
+						html.push('<td class="', cn('nomonth'), '">', lastMonthDateNum - week + i + 1, '</td>');
 					} else {
 						if (i - j <= monthDateNum) {
 							html.push('<td class="',
-								(i + 1) % 7 === 0 || (i + 1) % 7 === 1 ? cls + '-weekend' : '', '" ',
-								cls, '-date="', i - j, '" ',
+								(i + 1) % 7 === 0 || (i + 1) % 7 === 1 ? cn('weekend') : '', '" ',
+								cn('date'), '="', i - j, '" ',
 								// 显示当前日期
 								dataDate.select.getFullYear() === dataDate.now.getFullYear()
 									&& dataDate.select.getMonth() === dataDate.now.getMonth()
 									&& dataDate.now.getDate() === i - j
-									? cls + '-today ' : '',
+									? cn('today ') : '',
 								// 显示选择日期
 								dataDate.value && dataDate.select.getFullYear() === dataDate.value.getFullYear()
 									&& dataDate.select.getMonth() === dataDate.value.getMonth()
 									&& dataDate.value.getDate() === i - j
-									? cls + '-now ' : '',
+									? cn('now ') : '',
 								'>', i - j, '</td>');
 						}
 						else {
 							k++;
-							html.push('<td class="', cls, '-nomonth">', k, '</td>');
+							html.push('<td class="', cn('nomonth'), '">', k, '</td>');
 						}
 					}
 					if ((i + 1) % 7 === 0) {
@@ -8129,9 +8145,9 @@ var ud2 = (function (window, $) {
 				$html.children().remove();
 				$html.append(html.join(''));
 
-				event($html.find('[' + cls + '-date]')).setTap(function () {
+				event($html.find('[' + cn('date') + ']')).setTap(function () {
 					dataDate.setDateValue(dataDate.select.getFullYear(),
-						dataDate.select.getMonth(), this.attr(cls + '-date'));
+						dataDate.select.getMonth(), this.attr(cn('date')));
 					$value.blur();
 					close(1);
 				});
@@ -8139,9 +8155,9 @@ var ud2 = (function (window, $) {
 			// 年份月份初始化
 			function ymInit() {
 				var // 工具按钮
-					$toolsBtn = $listYM.find(STR_POINT + cls + '-tools a'),
+					$toolsBtn = $listYM.find(cn('tools a', 1)),
 					// 底部按钮
-					$bottomBtn = $listYM.find(STR_POINT + cls + '-btns button');
+					$bottomBtn = $listYM.find(cn('btns button', 1));
 
 				ymHtmlCreate();
 
@@ -8169,9 +8185,9 @@ var ud2 = (function (window, $) {
 			function ymHtmlCreate() {
 				var $html = $listYM.children('table'),
 					html = [], yearFirst = 0,
-					yearAttr = cls + '-year', yearSelector = '[' + yearAttr + ']',
-					monthAttr = cls + '-month', monthSelector = '[' + monthAttr + ']',
-					nowAttr = cls + '-now', i;
+					yearAttr = cn('year'), yearSelector = '[' + yearAttr + ']',
+					monthAttr = cn('month'), monthSelector = '[' + monthAttr + ']',
+					nowAttr = cn('now'), i;
 
 				yearFirst = dataDate.select.getFullYear() % 12 === 0
 					? dataDate.select.getFullYear() - 11
@@ -8180,7 +8196,7 @@ var ud2 = (function (window, $) {
 				html.push('<tr><td>');
 				for (i = 0; i < 12; i++) {
 					html.push('<div ',
-						cls, '-year="', yearFirst + i, '" ',
+						cn('year'), '="', yearFirst + i, '" ',
 						// 显示选择日期
 						dataDate.select.getFullYear() === yearFirst + i ? nowAttr : '',
 						'>', yearFirst + i, '</div>');
@@ -8188,7 +8204,7 @@ var ud2 = (function (window, $) {
 				html.push('</td><td>');
 				for (i = 0; i < 12; i++) {
 					html.push('<div ',
-						cls, '-month="', i, '" ',
+						cn('month'), '="', i, '" ',
 						// 显示选择日期
 						dataDate.select.getMonth() === i ? nowAttr : '',
 						'>', STR_MONTH[i], '</div>');
@@ -8261,7 +8277,7 @@ var ud2 = (function (window, $) {
 			function open() {
 				if (!isOpen) {
 					isOpen = true;
-					$date.addClass('on');
+					$date.addClass(CSS_ON);
 					$power.addClass(prefixLibName + 'ctrl-power-on');
 					$listDate.show();
 					$listYM.hide();
@@ -8278,7 +8294,7 @@ var ud2 = (function (window, $) {
 				var val;
 				if (isOpen) {
 					isOpen = false;
-					$date.removeClass('on');
+					$date.removeClass(CSS_ON);
 					$power.removeClass(prefixLibName + 'ctrl-power-on');
 
 					if (!noUpdate) {
@@ -8430,7 +8446,7 @@ var ud2 = (function (window, $) {
 	controlCreater('file', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className,
+			cls = collection.className, cn = getClassName(cls),
 			// 错误常量
 			ERR_LENGTH = 'length-error', ERR_TYPE = 'type-error', ERR_SIZE = 'size-error',
 			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error';
@@ -8935,13 +8951,13 @@ var ud2 = (function (window, $) {
 			// 文件添加处理方法
 			function fileAdd(file) {
 				var // 显示图片容器
-					$box = $('<div class="' + cls + '-full-figure">'
-						+ '<div class="' + cls + '-full-img"><img ondragstart="return false;" /></div>' + (rename.state ? '<div class="' + cls + '-full-rename"><input type="text" value="' + file.name.substring(0, rename.length) + '" maxlength="' + rename.length + '" /></div>' : '<div>' + file.name + '</div>')
-						+ '<div class="' + cls + '-full-close"></div><div class="' + cls + '-full-progress"></div></div>'),
+					$box = $('<div class="' + cn('full-figure') + '">'
+						+ '<div class="' + cn('full-img') + '"><img ondragstart="return false;" /></div>' + (rename.state ? '<div class="' + cn('full-rename') + '"><input type="text" value="' + file.name.substring(0, rename.length) + '" maxlength="' + rename.length + '" /></div>' : '<div>' + file.name + '</div>')
+						+ '<div class="' + cn('full-close') + '"></div><div class="' + cn('full-progress') + '"></div></div>'),
 					// 输入框
 					$boxInput = $box.find('input'),
 					// 关闭按钮
-					$boxClose = $box.children(STR_POINT + cls + '-full-close'),
+					$boxClose = $box.children(cn('full-close', 1)),
 					// 文件读取对象
 					reader;
 
@@ -8982,13 +8998,13 @@ var ud2 = (function (window, $) {
 
 				// 放入列表
 				$fileAddBox.before($box);
-				window.setTimeout(function () { $box.addClass(cls + '-full-figure-on'); }, 150);
+				window.setTimeout(function () { $box.addClass(cn('full-figure-on')); }, 150);
 			}
 			// 文件删除处理方法
 			function fileRemove(file) {
 				var index = upfiles.indexOf(file);
 				upfiles.splice(index, 1);
-				file.element.removeClass(cls + '-full-figure-on');
+				file.element.removeClass(cn('full-figure-on'));
 				window.setTimeout(function () { file.element.remove(); }, 100);
 				if (upfiles.length === 0) {
 					$fileEmpty.show();
@@ -8998,22 +9014,22 @@ var ud2 = (function (window, $) {
 			}
 			// 文件清空处理方法
 			function clear() {
-				$fileList.children().not('[' + cls + '-add]').remove();
+				$fileList.children().not('[' + cn('add') + ']').remove();
 				$fileEmpty.show();
 				$fileList.hide();
 				$fileTools.hide();
 			}
 			// 文件进度处理方法
 			function progress(file, progressNum) {
-				var $progress = file.element.find(STR_POINT + cls + '-full-progress');
+				var $progress = file.element.find(cn('full-progress', 1));
 				$progress.css('width', progressNum + '%');
 				$progress.html(progressNum + '%');
 			}
 			// 文件上传处理方法
 			function upload(file) {
-				$fileList.find('[' + cls + '-add]').hide();
-				$fileList.find(STR_POINT + cls + '-full-close').hide();
-				$fileList.find(STR_POINT + cls + '-full-figure input').attr('readonly', 'readonly');
+				$fileList.find('[' + cn('add') + ']').hide();
+				$fileList.find(cn('full-close', 1)).hide();
+				$fileList.find(cn('full-figure input')).attr('readonly', 'readonly');
 				$fileTools.html('文件开始上传...');
 			}
 			// 文件上传完毕处理方法
@@ -9069,14 +9085,14 @@ var ud2 = (function (window, $) {
 				rename = parent.getRenameState();
 				upfiles = parent.getUpfiles();
 
-				$default = $div.clone().addClass(cls + '-full');
-				$fileEmpty = $('<div class="' + cls + '-full-nofile"><button class="btn btn-solid c-blue" ud2-file-add><i class="ico ico-group-file"></i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em></div>');
-				$fileDrag = $('<div class="' + cls + '-full-drag">请松开鼠标按钮，文件将进入待上传队列</div>');
-				$fileList = $('<div class="' + cls + '-full-list"><div class="' + cls + '-full-add" ud2-file-add><div><i class="ico ico-hollow-plus"></i><em>继续添加文件</em></div></div></div>');
-				$fileTools = $('<div class="' + cls + '-full-tools"><button class="btn btn-solid">确定上传</button><button class="btn btn-solid">清空列表</button></div>');
+				$default = $div.clone().addClass(cn('full'));
+				$fileEmpty = $('<div class="' + cn('full-nofile') + '"><button class="btn btn-solid c-blue" ud2-file-add><i class="ico ico-group-file"></i> 添加文件</button><em>拖拽文件上传 / 长按CTRL键可多选上传</em></div>');
+				$fileDrag = $('<div class="' + cn('full-drag') + '">请松开鼠标按钮，文件将进入待上传队列</div>');
+				$fileList = $('<div class="' + cn('full-list') + '"><div class="' + cn('full-add') + '" ud2-file-add><div><i class="ico ico-hollow-plus"></i><em>继续添加文件</em></div></div></div>');
+				$fileTools = $('<div class="' + cn('full-tools') + '"><button class="btn btn-solid">确定上传</button><button class="btn btn-solid">清空列表</button></div>');
 				$default.append($fileList).append($fileEmpty).append($fileDrag).append($fileTools);
-				$fileAdd = $default.find('[' + cls + '-add]');
-				$fileAddBox = $fileList.find('[' + cls + '-add]');
+				$fileAdd = $default.find('[' + cn('add') + ']');
+				$fileAddBox = $fileList.find('[' + cn('add') + ']');
 				parent.getContent().append($default);
 
 				style
@@ -9186,7 +9202,7 @@ var ud2 = (function (window, $) {
 				loginName: REGEX_LOGINNAME,
 				percent: REGEX_PERCENT,
 				nonNegative: REGEX_NONNEGATIVE
-			},
+			}
 		},
 		// 公开库事件
 		event: event,

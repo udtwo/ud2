@@ -24,14 +24,6 @@ var ud2 = (function (window, $) {
 		// 有效集合 {1-4}
 		prefixStyles = ' -webkit- -moz- -o- -ms- '.split(' '),
 
-		// 动画函数
-		animateFrame = window.requestAnimationFrame ||
-			window.webkitRequestAnimationFrame ||
-			window.mozRequestAnimationFrame ||
-			window.oRequestAnimationFrame ||
-			window.msRequestAnimationFrame ||
-			function (callbacks) { window.setTimeout(callbacks, 1000 / 60); },
-
 		// 正则表达式
 		// 日期正则表达式
 		// 可以匹配xxxx(-|.|/)x{1,2}(-|.|/)x{1,2}
@@ -107,9 +99,7 @@ var ud2 = (function (window, $) {
 		// 状态名称
 		STATE_NAME = ['normal', 'info', 'success', 'warning', 'danger'],
 		// 样式名称
-		STYLE_SIMPLE = 'simple',
-		STYLE_STANDARD = 'standard',
-		STYLE_CUSTOM = 'custom',
+		STYLE_NAME = ['simple', 'standard', 'custom'],
 		// 定位默认长度
 		NORMAL_LENGTH = 12,
 
@@ -8438,10 +8428,10 @@ var ud2 = (function (window, $) {
 			cls = collection.className, cn = getClassName(cls),
 			// 错误常量
 			ERR_LENGTH = 'length-error', ERR_TYPE = 'type-error', ERR_SIZE = 'size-error',
-			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error';
+			ERR_REPEAT = 'repeat-error', ERR_SERVER = 'server-error', ERR_SERVER_RETURN = 'server-return-error',
+			// 生成控件类型
+			styles = createStyle(STYLE_NAME[0], STYLE_NAME[1], STYLE_NAME[2]);
 
-		// 控件类型
-		constructor.style = createStyle(STYLE_STANDARD, STYLE_SIMPLE, STYLE_CUSTOM);
 		// 重写集合初始化方法
 		collection.init = function (control) {
 
@@ -8478,8 +8468,7 @@ var ud2 = (function (window, $) {
 					urlUpload = options.urlUpload || '';
 					// 初始化样式
 					style = options.style;
-					if (style !== STYLE_STANDARD && style !== STYLE_SIMPLE && style !== STYLE_CUSTOM)
-						style = STYLE_CUSTOM;
+					if (!styles[style]) style = STYLE_NAME[2];
 				}),
 				// 控件结构
 				template = '<input type="file" multiple />',
@@ -8883,7 +8872,7 @@ var ud2 = (function (window, $) {
 				updateControlPublic();
 
 				// 非自定义样式返回指定集成样式对象
-				if (style === STYLE_STANDARD) return constructor.standard(control.public);
+				if (style === STYLE_NAME[1]) return constructor.standard(control.public);
 
 			}());
 
@@ -8926,6 +8915,8 @@ var ud2 = (function (window, $) {
 			// #endregion
 
 		};
+		// 控件类型
+		constructor.style = styles;
 		// 标准文件上传控件
 		constructor.standard = function (control) {
 

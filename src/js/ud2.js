@@ -31,23 +31,25 @@ var ud2 = (function (window, $) {
 			window.oRequestAnimationFrame ||
 			window.msRequestAnimationFrame ||
 			function (callbacks) { window.setTimeout(callbacks, 1000 / 60); },
+
 		// 正则表达式
-		regex = {
-			// 日期正则表达式
-			// 可以匹配xxxx(-|.|/)x{1,2}(-|.|/)x{1,2}
-			date: /^(?:[12]\d{3}([\.\-\/])(?:(?:0?[13578]|1[02])\1(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\1(?:0?[1-9]|[12]\d|30)|0?2\1(?:0?[1-9]|1\d|2[0-8]))$|[12]\d(?:[02468][048]|[13579][26])([\.\-\/])(?:(?:0?[13578]|1[02])\2(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\2(?:0?[1-9]|[12]\d|30)|0?2\2(?:0?[1-9]|1\d|2[0-9])))$/,
-			// 邮箱正则表达式
-			mail: /^([\w-\.]+)@(([\w-]+\.)+)([a-zA-Z]{2,4})$/,
-			// 手机号码正则表达式
-			phone: /^[1][3458][0-9]{9}$/,
-			// 身份证正则表达式
-			// 此表达式未添加地区判断与补位运算
-			identityCard: /^(11|12|13|14|15|21|22|23|31|32|33|34|35|36|37|41|42|43|44|45|46|50|51|52|53|54|61|62|63|64|65|71|81|82|97|98|99)[0-9]{4}((?:19|20)?(?:[0-9]{2}(?:(?:0[13578]|1[12])(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)(?:0[1-9]|[12][0-9]|30)|02(?:0[1-9]|1[0-9]|2[0-8]))|(?:[02468][048]|[13579][26])0229)[0-9]{3}[\dxX])$/,
-			// 登录名正则表达式
-			loginName: /^[a-zA-Z][a-zA-Z0-9]+$/,
-			// 百分数正则表达式
-			percent: /^(100|([0-9]|[1-9][0-9])(\.[0-9]+)?)%$/
-		},
+		// 日期正则表达式
+		// 可以匹配xxxx(-|.|/)x{1,2}(-|.|/)x{1,2}
+		REGEX_DATE = /^(?:[12]\d{3}([\.\-\/])(?:(?:0?[13578]|1[02])\1(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\1(?:0?[1-9]|[12]\d|30)|0?2\1(?:0?[1-9]|1\d|2[0-8]))$|[12]\d(?:[02468][048]|[13579][26])([\.\-\/])(?:(?:0?[13578]|1[02])\2(?:0?[1-9]|[12]\d|3[01])|(?:0?[469]|11)\2(?:0?[1-9]|[12]\d|30)|0?2\2(?:0?[1-9]|1\d|2[0-9])))$/,
+		// 邮箱正则表达式
+		REGEX_MAIL = /^([\w-\.]+)@(([\w-]+\.)+)([a-zA-Z]{2,4})$/,
+		// 手机号码正则表达式
+		REGEX_PHONE = /^[1][3458][0-9]{9}$/,
+		// 身份证正则表达式
+		// 此表达式未添加地区判断与补位运算
+		REGEX_IDENTITYCARD = /^(11|12|13|14|15|21|22|23|31|32|33|34|35|36|37|41|42|43|44|45|46|50|51|52|53|54|61|62|63|64|65|71|81|82|97|98|99)[0-9]{4}((?:19|20)?(?:[0-9]{2}(?:(?:0[13578]|1[12])(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)(?:0[1-9]|[12][0-9]|30)|02(?:0[1-9]|1[0-9]|2[0-8]))|(?:[02468][048]|[13579][26])0229)[0-9]{3}[\dxX])$/,
+		// 登录名正则表达式
+		REGEX_LOGINNAME = /^[a-zA-Z][a-zA-Z0-9]+$/,
+		// 百分数正则表达式
+		REGEX_PERCENT = /^(100|([0-9]|[1-9][0-9])(\.[0-9]+)?)%$/,
+		// 非负数正则表达式
+		REGEX_NONNEGATIVE = /^([0-9]|[1-9][0-9]+)(\.[0-9]+)?$/,
+
 		// 当前时间
 		getTime = Date.now || function getTime() { return new Date().getTime(); },
 
@@ -295,21 +297,21 @@ var ud2 = (function (window, $) {
 		// return[bool]: 是否符合手机号规范
 		function isPhone(text) {
 			text = textTypeHandler(text);
-			return regex.phone.test(text);
+			return REGEX_PHONE.test(text);
 		}
 		// 检测字符串是否符合邮箱规范
 		// text[string]: 待检测的字符串
 		// return[bool]: 是否符合邮箱规范
 		function isMail(text) {
 			text = textTypeHandler(text);
-			return regex.mail.test(text);
+			return REGEX_MAIL.test(text);
 		}
 		// 检测字符串是否符合日期规范
 		// text[string]: 待检测的字符串
 		// return[bool]: 是否符合日期规范
 		function isDate(text) {
 			text = textTypeHandler(text);
-			return regex.date.test(text);
+			return REGEX_DATE.test(text);
 		}
 
 		// 检测字符串是否符合用户名规范
@@ -317,7 +319,7 @@ var ud2 = (function (window, $) {
 		// return[bool]: 是否符合用户名规范
 		function isLoginName(text) {
 			text = textTypeHandler(text);
-			return regex.loginName.test(text);
+			return REGEX_LOGINNAME.test(text);
 		}
 		// 检测字符串是否符合身份证规范
 		// text[string]: 待检测的字符串
@@ -325,7 +327,7 @@ var ud2 = (function (window, $) {
 		function isIdentityCard(text) {
 			text = textTypeHandler(text);
 			text = text.toUpperCase();
-			if (regex.identityCard.test(text)) {
+			if (REGEX_IDENTITYCARD.test(text)) {
 				if (text.length === 18) {
 					var factor = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2],
 						parity = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'],
@@ -4912,8 +4914,9 @@ var ud2 = (function (window, $) {
 					e = { height: fh, bottom: 0 };
 
 				// 是数字或百分比，则设置高度
-				if (type.isString(height) && regex.percent.test(height)
-					|| type.isNumber(height)) $datagrid.css('height', height);
+				if (type.isString(height) 
+					&& (REGEX_PERCENT.test(height) || REGEX_NONNEGATIVE.test(height)))
+					$datagrid.css('height', height);
 
 				$datagrid.css('line-height', cellHeight - 2 + 'px');
 				
@@ -9175,7 +9178,15 @@ var ud2 = (function (window, $) {
 			// 键盘代码
 			key: KEYCODE,
 			// 正则表达式
-			regex: regex
+			regex: {
+				date: REGEX_DATE,
+				mail: REGEX_MAIL,
+				phone: REGEX_PHONE,
+				identityCard: REGEX_IDENTITYCARD,
+				loginName: REGEX_LOGINNAME,
+				percent: REGEX_PERCENT,
+				nonNegative: REGEX_NONNEGATIVE
+			},
 		},
 		// 公开库事件
 		event: event,

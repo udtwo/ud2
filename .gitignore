@@ -22,6 +22,7 @@ bld/
 old version/
 [Bb]in/
 [Oo]bj/
+test/test.html
 
 # Visual Studo 2015 cache/options directory
 .vs/

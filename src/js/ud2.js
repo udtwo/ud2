@@ -110,16 +110,8 @@ var ud2 = (function (window, $) {
 		STYLE_SIMPLE = 'simple',
 		STYLE_STANDARD = 'standard',
 		STYLE_CUSTOM = 'custom',
-		// 空页
-		EMPTY_PAGE = 'about:blank',
-		// 索引功能选择器字段
-		SELECTOR_TAB = '[type="checkbox"]',
-		// 隐藏域选择器字段
-		SELECTOR_HIDDEN = '[type="hidden"]',
 		// 定位默认长度
 		NORMAL_LENGTH = 12,
-		// 点字符
-		STR_POINT = '.',
 
 		// 用于克隆的空jQuery对象
 		$div = $('<div />'),
@@ -128,8 +120,6 @@ var ud2 = (function (window, $) {
 
 		// 空方法
 		fnNoop = function () { },
-		// 返回false的空方法
-		fnFalse = function () { return false; },
 
 		// 用于转换abcDef到abc-def模式的正则表达式
 		attrTranslateRegex = /(^[a-z0-9]{1,}|[A-Z][a-z0-9]{0,})/g,
@@ -3815,7 +3805,7 @@ var ud2 = (function (window, $) {
 				pageType = convertPageType(pageType);
 				name = name || createControlID(TYPE_PAGE_NAME);
 				title = title || '未命名选项卡';
-				details = details || (pageType === 1 ? EMPTY_PAGE : '');
+				details = details || (pageType === 1 ? 'about:blank' : '');
 				btnClose = attrBoolCheck(btnClose, true);
 
 				// 生成选项和描述内容对象
@@ -5981,9 +5971,9 @@ var ud2 = (function (window, $) {
 				// 控件对象
 				$switch = current.html(template),
 				// 值对象
-				$value = $switch.children(SELECTOR_HIDDEN),
+				$value = $switch.children('[type="hidden"]'),
 				// 索引功能对象
-				$tab = $switch.children(SELECTOR_TAB),
+				$tab = $switch.children('[type="checkbox"]'),
 				// 回调方法
 				controlCallbacks = {
 					// 开启时回调
@@ -6601,9 +6591,9 @@ var ud2 = (function (window, $) {
 				// 菜单按钮对象
 				$btn = $box.children('a'),
 				// 索引功能对象
-				$tab = $select.children(SELECTOR_TAB),
+				$tab = $select.children('[type="checkbox"]'),
 				// 值对象
-				$value = $select.children(SELECTOR_HIDDEN),
+				$value = $select.children('[type="hidden"]'),
 				// 标记控件是否处于开启状态
 				isOpen = false,
 				// 列表滚动条
@@ -7213,7 +7203,7 @@ var ud2 = (function (window, $) {
 					if (min > max) max = min;
 					value = convertValue(value);
 					// 处理小数点
-					if (step.toString().indexOf(STR_POINT) > -1) stepDigit = step.toString().split(STR_POINT)[1].length;
+					if (step.toString().indexOf('.') > -1) stepDigit = step.toString().split('.')[1].length;
 					else stepDigit = 0;
 				}),
 				// 控件结构
@@ -7455,7 +7445,7 @@ var ud2 = (function (window, $) {
 					if (min > max) max = min;
 
 					// 获取步长位数
-					if (step.toString().indexOf(STR_POINT) > -1) stepDigit = step.toString().split(STR_POINT)[1].length;
+					if (step.toString().indexOf('.') > -1) stepDigit = step.toString().split('.')[1].length;
 					else stepDigit = 0;
 				}),
 				// 控件结构
@@ -8562,7 +8552,7 @@ var ud2 = (function (window, $) {
 				// 迭代
 				for (; i < len; i++) {
 					// 当前文件扩展名
-					ext = files[i].name.split(STR_POINT);
+					ext = files[i].name.split('.');
 					ext = ext[ext.length - 1].toLowerCase();
 					if (!ext || filter[ext] === void 0) {
 						return false;
@@ -8990,7 +8980,7 @@ var ud2 = (function (window, $) {
 					$boxInput.on(EVENT_DOWN, function (event) {
 						event.preventDefault();
 						$(this).select();
-					}).on('blur', function () {
+					}).on(BLUR, function () {
 						file.newname = $(this).val();
 					});
 				}

@@ -125,7 +125,6 @@ var ud2 = (function (window, $) {
 		$div = $('<div />'),
 		$a = $('<a />'),
 		$span = $('<span />'),
-		$ico = $('<i class="ico" />'),
 
 		// 空方法
 		fnNoop = function () { },
@@ -3824,8 +3823,8 @@ var ud2 = (function (window, $) {
 				$tabLink = $div.clone().addClass(cn('menu-item')).attr('title', title).append($span.clone().html(title));
 				$content = $contentTemplate.clone();
 				if (btnClose) {
-					$tab.append($ico.clone().addClass('ico-solid-cancel'));
-					$tabLink.append($ico.clone().addClass('ico-hollow-cancel'));
+					$tab.append('<i class="ico ico-solid-cancel" />');
+					$tabLink.append('<i class="ico ico-hollow-cancel" />');
 				}
 				switch (pageType) {
 					case 0: {

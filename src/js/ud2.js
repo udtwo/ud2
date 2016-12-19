@@ -44,7 +44,9 @@ var ud2 = (function (window, $) {
 			// 此表达式未添加地区判断与补位运算
 			identityCard: /^(11|12|13|14|15|21|22|23|31|32|33|34|35|36|37|41|42|43|44|45|46|50|51|52|53|54|61|62|63|64|65|71|81|82|97|98|99)[0-9]{4}((?:19|20)?(?:[0-9]{2}(?:(?:0[13578]|1[12])(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)(?:0[1-9]|[12][0-9]|30)|02(?:0[1-9]|1[0-9]|2[0-8]))|(?:[02468][048]|[13579][26])0229)[0-9]{3}[\dxX])$/,
 			// 登录名正则表达式
-			loginName: /^[a-zA-Z][a-zA-Z0-9]+$/
+			loginName: /^[a-zA-Z][a-zA-Z0-9]+$/,
+			// 百分数正则表达式
+			percent: /^(100|([0-9]|[1-9][0-9])(\.[0-9]+)?)%$/
 		},
 		// 当前时间
 		getTime = Date.now || function getTime() { return new Date().getTime(); },
@@ -4702,7 +4704,7 @@ var ud2 = (function (window, $) {
 					cellHeight = parseInt(options.cellHeight) || 34;
 					// 初始化控件高度
 					// 值为null，则取css高度
-					height = parseInt(options.height) || null;
+					height = options.height || null;
 
 					// 初始化传入数据
 					initDatas(options.datas, options.datasFooter);
@@ -4909,9 +4911,12 @@ var ud2 = (function (window, $) {
 					b = { bottom: fh },
 					e = { height: fh, bottom: 0 };
 
-				if (height) $datagrid.css('height', height);
-				$datagrid.css('line-height', cellHeight - 2 + 'px');
+				// 是数字或百分比，则设置高度
+				if (type.isString(height) && regex.percent.test(height)
+					|| type.isNumber(height)) $datagrid.css('height', height);
 
+				$datagrid.css('line-height', cellHeight - 2 + 'px');
+				
 				$leftHeader.css(h);
 				$leftContent.css(t);
 				$centerHeader.css(h);
@@ -4955,7 +4960,7 @@ var ud2 = (function (window, $) {
 			function updateCellSizeStyles(datatable, arr) {
 				var // 迭代变量
 					isHeader = arr === rowsInfo.header,
-					i = 0, l = !isHeader && datatable.rows.length || 1,
+					i = 0, l = isHeader ? 1 : datatable.rows.length,
 					j, m, ci;
 
 				for (; i < l; i++) {
@@ -5035,7 +5040,7 @@ var ud2 = (function (window, $) {
 					// 样式变量 列参数对象
 					css, ci,
 					// 行及单元格变量
-					$rl, $rc, $rr, $cell;
+					$rl, $rc, $rr;
 
 				// 创建全部元素
 				createTableElements(datasHeader, $leftHeaderGrid, $centerHeaderGrid, $rightHeaderGrid, rowsInfo.header);
@@ -5046,19 +5051,19 @@ var ud2 = (function (window, $) {
 			function createTableElements(datatable, $left, $center, $right, arr) {
 				var // 迭代变量
 					isHeader = arr === rowsInfo.header,
-					i = 0, l = !isHeader && datatable.rows.length || 1,
+					i = 0, l = isHeader ? 1 : datatable.rows.length,
 					j, m, ci, $rl, $rc, $rr, $cell;
-
+				
 				// 创建元素
 				for (; i < l; i++) {
 					$rl = $emptyRow.clone().appendTo($left).css('top', i * cellHeight);
 					$rc = $emptyRow.clone().appendTo($center).css('top', i * cellHeight);
 					$rr = $emptyRow.clone().appendTo($right).css('top', i * cellHeight);
 					arr[i] = { $l: $rl, $c: $rc, $r: $rr, cells: [] };
-
+					
 					for (j = 0, m = columnsInfo.length; j < m; j++) {
 						ci = columnsInfo[j];
-						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(arr === rowsInfo.header ? ci.title : datatable.rows[i].cells[j].val());
+						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(arr === rowsInfo.header ? ci.title : datatable.rows[i].cells[j] ? datatable.rows[i].cells[j].val() : '');
 
 						switch (ci.mode) {
 							case 0: case 1: { $cell.appendTo($rc); break; }

@@ -23,7 +23,6 @@
 
 // 数据网格控件主容器
 .ud2-datagrid {
-	width: 100%;
 	display: block;
 	height: @DatagridDefaultHeight;
 	background: @ColorWhite;
@@ -31,6 +30,10 @@
 	border-radius: @BorderRadius;
 	overflow: hidden;
 	.boxSizing(content-box);
+
+	&.ud2-datagrid-full {
+		height: 100%;
+	}
 }
 
 // 单元格样式

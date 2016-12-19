@@ -49,27 +49,27 @@
 // 栅格最大列数
 @GridMaxColumn: 12;
 
-// 在320px-767px宽度下，视为手机设备
-// 手机设备的最小宽度
-@PhoneScreenMinWidth: 320px;
-// 手机设备的最大宽度
-@PhoneScreenMaxWidth: @SmallScreenMinWidth - 1;
-
-// 在768px-991px宽度下，视为小号屏幕设备
-// 小号屏幕设备的最小宽度
-@SmallScreenMinWidth: 768px;
-// 小号屏幕设备的最大宽度
-@SmallScreenMaxWidth: @MiddleScreenMinWidth - 1;
+// 在1200px+宽度下，视为大号屏幕设备
+// 大号屏幕设备的最小宽度
+@LargeScreenMinWidth: 1200px;
 
 // 在992px-1199px宽度下，视为中号屏幕设备
 // 中号屏幕设备的最小宽度
 @MiddleScreenMinWidth: 992px;
 // 中号屏幕设备的最大宽度
-@MiddleScreenMaxWidth: @LargeScreenMinWidth - 1;
+@MiddleScreenMaxWidth: (@LargeScreenMinWidth - 1);
 
-// 在1200px+宽度下，视为大号屏幕设备
-// 大号屏幕设备的最小宽度
-@LargeScreenMinWidth: 1200px;
+// 在768px-991px宽度下，视为小号屏幕设备
+// 小号屏幕设备的最小宽度
+@SmallScreenMinWidth: 768px;
+// 小号屏幕设备的最大宽度
+@SmallScreenMaxWidth: (@MiddleScreenMinWidth - 1);
+
+// 在320px-767px宽度下，视为手机设备
+// 手机设备的最小宽度
+@PhoneScreenMinWidth: 320px;
+// 手机设备的最大宽度
+@PhoneScreenMaxWidth: (@SmallScreenMinWidth - 1);
 
 
 /* 控件变量 */

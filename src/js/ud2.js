@@ -347,7 +347,7 @@ var ud2 = (function (window, $) {
 			// 创建一个空的div元素
 			div = document.createElement('div'),
 			// 获取userAgent
-			u = window.navigator.userAgent, ipad, iphone, mac;
+			u = window.navigator.userAgent, ipod, ipad, iphone, mac;
 
 		// 判断是否为IPAD
 		ipad = u.match(/ipad/i);
@@ -355,6 +355,9 @@ var ud2 = (function (window, $) {
 		// 判断是否为IPHONE
 		iphone = u.match(/iphone/i);
 		support.iphone = iphone && iphone[0].toLowerCase() === 'iphone',
+		// 判断似乎否为手持设备
+		ipod = u.match(/ipod/i);
+		support.ipod = ipod && ipod[0].toLowerCase() === 'ipod',
 		// 判断是否为MAC
 		mac = u.match(/macintosh/i);
 		support.mac = mac && mac[0].toLowerCase() === 'macintosh',
@@ -740,13 +743,13 @@ var ud2 = (function (window, $) {
 	// #region ud2 库事件
 
 	// 用于触摸笔、触碰、鼠标等方式操作元素的事件处理
-	// elements[string, jQuery]: jQuery 对象或可生成 jQuery 对象的字符串
+	// elements[string, jQuery]: jQuery对象或可生成jQuery对象的字符串
 	// userOptions[object]: 用户参数
 	// - (?) stopPropagation[bool]: 是否阻止事件向外冒泡，默认为false
 	// - (?) tapMaxTime[number]: tap的最大时间间隔，默认值为300(ms)
 	// - (?) swipeMaxTime[number]: number的最大时间间隔，默认值为500(ms)
 	// - (?) pointerValidLength[number]: 触点tap、press事件有效长度
-	// return[event] => 返回一个事件公开方法对象
+	// return[event]: 返回一个事件公开方法对象
 	var event = function (elements, userOptions) {
 
 		// #region 私有字段
@@ -1481,8 +1484,8 @@ var ud2 = (function (window, $) {
 
 	};
 	// 用于鼠标滚轮方式操作元素的事件处理
-	// elements[string, jQuery]: jQuery 对象或可生成 jQuery 对象的字符串
-	// return[eventMouseWheel] => 返回一个事件公开方法对象
+	// elements[string, jQuery]: jQuery对象或可生成jQuery对象的字符串
+	// return[eventMouseWheel]: 返回一个事件公开方法对象
 	var eventMouseWheel = function (elements) {
 
 		// #region 私有字段
@@ -1663,7 +1666,7 @@ var ud2 = (function (window, $) {
 	// 用于快捷键绑定的事件处理
 	// userOptions[object]: 用户参数
 	// - (?) autoOn[bool]: 是否默认开启事件，默认为true
-	// return[event] => 返回一个事件公开方法对象
+	// return[event]: 返回一个事件公开方法对象
 	var eventKeyShortcut = function (userOptions) {
 
 		// #region 私有字段
@@ -4690,18 +4693,22 @@ var ud2 = (function (window, $) {
 				// 或二维数组数据
 				// 数据    头部数据    底部数据
 				datas, datasHeader, datasFooter,
-				// 列参数对象集合 列默认参数    单元格高度   控件高度  行参数对象集合
-				columnsInfo, columnDefault, cellHeight, height, rowsInfo,
+				// 列参数对象集合 列默认参数    单元格高度   控件高度 行参数对象集合 鼠标滑上背景改变颜色 鼠标滑上时的背景颜色
+				columnsInfo, columnDefault, cellHeight, height, rowsInfo, isHover, hoverColor,
 				// 获取用户自定义项
 				options = control.getOptions([
 					'datas', 'datasFooter', 'columns', 'columnDefault',
-					'cellHeight', 'height'
+					'cellHeight', 'height', ['hover', 'isHover'], 'hoverColor'
 				], function (options) {
 					// 初始化单元格高度
 					cellHeight = parseInt(options.cellHeight) || 34;
 					// 初始化控件高度
 					// 值为null，则取css高度
 					height = options.height || null;
+					// 初始化是否开启鼠标滑上背景改变颜色
+					isHover = attrBoolCheck(options.hover, true);
+					// 初始化鼠标滑上时的背景颜色
+					hoverColor = options.hoverColor || '#EDF7FF';
 
 					// 初始化传入数据
 					initDatas(options.datas, options.datasFooter);
@@ -5084,6 +5091,22 @@ var ud2 = (function (window, $) {
 			function resize() {
 				updateAllCellSizeStyles();
 			}
+			// 绑定hover效果
+			function hoverStyle() {
+				if (isHover) {
+					// 绑定hover效果相关事件
+					$datagrid.on([MOUSE_ENTER, MOUSE_LEAVE].join(' '), cn('row', 1), function (event) {
+						var $me = $(this), type = event.type, index, css, slRow = cn('row', 1);
+						if ($me.parents(cn('content', 1)).length > 0) {
+							index = $me.index();
+							css = { 'background-color': type === MOUSE_ENTER ? hoverColor : '' };
+							$leftContentGrid.children(slRow).eq(index).children().css(css);
+							$centerContentGrid.children(slRow).eq(index).children().css(css);
+							$rightContentGrid.children(slRow).eq(index).children().css(css);
+						}
+					});
+				}
+			}
 			// 事件绑定
 			function bindEvent() {
 				var // 内容滚动条参数
@@ -5130,6 +5153,9 @@ var ud2 = (function (window, $) {
 
 				// 绑定窗口尺寸改变回调
 				callbacks.pageResize.add(resize);
+
+				// 绑定hover效果
+				hoverStyle();
 			}
 
 			// #endregion

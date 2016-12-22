@@ -4857,8 +4857,8 @@ var ud2 = (function (window, $) {
 			function initColumns(optionsColumns) {
 				var isHeader = datasHeader || null,
 					// 数据列数
-					dcl, len = Math.max(datas.columns.length, isHeader ? datasHeader.columns.length : 1,
-						datasFooter.columns.length, optionsColumns.length),
+					dcl, len = Math.max(datas.columns.length, datasHeader ? datasHeader.columns.length: 1,
+						datasFooter ? datasFooter.columns.length : 0, optionsColumns ? optionsColumns.length : 0),
 					// 迭代变量
 					i, l, icol, hop;
 

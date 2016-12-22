@@ -5106,16 +5106,13 @@ var ud2 = (function (window, $) {
 
 					if (isSelected && ((isHeader || isFooter) && i === 0 || !isHeader && !isFooter)) {
 						$cell = $emptyCell.clone().addClass(CSS_CHECKED).css({ textAlign: 'center', width: 38 });
-						$cell.appendTo($rl);
+						$cell.html('<input type="checkbox" class="check" />').appendTo($rl);
 						if (isHeader || isFooter) {
 							realHeight = isHeader ? l * cellHeight : datasFooter.rows.length * cellHeight;
 							$cell.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
 						}
 						if (!isSelectedMultiple && (isHeader || isFooter)) {
-							$cell.html('').addClass('disabled');
-						}
-						else {
-							$cell.html('<input type="checkbox" class="check" />');
+							$cell.addClass('disabled');
 						}
 					}
 

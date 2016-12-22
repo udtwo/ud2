@@ -56,6 +56,7 @@
 	&.checked::before {
 		content: '';
 		position: absolute;
+		z-index: 2;
 		top: 0; 
 		left: 0; 
 		right: 0; 
@@ -67,8 +68,11 @@
 .ud2-datagrid-header .ud2-datagrid-cell,
 .ud2-datagrid-footer .ud2-datagrid-cell {
 	background: @DatagridHomeEndTHBackColor;
+
 	&.disabled {
-		background: @DatagridHomeEndTHBackDisabledColor;
+		input {
+			opacity: .4;
+		}
 
 		&.checked::before {
 			cursor: default;

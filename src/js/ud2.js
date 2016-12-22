@@ -4695,13 +4695,14 @@ var ud2 = (function (window, $) {
 				datas, datasHeader, datasFooter, selectedRows = [],
 				// 列参数对象集合 列默认参数 单元格高度 控件高度 行参数对象集合 鼠标滑上背景改变颜色 鼠标滑上时的背景颜色
 				columnsInfo, columnDefault, cellHeight, height, rowsInfo, isHover, hoverColor,
-				// 是否支持选中行 是否支持行多选
-				isSelected, isSelectedMultiple,
+				// 是否支持选中行 是否支持行多选    空容器占位文本
+				isSelected, isSelectedMultiple, emptyText,
 				// 获取用户自定义项
 				options = control.getOptions([
 					'datas', 'datasFooter', 'columns', 'columnDefault',
 					'cellHeight', 'height', ['hover', 'isHover'], 'hoverColor',
-					[CSS_SELECTED, 'isSelected'], ['selectedMultiple', 'isSelectedMultiple']
+					[CSS_SELECTED, 'isSelected'], ['selectedMultiple', 'isSelectedMultiple'],
+					'emptyText'
 				], function (options) {
 					// 初始化单元格高度
 					cellHeight = parseInt(options.cellHeight) || 34;
@@ -4716,6 +4717,8 @@ var ud2 = (function (window, $) {
 					isSelected = attrBoolCheck(options.selected, false);
 					// 初始化多选
 					isSelectedMultiple = attrBoolCheck(options.selectedMultiple, true);
+					// 初始化替换文本
+					emptyText = options.emptyText || '此处没有任何数据';
 
 					// 初始化传入数据
 					initDatas(options.datas, options.datasFooter);
@@ -4742,13 +4745,16 @@ var ud2 = (function (window, $) {
 					+ '<div class="' + STR_CENTER + '">'
 					+ '<div class="' + STR_HEADER + '"><div class="' + STR_GRID + '" /></div>'
 					+ '<div class="' + STR_CONTENT + '"><div class="' + STR_GRID + '" /></div>'
-					+ '<div class="' + STR_FOOTER + '"><div class="' + STR_GRID + '" /></div></div>',
+					+ '<div class="' + STR_FOOTER + '"><div class="' + STR_GRID + '" /></div></div>'
+					+ '<div class="' +cn(CSS_EMPTY) + '"><div>' + emptyText + '</div></div>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
 				$datagrid = current.html(template),
 				// 区域容器
 				$area = $datagrid.children(),
+				// 空容器
+				$noRow = $area.last(),
 				// 左侧fixed容器
 				$left = $area.eq(0),
 				$leftArea = $left.children(),
@@ -4849,8 +4855,10 @@ var ud2 = (function (window, $) {
 			// 初始化单元格
 			// optionsColumns[array]: options.columns 传入单元格参数
 			function initColumns(optionsColumns) {
-				var // 数据列数
-					dcl,
+				var isHeader = datasHeader || null,
+					// 数据列数
+					dcl, len = Math.max(datas.columns.length, isHeader ? datasHeader.columns.length : 1,
+						datasFooter.columns.length, optionsColumns.length),
 					// 迭代变量
 					i, l, icol, hop;
 
@@ -4859,12 +4867,12 @@ var ud2 = (function (window, $) {
 
 				// 将已传入的数据列参数对象加入到数据列参数组中
 				if (!type.isArray(columnsInfo)) columnsInfo = [];
-				for (i = 0, l = datas.columns.length; i < l; i++) {
+				for (i = 0; i < len; i++) {
 					hop = datasHeader && datasHeader.rows[0] && datasHeader.rows[0].cells[i];
 					if (!type.isObject(columnsInfo[i])) columnsInfo[i] = {};
 					icol = columnsInfo[i] = mergeObjects(columnDefault, columnsInfo[i]);
-					icol.title = datas.columns[i].title() || hop && hop.val() || icol.title;
-					icol.type = datas.columns[i].dataType() || hop && hop.cellType || icol.type;
+					icol.title = datas.columns[i] && datas.columns[i].title() || hop && hop.val() || icol.title;
+					icol.type = datas.columns[i] && datas.columns[i].dataType() || hop && hop.cellType || icol.type;
 					icol.align = hop && hop.cellAlign || icol.align;
 					icol.width = parseInt(hop && hop.cellWidth) || icol.width;
 					icol.model = hop && hop.cellMode || icol.mode;
@@ -4956,6 +4964,8 @@ var ud2 = (function (window, $) {
 				$rightHeaderGrid.css({ height: cellHeight });
 				$rightContentGrid.css({ height: cellHeight * datas.rows.length });
 
+				$noRow.css({ top: cellHeight });
+
 				if (fl) {
 					$leftContent.css(b);
 					$leftFooter.css(e);
@@ -4968,6 +4978,8 @@ var ud2 = (function (window, $) {
 					$rightContent.css(b);
 					$rightFooter.css(e);
 					$rightFooterGrid.css({ height: fh });
+
+					$noRow.css({ bottom: fh });
 				}
 			}
 			// 更新全部单元格样式
@@ -4998,6 +5010,9 @@ var ud2 = (function (window, $) {
 			}
 			// 更新初始化
 			function updateInit() {
+				if (datas.rows.length === 0) $noRow.addClass(CSS_ON);
+				else $noRow.removeClass(CSS_ON);
+
 				updateWidthStyles();
 				updateHeightStyles();
 				updateAllCellSizeStyles();
@@ -5096,7 +5111,6 @@ var ud2 = (function (window, $) {
 							realHeight = isHeader ? l * cellHeight : datasFooter.rows.length * cellHeight;
 							$cell.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
 						}
-						console.log(isSelectedMultiple);
 						if (!isSelectedMultiple && (isHeader || isFooter)) {
 							$cell.html('').addClass('disabled');
 						}
@@ -5306,7 +5320,7 @@ var ud2 = (function (window, $) {
 					control.origin.remove();
 					control.transferStyles();
 					updateInit();
-				} 
+				}
 
 				// 事件绑定
 				bindEvent();

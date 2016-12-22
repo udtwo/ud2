@@ -81,7 +81,9 @@
 	position: relative;
 }
 // 网格其他容器定位方式
-.ud2-datagrid-left, .ud2-datagrid-right, .ud2-datagrid-center, .ud2-datagrid-header, .ud2-datagrid-content, .ud2-datagrid-footer, .ud2-datagrid-row, .ud2-datagrid-cell {
+.ud2-datagrid-left, .ud2-datagrid-right, .ud2-datagrid-center, 
+.ud2-datagrid-header, .ud2-datagrid-content, .ud2-datagrid-footer, 
+.ud2-datagrid-row, .ud2-datagrid-cell, .ud2-datagrid-empty {
 	position: absolute;
 }
 // 行和单元格参考父容器左上角定位
@@ -90,14 +92,31 @@
 	left: 0;
 }
 // 利用绝对定位自适应高度
-.ud2-datagrid-left, .ud2-datagrid-right, .ud2-datagrid-center, .ud2-datagrid-content {
+.ud2-datagrid-left, .ud2-datagrid-right, .ud2-datagrid-center, .ud2-datagrid-content, .ud2-datagrid-empty {
 	top: 0;
 	bottom: 0;
 }
 // 利用绝对定位自适应宽度
-.ud2-datagrid-header, .ud2-datagrid-footer, .ud2-datagrid-content, .ud2-datagrid-center {
+.ud2-datagrid-header, .ud2-datagrid-footer, .ud2-datagrid-content, .ud2-datagrid-center, .ud2-datagrid-empty {
 	left: 0;
 	right: 0;
+}
+// 空网格
+.ud2-datagrid-empty {
+	display: none;
+	z-index: 10;
+	background: @ColorWhite;
+
+	&.on {
+		display: block;
+	}
+
+	> div {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		.transform(translate(-50%, -50%));
+	}
 }
 // 网格左、右容器样式
 .ud2-datagrid-left, .ud2-datagrid-right {

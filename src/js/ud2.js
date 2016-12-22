@@ -77,7 +77,7 @@ var ud2 = (function (window, $) {
 		POS_TOPCENTER = 'top-center', POS_BOTTOMCENTER = 'bottom-center',
 		// 样式常量
 		CSS_ON = 'on', CSS_EMPTY = 'empty', CSS_VALUE = 'value',
-		CSS_DISABLED = 'disabled', CSS_SELECTED = 'selected',
+		CSS_DISABLED = 'disabled', CSS_SELECTED = 'selected', CSS_CHECKED = 'checked',
 		// 键盘编码
 		KEYCODE = {
 			'A': 65, 'B': 66, 'C': 67, 'D': 68, 'E': 69, 'F': 70, 'G': 71,
@@ -465,7 +465,7 @@ var ud2 = (function (window, $) {
 
 	// #region ud2 库私有方法
 
-	
+
 	var // 为未命名控件生成ud2-id属性值
 		// 生成的id从编号0开始顺延
 		createControlID = (function () {
@@ -685,7 +685,7 @@ var ud2 = (function (window, $) {
 					width = $td.attr(datagrid + 'width'),
 					mode = $td.attr(datagrid + 'mode'),
 					opt = {};
-				
+
 				opt.value = $td.html();
 				if (dataType) opt.type = dataType;
 				if (cellType) opt.cellType = cellType;
@@ -1381,7 +1381,7 @@ var ud2 = (function (window, $) {
 					else {
 						origin.on(eventsName[4] + ' ' + eventsName[8], eventStart);
 					}
-					
+
 					origin.css({
 						'-ms-touch-action': 'none',
 						'touch-action': 'none'
@@ -1392,7 +1392,7 @@ var ud2 = (function (window, $) {
 					} else {
 						origin.off(eventsName[4] + ' ' + eventsName[8], eventStart);
 					}
-					
+
 					origin.css({
 						// 取消清除触控效果
 						'-ms-touch-action': 'auto',
@@ -3892,7 +3892,7 @@ var ud2 = (function (window, $) {
 					layout = options.layout;
 				}),
 				// 控件结构
-				template = '<div class="' + cn('bar') + '"><div class="' + cn('bar-inner') + '" /></div><div class="' + cn('main') +'" />',
+				template = '<div class="' + cn('bar') + '"><div class="' + cn('bar-inner') + '" /></div><div class="' + cn('main') + '" />',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -4691,14 +4691,17 @@ var ud2 = (function (window, $) {
 
 			var // elements数据源、jQuery数据源
 				// 或二维数组数据
-				// 数据    头部数据    底部数据
-				datas, datasHeader, datasFooter,
-				// 列参数对象集合 列默认参数    单元格高度   控件高度 行参数对象集合 鼠标滑上背景改变颜色 鼠标滑上时的背景颜色
+				// 数据    头部数据    底部数据     当前已选择的行序号集合
+				datas, datasHeader, datasFooter, selectedRows = [],
+				// 列参数对象集合 列默认参数 单元格高度 控件高度 行参数对象集合 鼠标滑上背景改变颜色 鼠标滑上时的背景颜色
 				columnsInfo, columnDefault, cellHeight, height, rowsInfo, isHover, hoverColor,
+				// 是否支持选中行 是否支持行多选
+				isSelected, isSelectedMultiple,
 				// 获取用户自定义项
 				options = control.getOptions([
 					'datas', 'datasFooter', 'columns', 'columnDefault',
-					'cellHeight', 'height', ['hover', 'isHover'], 'hoverColor'
+					'cellHeight', 'height', ['hover', 'isHover'], 'hoverColor',
+					[CSS_SELECTED, 'isSelected'], ['selectedMultiple', 'isSelectedMultiple']
 				], function (options) {
 					// 初始化单元格高度
 					cellHeight = parseInt(options.cellHeight) || 34;
@@ -4709,6 +4712,10 @@ var ud2 = (function (window, $) {
 					isHover = attrBoolCheck(options.hover, true);
 					// 初始化鼠标滑上时的背景颜色
 					hoverColor = options.hoverColor || '#EDF7FF';
+					// 初始化选中行
+					isSelected = attrBoolCheck(options.selected, false);
+					// 初始化多选
+					isSelectedMultiple = attrBoolCheck(options.selectedMultiple, true);
 
 					// 初始化传入数据
 					initDatas(options.datas, options.datasFooter);
@@ -4719,19 +4726,23 @@ var ud2 = (function (window, $) {
 					// 初始化行对象
 					initRows();
 				}),
+				// CSS常量
+				STR_LEFT = cn('left'), STR_CENTER = cn('center'), STR_RIGHT = cn('right'), STR_GRID = cn('grid'),
+				STR_HEADER = cn('header'), STR_CONTENT = cn('content'), STR_FOOTER = cn('footer'),
+				STR_CLS_ROW = cn('row', 1),
 				// 控件结构
-				template = '<div class="' + cn('left') + '">'
-					+ '<div class="' + cn('header') + '"><div class="' + cn('grid') + '" /></div>'
-					+ '<div class="' + cn('content') + '"><div class="' + cn('grid') + '" /></div>'
-					+ '<div class="' + cn('footer') + '"><div class="' + cn('grid') + '" /></div></div>'
-					+ '<div class="' + cn('right') + '">'
-					+ '<div class="' + cn('header') + '"><div class="' + cn('grid') + '" /></div>'
-					+ '<div class="' + cn('content') + '"><div class="' + cn('grid') + '" /></div>'
-					+ '<div class="' + cn('footer') + '"><div class="' + cn('grid') + '" /></div></div>'
-					+ '<div class="' + cn('center') + '">'
-					+ '<div class="' + cn('header') + '"><div class="' + cn('grid') + '" /></div>'
-					+ '<div class="' + cn('content') + '"><div class="' + cn('grid') + '" /></div>'
-					+ '<div class="' + cn('footer') + '"><div class="' + cn('grid') + '" /></div></div>',
+				template = '<div class="' + STR_LEFT + '">'
+					+ '<div class="' + STR_HEADER + '"><div class="' + STR_GRID + '" /></div>'
+					+ '<div class="' + STR_CONTENT + '"><div class="' + STR_GRID + '" /></div>'
+					+ '<div class="' + STR_FOOTER + '"><div class="' + STR_GRID + '" /></div></div>'
+					+ '<div class="' + STR_RIGHT + '">'
+					+ '<div class="' + STR_HEADER + '"><div class="' + STR_GRID + '" /></div>'
+					+ '<div class="' + STR_CONTENT + '"><div class="' + STR_GRID + '" /></div>'
+					+ '<div class="' + STR_FOOTER + '"><div class="' + STR_GRID + '" /></div></div>'
+					+ '<div class="' + STR_CENTER + '">'
+					+ '<div class="' + STR_HEADER + '"><div class="' + STR_GRID + '" /></div>'
+					+ '<div class="' + STR_CONTENT + '"><div class="' + STR_GRID + '" /></div>'
+					+ '<div class="' + STR_FOOTER + '"><div class="' + STR_GRID + '" /></div></div>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -4770,7 +4781,14 @@ var ud2 = (function (window, $) {
 				// 空单元格，用于克隆
 				$emptyCell = $div.clone().addClass(cn('cell')),
 				// 滚动条控件	
-				leftScroll, rightScroll, topScroll, bottomScroll, contentScroll;
+				leftScroll, rightScroll, topScroll, bottomScroll, contentScroll,
+				// 是否全部选中
+				isAllSelected = false,
+				// 控件回调
+				controlCallbacks = {
+					rowSelected: fnNoop,
+					rowDeselected: fnNoop
+				};
 
 			// #endregion
 
@@ -4916,12 +4934,12 @@ var ud2 = (function (window, $) {
 					e = { height: fh, bottom: 0 };
 
 				// 是数字或百分比，则设置高度
-				if (type.isString(height) 
+				if (type.isString(height)
 					&& (REGEX_PERCENT.test(height) || REGEX_NONNEGATIVE.test(height)))
 					$datagrid.css('height', height);
 
 				$datagrid.css('line-height', cellHeight - 2 + 'px');
-				
+
 				$leftHeader.css(h);
 				$leftContent.css(t);
 				$centerHeader.css(h);
@@ -4990,6 +5008,8 @@ var ud2 = (function (window, $) {
 				var // 宽度累计
 					wc = 0, wl = 0, wr = 0;
 
+				// 如果包含checked列，默认左列宽加38
+				if (isSelected) wl += 38;
 				// 获取列的宽度
 				columnsInfo.forEach(function (obj) {
 					obj.widthNow = obj.width;
@@ -5058,18 +5078,34 @@ var ud2 = (function (window, $) {
 			function createTableElements(datatable, $left, $center, $right, arr) {
 				var // 迭代变量
 					isHeader = arr === rowsInfo.header,
+					isFooter = arr === rowsInfo.footer,
 					i = 0, l = isHeader ? 1 : datatable.rows.length,
-					j, m, ci, $rl, $rc, $rr, $cell;
-				
+					j, m, ci, $rl, $rc, $rr, $cell, realHeight;
+
 				// 创建元素
 				for (; i < l; i++) {
 					$rl = $emptyRow.clone().appendTo($left).css('top', i * cellHeight);
 					$rc = $emptyRow.clone().appendTo($center).css('top', i * cellHeight);
 					$rr = $emptyRow.clone().appendTo($right).css('top', i * cellHeight);
 					arr[i] = { $l: $rl, $c: $rc, $r: $rr, cells: [] };
-					
-					for (j = 0, m = columnsInfo.length; j < m; j++) {
-						ci = columnsInfo[j];
+
+					if (isSelected && ((isHeader || isFooter) && i === 0 || !isHeader && !isFooter)) {
+						$cell = $emptyCell.clone().addClass(CSS_CHECKED).css({ textAlign: 'center', width: 38 });
+						$cell.appendTo($rl);
+						if (isHeader || isFooter) {
+							realHeight = isHeader ? datasHeader.rows.length * cellHeight : datasFooter.rows.length * cellHeight;
+							$cell.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
+						}
+						console.log(isSelectedMultiple);
+						if (!isSelectedMultiple && (isHeader || isFooter)) {
+							$cell.html('').addClass('disabled');
+						}
+						else {
+							$cell.html('<input type="checkbox" class="check" />');
+						}
+					}
+
+					columnsInfo.forEach(function (ci, j) {
 						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(arr === rowsInfo.header ? ci.title : datatable.rows[i].cells[j] ? datatable.rows[i].cells[j].val() : '');
 
 						switch (ci.mode) {
@@ -5079,11 +5115,32 @@ var ud2 = (function (window, $) {
 						}
 
 						arr[i].cells[j] = $cell;
-					}
+					});
 				}
 			}
 
 			// #endregion	
+
+			// #region 回调方法
+
+			// 设置行选中时的回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.page]: 返回该控件对象
+			function setRowSelected(fn) {
+				controlCallbacks.rowSelected = fn;
+				return control.public;
+			}
+			// 设置行取消选中时的回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.page]: 返回该控件对象
+			function setRowDeselected(fn) {
+				controlCallbacks.rowDeselected = fn;
+				return control.public;
+			}
+
+			// #endregion
 
 			// #region 事件处理
 
@@ -5092,19 +5149,92 @@ var ud2 = (function (window, $) {
 				updateAllCellSizeStyles();
 			}
 			// 绑定hover效果
-			function hoverStyle() {
-				if (isHover) {
-					// 绑定hover效果相关事件
-					$datagrid.on([MOUSE_ENTER, MOUSE_LEAVE].join(' '), cn('row', 1), function (event) {
-						var $me = $(this), type = event.type, index, css, slRow = cn('row', 1);
-						if ($me.parents(cn('content', 1)).length > 0) {
-							index = $me.index();
-							css = { 'background-color': type === MOUSE_ENTER ? hoverColor : '' };
-							$leftContentGrid.children(slRow).eq(index).children().css(css);
-							$centerContentGrid.children(slRow).eq(index).children().css(css);
-							$rightContentGrid.children(slRow).eq(index).children().css(css);
+			function hoverEvent() {
+				if (!isHover) return;
+				// 绑定hover效果相关事件
+				$datagrid.on([MOUSE_ENTER, MOUSE_LEAVE].join(' '), STR_CLS_ROW, function (event) {
+					var $me = $(this), type = event.type, index, css;
+					if ($me.parents(cn('content', 1)).length > 0) {
+						index = $me.index();
+						css = { 'background-color': type === MOUSE_ENTER ? hoverColor : '' };
+						$leftContentGrid.children(STR_CLS_ROW).eq(index).children().css(css);
+						$centerContentGrid.children(STR_CLS_ROW).eq(index).children().css(css);
+						$rightContentGrid.children(STR_CLS_ROW).eq(index).children().css(css);
+					}
+				});
+			}
+			// 选项事件
+			function selectedEvent() {
+				var stChecked = ':first-child input',
+					RD = 'rowDeselected', RS = 'rowSelected';
+				if (!isSelected) return;
+
+				// 行选中状态操作
+				function rowSelected() {
+					var index = this.index(), arrIndex = selectedRows.indexOf(index), del;
+					$leftContentGrid.children().eq(index).find(stChecked).prop(CSS_CHECKED, arrIndex > -1 ? '' : CSS_CHECKED);
+					if (arrIndex > -1) {
+						selectedRows.splice(arrIndex, 1);
+					}
+					else {
+						if (!isSelectedMultiple && selectedRows.length > 0) {
+							del = selectedRows[0];
+							$leftContentGrid.children().eq(del).find(stChecked).prop(CSS_CHECKED, '');
+							selectedRows.splice(0, 1);
+							controlCallbacks[RD].call(control.public, [del], [datas.rows[del]]);
+						}
+						selectedRows.push(index);
+					}
+					controlCallbacks[arrIndex > -1 ? RD : RS].call(control.public, [index], [datas.rows[index]]);
+				}
+				// 通过checkbox单元格造作行选中状态
+				function cellCheckByRowSelected() {
+					rowSelected.call(this.parent());
+				}
+				// 改变全部行的选中状态
+				function rowSelectedAll() {
+					var selectIndex = [], selectRowObj = [], del = [];
+
+					// 迭代行元素，操作行的选中状态
+					datas.rows.forEach(function (a, i) {
+						if (isAllSelected) {
+							if (selectedRows.indexOf(i) > -1) {
+								del.push(i);
+							}
+						}
+						else {
+							if (selectedRows.indexOf(i) === -1) {
+								selectedRows.push(i);
+								selectIndex.push(i);
+								selectRowObj.push(datas.rows[i]);
+							}
 						}
 					});
+					// 迭代删除数组，删掉已取消选中的元素
+					if (isAllSelected) {
+						del.forEach(function (a, i) {
+							selectIndex.push(del[i]);
+							selectRowObj.push(datas.rows[del[i]]);
+							selectedRows.splice(selectedRows.indexOf(del[i]), 1);
+						});
+					}
+
+					$leftContentGrid.children().find(stChecked).prop(CSS_CHECKED, isAllSelected ? '' : CSS_CHECKED);
+					$leftHeaderGrid.find(stChecked).prop(CSS_CHECKED, isAllSelected ? '' : CSS_CHECKED);
+					$leftFooterGrid.find(stChecked).prop(CSS_CHECKED, isAllSelected ? '' : CSS_CHECKED);
+					controlCallbacks[isAllSelected ? RD : RS].call(control.public, selectIndex, selectRowObj);
+					isAllSelected = !isAllSelected;
+				}
+
+				// 绑定内容区域相关事件
+				event($leftContentGrid.find(STR_CLS_ROW + ' :first-child')).setTap(cellCheckByRowSelected);
+				event($centerContentGrid.children(STR_CLS_ROW)).setPress(rowSelected);
+				event($leftContentGrid.children(STR_CLS_ROW)).setPress(rowSelected);
+				event($rightContentGrid.children(STR_CLS_ROW)).setPress(rowSelected);
+				// 绑定首尾区域相关事件
+				if (isSelectedMultiple) {
+					event($leftHeaderGrid.find(STR_CLS_ROW + ' :first-child')).setTap(rowSelectedAll);
+					event($leftFooterGrid.find(STR_CLS_ROW + ' :first-child')).setTap(rowSelectedAll);
 				}
 			}
 			// 事件绑定
@@ -5155,7 +5285,9 @@ var ud2 = (function (window, $) {
 				callbacks.pageResize.add(resize);
 
 				// 绑定hover效果
-				hoverStyle();
+				hoverEvent();
+				// 绑定selected效果
+				selectedEvent();
 			}
 
 			// #endregion
@@ -5174,7 +5306,7 @@ var ud2 = (function (window, $) {
 					control.origin.remove();
 					control.transferStyles();
 					updateInit();
-				}
+				} 
 
 				// 事件绑定
 				bindEvent();
@@ -5215,7 +5347,10 @@ var ud2 = (function (window, $) {
 				appendTo: appendTo,
 				prependTo: prependTo,
 				insertAfter: insertAfter,
-				insertBefore: insertBefore
+				insertBefore: insertBefore,
+
+				setRowSelected: setRowSelected,
+				setRowDeselected: setRowDeselected
 			});
 
 			// #endregion
@@ -5961,9 +6096,7 @@ var ud2 = (function (window, $) {
 	controlCreater('switch', function (collection, constructor) {
 
 		var // className存于变量
-			cls = collection.className, cn = getClassName(cls),
-			// checked状态常量
-			CHECKED = 'checked';
+			cls = collection.className, cn = getClassName(cls);
 
 		collection.init = function (control) {
 
@@ -6064,7 +6197,7 @@ var ud2 = (function (window, $) {
 			// return[ud2.switch]: 返回选项控件
 			function open() {
 				if (!value) {
-					$switch.addClass(CHECKED);
+					$switch.addClass(CSS_CHECKED);
 					setValue(1);
 				}
 				return control.public;
@@ -6073,7 +6206,7 @@ var ud2 = (function (window, $) {
 			// return[ud2.switch]: 返回选项控件
 			function close() {
 				if (value) {
-					$switch.removeClass(CHECKED);
+					$switch.removeClass(CSS_CHECKED);
 					setValue(0);
 				}
 				return control.public;
@@ -6145,7 +6278,7 @@ var ud2 = (function (window, $) {
 				// 添加样式
 				if (color !== '') $switch.addClass(color.name ? color.name : color);
 				// 默认开启情况
-				if (value === 1) $switch.addClass(CHECKED);
+				if (value === 1) $switch.addClass(CSS_CHECKED);
 				$value.val(value);
 				// 设置默认禁用状态
 				if (isDisabled) $switch.attr(cn(CSS_DISABLED), true);

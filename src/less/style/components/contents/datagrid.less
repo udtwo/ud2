@@ -10,6 +10,8 @@
 @DatagridBorderColor: @ColorWhiteBorder;
 // 数据网格首尾单元格背景色
 @DatagridHomeEndTHBackColor: @ColorWhiteDeeper;
+// 数据网格首尾单元格背景色
+@DatagridHomeEndTHBackDisabledColor: lighten(@ColorWhiteDeepest, 1.5%);
 // 数据网格两侧单元格背景色
 @DatagridLeftRightTDBackColor: lighten(@ColorWhiteDeeper, 3%);
 // 单元格高度
@@ -50,11 +52,28 @@
 	&:last-child {
 		border-right-color: transparent;
 	}
+
+	&.checked::before {
+		content: '';
+		position: absolute;
+		top: 0; 
+		left: 0; 
+		right: 0; 
+		bottom: 0;
+		cursor: pointer;
+	}
 }
 // 网格头部、底部单元格样式
 .ud2-datagrid-header .ud2-datagrid-cell,
 .ud2-datagrid-footer .ud2-datagrid-cell {
 	background: @DatagridHomeEndTHBackColor;
+	&.disabled {
+		background: @DatagridHomeEndTHBackDisabledColor;
+
+		&.checked::before {
+			cursor: default;
+		}
+	}
 }
 
 // 网格主容器、滚动主容器定位方式

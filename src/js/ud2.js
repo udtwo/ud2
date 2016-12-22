@@ -5093,7 +5093,7 @@ var ud2 = (function (window, $) {
 						$cell = $emptyCell.clone().addClass(CSS_CHECKED).css({ textAlign: 'center', width: 38 });
 						$cell.appendTo($rl);
 						if (isHeader || isFooter) {
-							realHeight = isHeader ? datasHeader.rows.length * cellHeight : datasFooter.rows.length * cellHeight;
+							realHeight = isHeader ? l * cellHeight : datasFooter.rows.length * cellHeight;
 							$cell.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
 						}
 						console.log(isSelectedMultiple);

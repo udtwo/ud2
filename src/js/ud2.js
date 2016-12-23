@@ -5132,6 +5132,22 @@ var ud2 = (function (window, $) {
 
 			// #endregion	
 
+			// 操作网格高度
+			// () 获取当前控件高度
+			// - return[number]: 返回控件的高度
+			// (h) 设置网格高度
+			// - h[number, string]: 设置的高度值，可以是数字或字符形式的百分数
+			// - return[ud2.datagrid]: 返回该控件对象
+			function heightOperate(h) {
+				if (h === void 0) {
+					return $datagrid.height();
+				}
+				else {
+					$datagrid.height(h);
+					return control.public;
+				}
+			}
+
 			// #region 回调方法
 
 			// 设置行选中时的回调函数
@@ -5360,6 +5376,7 @@ var ud2 = (function (window, $) {
 				insertAfter: insertAfter,
 				insertBefore: insertBefore,
 
+				height: heightOperate,
 				setRowSelected: setRowSelected,
 				setRowDeselected: setRowDeselected
 			});

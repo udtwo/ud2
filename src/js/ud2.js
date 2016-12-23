@@ -4119,7 +4119,10 @@ var ud2 = (function (window, $) {
 				return control.public;
 			}
 			// 从选项卡控件中移除指定的选项卡页对象
-			// page[ud2.tabs.page]: 选项卡页对象
+			// (name) 通过传入选项卡页名称查找相关的选项卡页对象并从控件中移除此对象
+			// - name[string]: 选项卡页名称
+			// (page) 通过传入选项卡页对象从控件中移除此对象
+			// - page[ud2.tabs.page]: 选项卡页对象
 			// return[ud2.tabs]: 返回该控件对象
 			function pageRemove(page) {
 				var index;
@@ -4157,10 +4160,16 @@ var ud2 = (function (window, $) {
 					page.tabs = null;
 					pageCollection.splice(index, 1);
 				}
+				else if (page) {
+					return pageRemove(pageFind(page));
+				}
 				return control.public;
 			}
 			// 开启指定的选项卡页
-			// page[ud2.tabs.page]: 选项卡页对象
+			// (name) 通过传入选项卡页名称查找相关的选项卡页对象并从控件中移除此对象
+			// - name[string]: 选项卡页名称
+			// (page) 通过传入选项卡页对象从控件中移除此对象
+			// - page[ud2.tabs.page]: 选项卡页对象
 			// return[ud2.tabs]: 返回该控件对象
 			function pageOpen(page) {
 				if (page && page.type === TYPE_PAGE && page.tabs === control.public) {
@@ -4168,6 +4177,9 @@ var ud2 = (function (window, $) {
 					page.openState(true);
 					moveScroll(page);
 					pageOpenNow = page;
+				}
+				else if (page) {
+					return pageOpen(pageFind(page));
 				}
 				return control.public;
 			}
@@ -4576,9 +4588,7 @@ var ud2 = (function (window, $) {
 						case 0: { btnChange(1); break; }
 						case 1: { btnChange(now - 1); break; }
 						case 2: { btnChange(now + 1); break; }
-						case 3: {
-							btnChange(max); break;
-						}
+						case 3: { btnChange(max); break; }
 					}
 				});
 
@@ -5132,6 +5142,8 @@ var ud2 = (function (window, $) {
 
 			// #endregion	
 
+			// #region 公共方法
+
 			// 操作网格高度
 			// () 获取当前控件高度
 			// - return[number]: 返回控件的高度
@@ -5147,6 +5159,8 @@ var ud2 = (function (window, $) {
 					return control.public;
 				}
 			}
+
+			// #endregion
 
 			// #region 回调方法
 

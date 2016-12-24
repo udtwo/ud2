@@ -4887,7 +4887,7 @@ var ud2 = (function (window, $) {
 					icol.width = parseInt(hop && hop.cellWidth) || icol.width;
 					icol.model = hop && hop.cellMode || icol.mode;
 					if (icol.width < 20) icol.width = 20;
-					if (icol.minWidth > icol.width) icol.minWidth = icol.width;
+					if (icol.minWidth > icol.width) icol.width = icol.minWidth;
 					icol.align = (function () {
 						switch (icol.align) {
 							case 1: case '1': case 'center': { return 'center'; }

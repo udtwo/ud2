@@ -4663,35 +4663,42 @@ var ud2 = (function (window, $) {
 			cls = collection.className, cn = getClassName(cls),
 			// 单元格对齐方式
 			cellAlign = {
+				// 左对齐
 				left: 0,
+				// 居中对齐
 				center: 1,
+				// 右对齐
 				right: 2
 			},
 			// 列的排版模式
 			columnMode = {
+				// 默认排版
 				normal: 0,
+				// 响应排版
 				flex: 1,
+				// 左侧固定排版
 				left: 2,
+				// 右侧固定排版
 				right: 3
 			},
 			// 数据列初始化默认参数
 			columnDefaultOptions = {
 				// 列标题
-				title: '',
+				title: '', // element-attr
 				// 单元格的数据类型
-				type: null,
+				type: null, // element-attr
 				// 当前宽度 number(px) | auto
-				width: 120,
+				width: 120, // element-attr
 				// 单元格的最小宽度，通过flex压缩不能小于此宽度
 				minWidth: 50,
 				// 0 normal 1 flex 2 left 3 right
-				mode: 1,
+				mode: 1, // element-attr
 				// 是否可编辑
 				edit: false,
-				// 是否可编辑
+				// 是否可排序
 				sort: false,
 				// 0 左侧 1 剧中 2 右侧
-				align: 0
+				align: 0 // element-attr
 			};
 
 		// 重写集合初始化方法
@@ -4884,10 +4891,9 @@ var ud2 = (function (window, $) {
 					icol.title = datas.columns[i] && datas.columns[i].title() || hop && hop.val() || icol.title;
 					icol.type = datas.columns[i] && datas.columns[i].dataType() || hop && hop.cellType || icol.type;
 					icol.align = hop && hop.cellAlign || icol.align;
-					icol.width = parseInt(hop && hop.cellWidth) || icol.width;
 					icol.model = hop && hop.cellMode || icol.mode;
-					if (icol.width < 20) icol.width = 20;
-					if (icol.minWidth > icol.width) icol.width = icol.minWidth;
+					icol.width = parseInt(hop && hop.cellWidth) || icol.width;
+					if (icol.minWidth > icol.width && icol.mode === 1) icol.width = icol.minWidth;
 					icol.align = (function () {
 						switch (icol.align) {
 							case 1: case '1': case 'center': { return 'center'; }
@@ -5105,7 +5111,7 @@ var ud2 = (function (window, $) {
 					isHeader = arr === rowsInfo.header,
 					isFooter = arr === rowsInfo.footer,
 					i = 0, l = isHeader ? 1 : datatable.rows.length,
-					j, m, ci, $rl, $rc, $rr, $cell, realHeight;
+					j, m, ci, $rl, $rc, $rr, $cell, realHeight, content;
 
 				// 创建元素
 				for (; i < l; i++) {
@@ -5127,7 +5133,9 @@ var ud2 = (function (window, $) {
 					}
 
 					columnsInfo.forEach(function (ci, j) {
-						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(arr === rowsInfo.header ? ci.title : datatable.rows[i].cells[j] ? datatable.rows[i].cells[j].val() : '');
+						content = arr === rowsInfo.header ? ci.title : datatable.rows[i].cells[j] ? datatable.rows[i].cells[j].val() : '';
+						$cell = $emptyCell.clone().css({ textAlign: ci.align })
+							.html(content).attr('title', content);
 
 						switch (ci.mode) {
 							case 0: case 1: { $cell.appendTo($rc); break; }

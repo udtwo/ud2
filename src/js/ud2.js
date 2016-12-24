@@ -6827,7 +6827,7 @@ var ud2 = (function (window, $) {
 					case '0':
 					case 0: {
 						dir = 0;
-						$select.removeClass(cn('dir-up')).addClass(cn('-dir-down'));
+						$select.removeClass(cn('dir-up')).addClass(cn('dir-down'));
 						break;
 					}
 				}

@@ -4114,7 +4114,7 @@ var ud2 = (function (window, $) {
 						ce = ce.add(page.getTabLink().find('i'));
 					}
 					page.event = event(e).setTap(function () { pageOpen(page); menuClose(); });
-					page.closeEvent = event(ce).setTap(function () { pageRemove(page); menuClose(); });
+					page.closeEvent = event(ce).setTap(function () { pageRemove(page); });
 				}
 				return control.public;
 			}

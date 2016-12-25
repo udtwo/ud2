@@ -3995,35 +3995,39 @@ var ud2 = (function (window, $) {
 			// 重新计算并移动滚动区域
 			function moveScroll(obj) {
 				var pos, menuPos;
-				if (isTabScroll && isTabAutoMove) {
+				if (isTabScroll) {
 					tabBoxScroll.recountPosition();
 
-					if (obj.getTab().prev().length !== 0) {
-						pos = obj.getTab().prev().position();
-					}
-					else {
-						pos = obj.getTab().position();
-					}
+					if (isTabAutoMove) {
+						if (obj.getTab().prev().length !== 0) {
+							pos = obj.getTab().prev().position();
+						}
+						else {
+							pos = obj.getTab().position();
+						}
 
-					if (layout === 0 || layout === 1) {
-						tabBoxScroll.move(pos.left, 0, 300);
-					}
-					else {
-						tabBoxScroll.move(0, pos.top, 300);
+						if (layout === 0 || layout === 1) {
+							tabBoxScroll.move(pos.left, 0, 300);
+						}
+						else {
+							tabBoxScroll.move(0, pos.top, 300);
+						}
 					}
 				}
 
-				if (isMenu && isMenuAutoMove) {
+				if (isMenu) {
 					menuBoxScroll.recountPosition();
 
-					if (obj.getTabLink().prev().length !== 0) {
-						menuPos = obj.getTabLink().prev().position();
-					}
-					else {
-						menuPos = obj.getTabLink().position();
-					}
+					if (isMenuAutoMove) {
+						if (obj.getTabLink().prev().length !== 0) {
+							menuPos = obj.getTabLink().prev().position();
+						}
+						else {
+							menuPos = obj.getTabLink().position();
+						}
 
-					menuBoxScroll.move(0, menuPos.top - 5, 300);
+						menuBoxScroll.move(0, menuPos.top - 5, 300);
+					}
 				}
 			}
 			// 通过name属性获取选项卡页对象

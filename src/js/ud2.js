@@ -4087,8 +4087,14 @@ var ud2 = (function (window, $) {
 					$tabBox.append(page.getTab());
 					$contentBox.append(page.getContent());
 					// 重计算滚动尺寸
-					if (layout === 0 || layout === 1) size = page.getTab().outerWidth();
-					else size = page.getTab().outerHeight();
+					if (layout === 0 || layout === 1) size = page.getTab().width();
+					else size = page.getTab().height();
+					// 对尺寸整数化
+					size = Math.ceil(size);
+					if (layout === 0 || layout === 1) page.getTab().css('width', size);
+					else page.getTab().css('height', size);
+					// 赋值新尺寸
+					page.size = size;
 					recountScrollSize(size);
 					if (isTabScroll) tabBoxScroll.recountPosition();
 					// 生成菜单项
@@ -4125,10 +4131,19 @@ var ud2 = (function (window, $) {
 			// - page[ud2.tabs.page]: 选项卡页对象
 			// return[ud2.tabs]: 返回该控件对象
 			function pageRemove(page) {
-				var index;
+				var index, size;
 				if (page && page.type === TYPE_PAGE && page.tabs === control.public) {
-					index = pageCollection.indexOf(page);
+					// 移除元素
+					page.getTab().detach();
+					page.getTabLink().detach();
+					page.getContent().detach();
+					page.event.off();
+					page.closeEvent.off();
+					// 解绑关系
+					page.tabs = null;
 
+					// 如果移除正在显示的页，则重新定位显示页
+					index = pageCollection.indexOf(page);
 					if (pageOpenNow === page) {
 						page.openState(0);
 						if (index > 0) {
@@ -4138,27 +4153,21 @@ var ud2 = (function (window, $) {
 							pageOpenNow = pageCollection[1].openState(1);
 						}
 					}
+					pageCollection.splice(index, 1);
 
-					if (pageCollection.length === 1) {
+					// 计算尺寸
+					size = -page.size;
+					delete page.size;
+					recountScrollSize(size);
+
+					// 重新定位
+					if (pageCollection.length === 0) {
 						pageOpenNow = null;
 						$menuScroll.addClass(CSS_EMPTY);
 					}
 					else {
 						moveScroll(pageOpenNow);
-					}
-
-					// 移除元素
-					page.getTab().detach();
-					page.getTabLink().detach();
-					page.getContent().detach();
-					page.event.off();
-					page.closeEvent.off();
-					recountScrollSize(-page.size);
-					delete page.size;
-
-					// 解绑关系
-					page.tabs = null;
-					pageCollection.splice(index, 1);
+					}		
 				}
 				else if (page) {
 					return pageRemove(pageFind(page));

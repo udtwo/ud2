@@ -675,23 +675,26 @@ var ud2 = (function (window, $) {
 
 		// 获取数据
 		$tr.each(function () {
-			var d = [];
+			var d = [], parentNodeName = $tr.parent().prop('nodeName').toLowerCase();
 			$(this).children().each(function () {
 				var $td = $(this),
 					datagrid = prefixLibName + 'datagrid-',
 					dataType = $td.attr(datagrid + 'data-type'),
-					cellType = $td.attr(datagrid + 'cell-data-type'),
-					align = $td.attr(datagrid + 'align'),
-					width = $td.attr(datagrid + 'width'),
-					mode = $td.attr(datagrid + 'mode'),
+					cellType, cellAlign, cellWidth, cellMode,
 					opt = {};
 
 				opt.value = $td.html();
 				if (dataType) opt.type = dataType;
-				if (cellType) opt.cellType = cellType;
-				if (align) opt.cellAlign = align;
-				if (width) opt.cellWidth = width;
-				if (mode) opt.cellMode = mode;
+				if (parentNodeName === 'thead') {
+					cellType = $td.attr(datagrid + 'cell-data-type');
+					cellAlign = $td.attr(datagrid + 'cell-align');
+					cellWidth = $td.attr(datagrid + 'cell-width');
+					cellMode = $td.attr(datagrid + 'cell-mode');
+					if (cellType) opt.cellType = cellType;
+					if (cellAlign) opt.cellAlign = cellAlign;
+					if (cellWidth) opt.cellWidth = cellWidth;
+					if (cellMode) opt.cellMode = cellMode;
+				}
 
 				d.push(opt);
 			});
@@ -2761,10 +2764,10 @@ var ud2 = (function (window, $) {
 					cellObj.column = options.column || null;
 					cellObj.row = options.row || null;
 					// 绑定其他属性
-					cellObj.cellType = options.cellType || null;
-					cellObj.cellAlign = options.cellAlign || null;
-					cellObj.cellWidth = options.cellWidth || null;
-					cellObj.cellMode = options.cellMode || null;
+					if (options.cellType) cellObj.cellType = options.cellType;
+					if (options.cellAlign) cellObj.cellAlign = options.cellAlign;
+					if (options.cellWidth) cellObj.cellWidth = options.cellWidth;
+					if (options.cellMode) cellObj.cellMode = options.cellMode;
 
 					// 获取数据值类型
 					valueType = options.type;
@@ -3962,8 +3965,8 @@ var ud2 = (function (window, $) {
 						}
 				recountScrollSize();
 				}
-					// 设置主题
-					// tm[string, number, ud2.tabs.theme]: 主题名称
+			// 设置主题
+			// tm[string, number, ud2.tabs.theme]: 主题名称
 			function setTheme(tm) {
 				// 移除旧主题
 				if (theme) $tabs.removeClass(cn(themes[theme]));
@@ -5502,10 +5505,10 @@ var ud2 = (function (window, $) {
 				prependTo: prependTo,
 				insertAfter: insertAfter,
 				insertBefore: insertBefore,
-
 				height: heightOperate,
 				setRowSelected: setRowSelected,
-				setRowDeselected: setRowDeselected
+				setRowDeselected: setRowDeselected,
+				datas: datas
 			});
 
 			// #endregion

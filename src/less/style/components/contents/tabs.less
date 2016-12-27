@@ -8,10 +8,6 @@
 
 // 选项卡默认尺寸
 @TabsSize: @BaseSize * 3.6;
-// 选项卡背景颜色
-@TabsBackColor: @ColorWhiteDeepest; //lighten(@ColorWhiteDeeper, 2%);
-// 选项卡文本颜色
-@TabsColor: lighten(@ColorText, 25%);
 // 选项卡控件默认默认高度
 @TabsDefaultHeight: 400px;
 
@@ -67,7 +63,7 @@
 .ud2-tabs-menu-btn {
 	width: 100%;
 	height: 100%;
-	background: @TabsBackColor;
+	background: @ColorWhiteDeepest;
 	line-height: @TabsSize;
 	text-align: center;
 	cursor: pointer;
@@ -150,11 +146,8 @@
 .ud2-tabs-tab {
 	height: @TabsSize;
 	line-height: @TabsSize;
-	color: @TabsColor;
-	background-image: -webkit-linear-gradient(@TabsBackColor, darken(@TabsBackColor, 2%));
-	background-image: -o-linear-gradient(@TabsBackColor, darken(@TabsBackColor, 2%));
-	background-image: -moz-linear-gradient(@TabsBackColor, darken(@TabsBackColor, 2%));
-	background-image: linear-gradient(@TabsBackColor, darken(@TabsBackColor, 2%));
+	color: lighten(@ColorText, 25%);
+	background-color: @ColorWhiteDeepest;
 	cursor: pointer;
 	
 	i {
@@ -431,5 +424,95 @@
 
 	&.ud2-tabs-right .ud2-tabs-main {
 		margin-right: @TabsSize;
+	}
+}
+
+// 清爽主题
+.ud2-tabs-simple {
+	.ud2-tabs-menu-btn, 
+	.ud2-tabs-menu-btn:hover, 
+	.ud2-tabs-menu.on > .ud2-tabs-menu-btn {
+		background-color: transparent;
+	}
+
+	.ud2-tabs-menu.on > .ud2-tabs-menu-btn::before {
+		color: @ColorBlue;
+	}
+
+	.ud2-tabs-tab, .ud2-tabs-main {
+		background: transparent;
+		color: @ColorText;
+	}
+
+	.ud2-tabs-tab.on {
+		color: @ColorBlue;
+	}
+
+	&.ud2-tabs-top {
+		.ud2-tabs-bar {
+			background-image: -webkit-linear-gradient(transparent @TabsSize - 2.0001, @ColorWhiteDeepest @TabsSize - 2);
+			background-image: -moz-linear-gradient(transparent @TabsSize - 2.0001, @ColorWhiteDeepest @TabsSize - 2);
+			background-image: -o-linear-gradient(transparent @TabsSize - 2.0001, @ColorWhiteDeepest @TabsSize - 2);
+			background-image: linear-gradient(transparent @TabsSize - 2.0001, @ColorWhiteDeepest @TabsSize - 2);
+		}
+
+		.ud2-tabs-menu-btn, .ud2-tabs-tab {
+			border-bottom: 2px solid @ColorWhiteDeepest;
+		}
+
+		.ud2-tabs-tab.on {
+			border-bottom-color: @ColorBlue;
+		}
+	}
+
+	&.ud2-tabs-bottom {
+		.ud2-tabs-bar {
+			background-image: -webkit-linear-gradient(@ColorWhiteDeepest 2px, transparent 2.0001px);
+			background-image: -moz-linear-gradient(@ColorWhiteDeepest 2px, transparent 2.0001px);
+			background-image: -o-linear-gradient(@ColorWhiteDeepest 2px, transparent 2.0001px);
+			background-image: linear-gradient(@ColorWhiteDeepest 2px, transparent 2.0001px);
+		}
+
+		.ud2-tabs-menu-btn, .ud2-tabs-tab {
+			border-top: 2px solid @ColorWhiteDeepest;
+		}
+
+		.ud2-tabs-tab.on {
+			border-top-color: @ColorBlue;
+		}
+	}
+
+	&.ud2-tabs-left {
+		.ud2-tabs-bar {
+			background-image: -webkit-linear-gradient(to right, transparent @TabsSize * 3.5 - 2.0001, @ColorWhiteDeepest @TabsSize * 3.5 - 2);
+			background-image: -moz-linear-gradient(to right, transparent @TabsSize * 3.5 - 2.0001, @ColorWhiteDeepest @TabsSize * 3.5 - 2);
+			background-image: -o-linear-gradient(to right, transparent @TabsSize * 3.5 - 2.0001, @ColorWhiteDeepest @TabsSize * 3.5 - 2);
+			background-image: linear-gradient(to right, transparent @TabsSize * 3.5 - 2.0001, @ColorWhiteDeepest @TabsSize * 3.5 - 2);
+		}
+
+		.ud2-tabs-menu-btn, .ud2-tabs-tab {
+			border-right: 2px solid @ColorWhiteDeepest;
+		}
+
+		.ud2-tabs-tab.on {
+			border-right-color: @ColorBlue;
+		}
+	}
+
+	&.ud2-tabs-right {
+		.ud2-tabs-bar {
+			background-image: -webkit-linear-gradient(to right, @ColorWhiteDeepest 2px, transparent 2.0001px);
+			background-image: -moz-linear-gradient(to right, @ColorWhiteDeepest 2px, transparent 2.0001px);
+			background-image: -o-linear-gradient(to right, @ColorWhiteDeepest 2px, transparent 2.0001px);
+			background-image: linear-gradient(to right, @ColorWhiteDeepest 2px, transparent 2.0001px);
+		}
+
+		.ud2-tabs-menu-btn, .ud2-tabs-tab {
+			border-left: 2px solid @ColorWhiteDeepest;
+		}
+
+		.ud2-tabs-tab.on {
+			border-left-color: @ColorBlue;
+		}
 	}
 }

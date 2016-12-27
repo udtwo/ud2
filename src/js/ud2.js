@@ -3619,6 +3619,8 @@ var ud2 = (function (window, $) {
 			cls = collection.className, cn = getClassName(cls),
 			// 内容对象模版
 			$contentTemplate = $div.clone().addClass(cn('content')),
+			// 主题对象
+			themes = { normal: 'normal', simple: 'simple' },
 			// 替代文本常量
 			TYPE_TABS = 'tabs', TYPE_PAGE = TYPE_TABS + '.page', TYPE_PAGE_NAME = 'tabs-page';
 
@@ -3845,33 +3847,17 @@ var ud2 = (function (window, $) {
 			});
 
 		}, constructor);
-		// 布局方式
-		constructor.layout = {
-			// 上方
-			top: 0,
-			// 下方
-			bottom: 1,
-			// 左侧
-			left: 2,
-			// 右侧
-			right: 3
-		};
-		// 选项卡页类型
-		constructor.pageType = {
-			html: 0,
-			url: 1
-		};
 
 		// 重写集合初始化方法
 		collection.init = function (control) {
 
 			// #region 私有字段
 
-			var // 是否有菜单工具 布局方式 选项卡可滚动 选项卡自动移动 目录自动移动  高度
-				isMenu, layout, isTabScroll, isTabAutoMove, isMenuAutoMove, height,
+			var // 是否有菜单工具 布局方式 选项卡可滚动 选项卡自动移动 目录自动移动  高度     主题
+				isMenu, layout, isTabScroll, isTabAutoMove, isMenuAutoMove, height, theme,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'layout', ['menu', 'isMenu'], 'height',
+					'layout', ['menu', 'isMenu'], 'height', 'theme',
 					['tabScroll', 'isTabScroll'],
 					['tabAutoMove', 'isTabAutoMove'],
 					['menuAutoMove', 'isMenuAutoMove']
@@ -3886,6 +3872,8 @@ var ud2 = (function (window, $) {
 					isMenuAutoMove = attrBoolCheck(options.menuAutoMove, true);
 					// 初始化是否自动填满父层
 					height = options.height || null;
+					// 获取主题，在初始化时，赋值主题
+					theme = options.theme;
 
 					// 布局方式
 					// 在init时，检测值是否符合要求
@@ -3968,6 +3956,29 @@ var ud2 = (function (window, $) {
 					}
 				}
 				recountScrollSize();
+			}
+			// 设置主题
+			// tm[string, number, ud2.tabs.theme]: 主题名称
+			function setTheme(tm) {
+				// 移除旧主题
+				if (theme) $tabs.removeClass(cn(themes[theme]));
+
+				switch (tm) {
+					default:
+					case themes.normal:
+					case '0':
+					case 0: {
+						theme = null;
+						break;
+					}
+					case themes.simple:
+					case '1':
+					case 1: {
+						theme = themes.simple;
+						$tabs.addClass(cn(themes[theme]));
+						break;
+					}
+				}
 			}
 			// 重新计算滚动区域尺寸
 			function recountScrollSize(size) {
@@ -4074,6 +4085,21 @@ var ud2 = (function (window, $) {
 				}
 				else {
 					return layout;
+				}
+			}
+			// 操作控件的主题
+			// () 获取控件当前的主题
+			// - return[number]: 返回当前的主题名称
+			// (mode) 设置控件的主题
+			// - mode[ud2.tabs.layout]: 主题名称
+			// - return[ud2.tabs]: 返回该控件对象
+			function themeOperate(mode) {
+				if (mode !== void 0) {
+					setTheme(mode);
+					return control.public;
+				}
+				else {
+					return theme ? theme : themes.normal;
 				}
 			}
 			// 操作控件高度
@@ -4292,6 +4318,8 @@ var ud2 = (function (window, $) {
 
 				// 设置布局
 				setLayout(layout);
+				// 设置主题
+				setTheme(theme);
 				// 如果目录存在，加入目录对象
 				if (isMenu) {
 					$tabs.prepend($menu);
@@ -4316,6 +4344,7 @@ var ud2 = (function (window, $) {
 			return extendObjects(control.public, {
 				height: heightOperate,
 				layout: layoutOperate,
+				theme: themeOperate,
 				pages: pageCollection,
 				pageAdd: pageAdd,
 				pageRemove: pageRemove,
@@ -4327,6 +4356,24 @@ var ud2 = (function (window, $) {
 			// #endregion
 
 		};
+		// 主题
+		constructor.theme = themes;
+		// 布局方式
+		constructor.layout = {
+			// 上方
+			top: 0,
+			// 下方
+			bottom: 1,
+			// 左侧
+			left: 2,
+			// 右侧
+			right: 3
+		};
+		// 选项卡页类型
+		constructor.pageType = {
+			html: 0,
+			url: 1
+		};
 
 	});
 	// 页码控件
@@ -4335,11 +4382,6 @@ var ud2 = (function (window, $) {
 		var // className存于变量
 			cls = collection.className, cn = getClassName(cls);
 
-		// 选项卡页类型
-		constructor.layout = {
-			small: 0,
-			normal: 1
-		};
 		// 重写集合初始化方法
 		collection.init = function (control) {
 
@@ -4690,6 +4732,11 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
+		};
+		// 选项卡页类型
+		constructor.layout = {
+			small: 0,
+			normal: 1
 		};
 
 	});

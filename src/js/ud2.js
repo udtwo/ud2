@@ -3867,11 +3867,11 @@ var ud2 = (function (window, $) {
 
 			// #region 私有字段
 
-			var // 是否有菜单工具 布局方式 选项卡可滚动 选项卡自动移动 目录自动移动  自动填满父层
-				isMenu, layout, isTabScroll, isTabAutoMove, isMenuAutoMove, isFull,
+			var // 是否有菜单工具 布局方式 选项卡可滚动 选项卡自动移动 目录自动移动  高度
+				isMenu, layout, isTabScroll, isTabAutoMove, isMenuAutoMove, height,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'layout', ['menu', 'isMenu'], ['full', 'isFull'],
+					'layout', ['menu', 'isMenu'], 'height',
 					['tabScroll', 'isTabScroll'],
 					['tabAutoMove', 'isTabAutoMove'],
 					['menuAutoMove', 'isMenuAutoMove']
@@ -3885,7 +3885,7 @@ var ud2 = (function (window, $) {
 					// 初始化目录项是否可以自动移动
 					isMenuAutoMove = attrBoolCheck(options.menuAutoMove, true);
 					// 初始化是否自动填满父层
-					isFull = attrBoolCheck(options.full, false);
+					height = options.height || null;
 
 					// 布局方式
 					// 在init时，检测值是否符合要求
@@ -3904,16 +3904,15 @@ var ud2 = (function (window, $) {
 				// 内容容器对象
 				$contentBox = $tabs.find(cn('main', 1)),
 				// 目录对象
-				$menu = $('<div class="' + cn('menu') + '"><div class="' + cn('menu-btn') + '" />'
-					+ '<div class="' + cn('menu-list') + ' empty" ' + cn(CSS_EMPTY) + '="这里是空的"><div class="' + cn('menu-inner') + '" /></div></div>'),
+				$menu = $('<div class="' + cn('menu') + '"><div class="' + cn('menu-btn') + '" /></div>'),
 				// 事件遮罩
 				$mask = $('<div class="' + cn('mask') + '" />'),
 				// 目录按钮对象
 				$menuBtn = $menu.children(':first'),
 				// 目录容器对象
-				$menuScroll = $menu.children(':last'),
+				$menuScroll = $('<div class="' + cn('menu-list') + ' empty" ' + cn(CSS_EMPTY) + '="这里是空的"><div class="' + cn('menu-inner') + '" /></div>'),
 				// 目录滚动容器对象
-				$menuBox = $menu.find(cn('menu-inner', 1)),
+				$menuBox = $menuScroll.children(),
 				// 选项卡页对象集合
 				pageCollection = [],
 				// 目录列表容器滚动条对象
@@ -4077,6 +4076,27 @@ var ud2 = (function (window, $) {
 					return layout;
 				}
 			}
+			// 操作控件高度
+			// () 获取当前控件高度
+			// - return[number]: 返回控件的高度
+			// (h) 设置控件高度
+			// - h[number, string]: 设置的高度值，可以是数字或字符形式的百分数
+			// - return[ud2.tabs]: 返回该控件对象
+			function heightOperate(h) {
+				if (h === void 0) {
+					return $tabs.height();
+				}
+				else {
+					if (REGEX_PERCENT.test(h) || REGEX_NONNEGATIVE.test(h) || h === 'auto') {
+						$tabs.css('height', h);
+						if (h === 'auto') $tabs.addClass(cn('auto'));
+						else $tabs.removeClass(cn('auto'));
+						height = h;
+					}
+					return control.public;
+				}
+			}
+
 			// 向选项卡控件添加选项卡页对象
 			// page[ud2.tabs.page]: 选项卡页对象
 			// isOpen[bool]: 是否默认开启
@@ -4273,9 +4293,12 @@ var ud2 = (function (window, $) {
 				// 设置布局
 				setLayout(layout);
 				// 如果目录存在，加入目录对象
-				if (isMenu) $tabs.prepend($menu);
-				// 是否填满父层
-				if (isFull) $tabs.addClass(cn('full'));
+				if (isMenu) {
+					$tabs.prepend($menu);
+					$menu.after($menuScroll);
+				}
+				// 是数字或百分比，则设置高度
+				heightOperate(height);
 				// 加入遮罩
 				$tabs.append($mask);
 
@@ -4291,6 +4314,7 @@ var ud2 = (function (window, $) {
 
 			// 返回
 			return extendObjects(control.public, {
+				height: heightOperate,
 				layout: layoutOperate,
 				pages: pageCollection,
 				pageAdd: pageAdd,
@@ -4970,11 +4994,9 @@ var ud2 = (function (window, $) {
 					b = { bottom: fh },
 					e = { height: fh, bottom: 0 };
 
-				// 是数字或百分比，则设置高度
-				if (type.isString(height)
-					&& (REGEX_PERCENT.test(height) || REGEX_NONNEGATIVE.test(height)))
-					$datagrid.css('height', height);
-
+				// 设置高度
+				heightOperate(height);
+				
 				$datagrid.css('line-height', cellHeight - 2 + 'px');
 
 				$leftHeader.css(h);
@@ -5165,10 +5187,10 @@ var ud2 = (function (window, $) {
 
 			// #region 公共方法
 
-			// 操作网格高度
+			// 操作控件高度
 			// () 获取当前控件高度
 			// - return[number]: 返回控件的高度
-			// (h) 设置网格高度
+			// (h) 设置控件高度
 			// - h[number, string]: 设置的高度值，可以是数字或字符形式的百分数
 			// - return[ud2.datagrid]: 返回该控件对象
 			function heightOperate(h) {
@@ -5176,7 +5198,10 @@ var ud2 = (function (window, $) {
 					return $datagrid.height();
 				}
 				else {
-					$datagrid.height(h);
+					if (REGEX_PERCENT.test(h) || REGEX_NONNEGATIVE.test(h)) {
+						$datagrid.css('height', h);
+						height = h;
+					}
 					return control.public;
 				}
 			}
@@ -9320,7 +9345,7 @@ var ud2 = (function (window, $) {
 		};
 
 	});
-
+	
 	// #endregion
 
 	// #region ud2 初始化及返回参数

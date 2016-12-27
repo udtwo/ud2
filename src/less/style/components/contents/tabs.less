@@ -21,10 +21,6 @@
 	width: 100%;
 	height: @TabsDefaultHeight;
 	overflow: hidden;
-
-	&.ud2-tabs-full {
-		height: 100%;
-	}
 }
 // 设定容器的定位方式为相对定位
 .ud2-tabs, .ud2-tabs-menu-list, .ud2-tabs-menu-item, .ud2-tabs-tab {
@@ -60,10 +56,10 @@
 			}
 		}
 
-		.ud2-tabs-menu-list {
+		+ .ud2-tabs-menu-list {
 			opacity: 1;
 			visibility: visible;
-			.transform(translateY(0));
+			.transform(scale(1));
 		}
 	}
 }
@@ -99,7 +95,9 @@
 	overflow: hidden;
 	visibility: hidden;
 	opacity: 0;
+	z-index: 100;
 	.transition(transform .2s, opacity .2s, visibility .2s);
+	.transform(scale(.95));
 }
 // 目录项
 .ud2-tabs-menu-item {
@@ -200,6 +198,10 @@
 		display: block;
 	}
 
+	&.iframe {
+		padding: 0;
+	}
+
 	&, &.iframe iframe {
 		width: 100%;
 		height: 100%;
@@ -226,10 +228,6 @@
 		float: left;
 		max-width: 150px;
 		margin-right: @CtrlSizeGradient;
-	}
-
-	.ud2-tabs-menu-list {
-		height: @TabsDefaultHeight - @TabsSize;
 	}
 
 	.ud2-tabs-main, .ud2-tabs-mask {
@@ -262,10 +260,6 @@
 
 	.ud2-tabs-menu {
 		width: @TabsSize * 3.5;
-	}
-
-	.ud2-tabs-menu-list {
-		height: @TabsDefaultHeight;
 	}
 
 	.ud2-tabs-main, .ud2-tabs-mask {
@@ -308,7 +302,7 @@
 	.ud2-tabs-menu-list {
 		top: @TabsSize; 
 		right: 0;
-		.transform(translateY(3%) translateZ(0));
+		bottom: 0;
 	}
 }
 // 选项集合容器的底部样式
@@ -341,9 +335,9 @@
 	}
 
 	.ud2-tabs-menu-list {
+		top: 0;
 		bottom: @TabsSize; 
 		right: 0;
-		.transform(translateY(-3%) translateZ(0));
 	}
 }
 // 选项集合容器的左侧样式
@@ -376,9 +370,9 @@
 	}
 
 	.ud2-tabs-menu-list {
+		top: 0;
 		bottom: 0; 
 		left: @TabsSize * 3.5;
-		.transform(translateX(3%) translateZ(0));
 	}
 }
 // 选项集合容器的右侧样式
@@ -411,8 +405,31 @@
 	}
 
 	.ud2-tabs-menu-list {
+		top: 0;
 		bottom: 0; 
 		right: @TabsSize * 3.5;
-		.transform(translateX(-3%) translateZ(0));
+	}
+}
+
+// 自动高度
+.ud2-tabs-auto {
+	.ud2-tabs-main {
+		position: static;
+	}
+
+	&.ud2-tabs-top .ud2-tabs-main {
+		margin-top: @TabsSize;
+	}
+
+	&.ud2-tabs-bottom .ud2-tabs-main {
+		margin-bottom: @TabsSize;
+	}
+
+	&.ud2-tabs-left .ud2-tabs-main {
+		margin-left: @TabsSize;
+	}
+
+	&.ud2-tabs-right .ud2-tabs-main {
+		margin-right: @TabsSize;
 	}
 }

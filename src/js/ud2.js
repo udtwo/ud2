@@ -3624,32 +3624,32 @@ var ud2 = (function (window, $) {
 			// 替代文本常量
 			TYPE_TABS = 'tabs', TYPE_PAGE = TYPE_TABS + '.page', TYPE_PAGE_NAME = 'tabs-page';
 
-		// 选项卡页添加
-		// (object) 通过参数对象，创建一个选项卡页对象
-		// - type[ud2.tabs.pageType]: 选项卡页类型
-		// - name[string]: 选项卡页名称
-		// - title[string]: 选项卡页标题
-		// - details[string]: 选项卡页内容
+		// 选项页添加
+		// (object) 通过参数对象，创建一个选项页对象
+		// - type[ud2.tabs.pageType]: 选项页类型
+		// - name[string]: 选项页名称
+		// - title[string]: 选项页标题
+		// - details[string]: 选项页内容
 		// - btnClose[bool]: 是否包含关闭按钮
-		// (title, details) 通过参数对象创建一个不可关闭的内容选项卡页对象，该创建方式通常用于常规选项卡对象中，命名为递增种子方式自动命名
-		// - title[string]: 选项卡页标题
-		// - details[string]: 选项卡页内容
-		// (type, title, details) 通过参数对象创建一个可关闭的自定义类型的选项卡页对象，该创建方式通常省略了选项卡页命名，命名为递增种子方式自动命名
-		// - type[ud2.tabs.pageType]: 选项卡页类型
-		// - title[string]: 选项卡页标题
-		// - details[string]: 选项卡页内容
-		// (type, name, title, details, btnClose) 通过参数创建一个选项卡页对象
-		// - type[ud2.tabs.pageType]: 选项卡页类型
-		// - name[string]: 选项卡页名称
-		// - title[string]: 选项卡页标题
-		// - details[string]: 选项卡页内容
+		// (title, details) 通过参数对象创建一个不可关闭的内容选项页对象，该创建方式通常用于常规选项卡对象中，命名为递增种子方式自动命名
+		// - title[string]: 选项页标题
+		// - details[string]: 选项页内容
+		// (type, title, details) 通过参数对象创建一个可关闭的自定义类型的选项页对象，该创建方式通常省略了选项页命名，命名为递增种子方式自动命名
+		// - type[ud2.tabs.pageType]: 选项页类型
+		// - title[string]: 选项页标题
+		// - details[string]: 选项页内容
+		// (type, name, title, details, btnClose) 通过参数创建一个选项页对象
+		// - type[ud2.tabs.pageType]: 选项页类型
+		// - name[string]: 选项页名称
+		// - title[string]: 选项页标题
+		// - details[string]: 选项页内容
 		// - btnClose[bool]: 是否包含关闭按钮
-		// return[ud2.tabs.page]: 返回创建的选项卡页对象
+		// return[ud2.tabs.page]: 返回创建的选项页对象
 		creater('page', function () {
 
 			var // 参数集合         参数长度            参数对象
 				args = arguments, len = args.length, argObj = args[0],
-				// 选项卡页对象
+				// 选项页对象
 				pageObj = { tabs: null },
 				// 类型    标题    详情     是否包含关闭按钮 页名称
 				pageType, title, details, btnClose, name,
@@ -3672,7 +3672,7 @@ var ud2 = (function (window, $) {
 			// - return[string]: 返回标题
 			// (text) 设置标题
 			// - text[string]: 待更改的标题
-			// - return[ud2.tabs.page]: 返回该选项卡页对象
+			// - return[ud2.tabs.page]: 返回该选项页对象
 			function titleOperate(text) {
 				if (text !== void 0) {
 					title = String(text);
@@ -3689,7 +3689,7 @@ var ud2 = (function (window, $) {
 			// - return[string]: 返回描述
 			// (text) 设置描述
 			// - text[string]: 待更改的描述
-			// - return[ud2.tabs.page]: 返回该选项卡页对象
+			// - return[ud2.tabs.page]: 返回该选项页对象
 			function detailsOperate(text) {
 				if (text !== void 0) {
 					details = String(text);
@@ -3711,7 +3711,7 @@ var ud2 = (function (window, $) {
 			}
 			// 将对象加入到选项卡控件中
 			// whichTabs[ud2.tabs]: 选项卡控件
-			// return[ud2.tabs.page]: 返回该选项卡页对象
+			// return[ud2.tabs.page]: 返回该选项页对象
 			function tabsIn(whichTabs) {
 				if (whichTabs && whichTabs.type === TYPE_TABS && !pageObj.tabs) {
 					whichTabs.pageAdd(pageObj);
@@ -3719,7 +3719,7 @@ var ud2 = (function (window, $) {
 				return pageObj;
 			}
 			// 将对象从选项卡控件中移除
-			// return[ud2.tabs.page]: 返回该选项卡页对象
+			// return[ud2.tabs.page]: 返回该选项页对象
 			function tabsOut() {
 				if (pageObj.tabs) {
 					pageObj.tabs.pageRemove(pageObj);
@@ -3731,7 +3731,7 @@ var ud2 = (function (window, $) {
 			// - return[bool]: 返回当前对象的显示状态
 			// (state) 设置当前对象的显示状态
 			// - state[bool]: 当前对象的显示状态
-			// - return[ud2.tabs.page]: 返回该选项卡页对象
+			// - return[ud2.tabs.page]: 返回该选项页对象
 			function openState(state) {
 				if (state === void 0) {
 					return isOpen;
@@ -3901,14 +3901,19 @@ var ud2 = (function (window, $) {
 				$menuScroll = $('<div class="' + cn('menu-list') + ' empty" ' + cn(CSS_EMPTY) + '="这里是空的"><div class="' + cn('menu-inner') + '" /></div>'),
 				// 目录滚动容器对象
 				$menuBox = $menuScroll.children(),
-				// 选项卡页对象集合
+				// 选项页对象集合
 				pageCollection = [],
 				// 目录列表容器滚动条对象
 				menuBoxScroll,
 				// 选项卡容器滚动条对象
 				tabBoxScroll, scrollSize = 0,
-				// 当前开启的选项卡页对象
-				pageOpenNow;
+				// 当前开启的选项页对象
+				pageOpenNow,
+				// 控件回调
+				controlCallbacks = {
+					// 选项页改变时的回调
+					change: fnNoop
+				};
 
 			// #endregion
 
@@ -3918,7 +3923,7 @@ var ud2 = (function (window, $) {
 			// direction[ud2.select.direction]: 方向值
 			function setLayout(layoutNo) {
 				// 移除旧CSS属性
-				if (layout === 0) $tabs.removeClass(cn('top'));
+				if(layout === 0) $tabs.removeClass(cn('top'));
 				if (layout === 1) $tabs.removeClass(cn('bottom'));
 				if (layout === 2) $tabs.removeClass(cn('left'));
 				if (layout === 3) $tabs.removeClass(cn('right'));
@@ -3932,33 +3937,33 @@ var ud2 = (function (window, $) {
 						layout = 0;
 						$tabs.addClass(cn('top'));
 						break;
-					}
+						}
 					case 'bottom':
 					case '1':
 					case 1: {
 						layout = 1;
 						$tabs.addClass(cn('bottom'));
 						break;
-					}
+						}
 					case 'left':
 					case '2':
 					case 2: {
 						layout = 2;
 						$tabs.addClass(cn('left'));
 						break;
-					}
+						}
 					case 'right':
 					case '3':
 					case 3: {
 						layout = 3;
 						$tabs.addClass(cn('right'));
 						break;
-					}
-				}
+						}
+						}
 				recountScrollSize();
-			}
-			// 设置主题
-			// tm[string, number, ud2.tabs.theme]: 主题名称
+				}
+					// 设置主题
+					// tm[string, number, ud2.tabs.theme]: 主题名称
 			function setTheme(tm) {
 				// 移除旧主题
 				if (theme) $tabs.removeClass(cn(themes[theme]));
@@ -4040,7 +4045,7 @@ var ud2 = (function (window, $) {
 					}
 				}
 			}
-			// 通过name属性获取选项卡页对象
+			// 通过name属性获取选项页对象
 			function getPageObjByName(name) {
 				var f = pageCollection.filter(function (element) {
 					return element.name === name;
@@ -4123,8 +4128,8 @@ var ud2 = (function (window, $) {
 				}
 			}
 
-			// 向选项卡控件添加选项卡页对象
-			// page[ud2.tabs.page]: 选项卡页对象
+			// 向选项卡控件添加选项页对象
+			// page[ud2.tabs.page]: 选项页对象
 			// isOpen[bool]: 是否默认开启
 			// return[ud2.tabs]: 返回该控件对象
 			function pageAdd(page, isOpen) {
@@ -4174,11 +4179,11 @@ var ud2 = (function (window, $) {
 				}
 				return control.public;
 			}
-			// 从选项卡控件中移除指定的选项卡页对象
-			// (name) 通过传入选项卡页名称查找相关的选项卡页对象并从控件中移除此对象
-			// - name[string]: 选项卡页名称
-			// (page) 通过传入选项卡页对象从控件中移除此对象
-			// - page[ud2.tabs.page]: 选项卡页对象
+			// 从选项卡控件中移除指定的选项页对象
+			// (name) 通过传入选项页名称查找相关的选项页对象并从控件中移除此对象
+			// - name[string]: 选项页名称
+			// (page) 通过传入选项页对象从控件中移除此对象
+			// - page[ud2.tabs.page]: 选项页对象
 			// return[ud2.tabs]: 返回该控件对象
 			function pageRemove(page) {
 				var index, size;
@@ -4224,35 +4229,49 @@ var ud2 = (function (window, $) {
 				}
 				return control.public;
 			}
-			// 开启指定的选项卡页
-			// (name) 通过传入选项卡页名称查找相关的选项卡页对象并从控件中移除此对象
-			// - name[string]: 选项卡页名称
-			// (page) 通过传入选项卡页对象从控件中移除此对象
-			// - page[ud2.tabs.page]: 选项卡页对象
+			// 开启指定的选项页
+			// (name) 通过传入选项页名称查找相关的选项页对象并从控件中移除此对象
+			// - name[string]: 选项页名称
+			// (page) 通过传入选项页对象从控件中移除此对象
+			// - page[ud2.tabs.page]: 选项页对象
 			// return[ud2.tabs]: 返回该控件对象
 			function pageOpen(page) {
-				if (page && page.type === TYPE_PAGE && page.tabs === control.public) {
+				if (page && page.type === TYPE_PAGE && page.tabs === control.public && pageOpenNow !== page) {
 					if (pageOpenNow) pageOpenNow.openState(false);
 					page.openState(true);
 					moveScroll(page);
 					pageOpenNow = page;
+					controlCallbacks.change.call(control.public, page);
 				}
 				else if (page) {
 					return pageOpen(pageFind(page));
 				}
 				return control.public;
 			}
-			// 通过name属性查找选项卡页对象
-			// name[string]: 选项卡页名称
-			// return[ud2.tabs.page]: 返回选项卡页对象
+			// 通过name属性查找选项页对象
+			// name[string]: 选项页名称
+			// return[ud2.tabs.page]: 返回选项页对象
 			function pageFind(name) {
 				return getPageObjByName(name) || null;
 			}
-			// 查询选项卡页集合中是否包含此名称
+			// 查询选项页集合中是否包含此名称
 			// name[string]: 待查询的名称
 			// return[bool]: 返回是否包含该名称
 			function hasName(name) {
 				return !!getPageObjByName(name);
+			}
+
+			// #endregion
+
+			// #region 回调方法
+
+			// 设置选项页改变时的回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.page]: 返回该控件对象
+			function setChange(fn) {
+				controlCallbacks.change = fn;
+				return control.public;
 			}
 
 			// #endregion
@@ -4350,7 +4369,8 @@ var ud2 = (function (window, $) {
 				pageRemove: pageRemove,
 				pageOpen: pageOpen,
 				pageFind: pageFind,
-				hasName: hasName
+				hasName: hasName,
+				setChange: setChange
 			});
 
 			// #endregion
@@ -4369,7 +4389,7 @@ var ud2 = (function (window, $) {
 			// 右侧
 			right: 3
 		};
-		// 选项卡页类型
+		// 选项页类型
 		constructor.pageType = {
 			html: 0,
 			url: 1
@@ -4636,7 +4656,7 @@ var ud2 = (function (window, $) {
 
 			// #region 回调方法
 
-			// 设置开启回调函数
+			// 设置页发生改变时的回调函数
 			// 所回调的函数this指向事件触发的控件对象
 			// fn[function]: 回调函数
 			// return[ud2.page]: 返回该控件对象
@@ -4733,7 +4753,7 @@ var ud2 = (function (window, $) {
 			// #endregion
 
 		};
-		// 选项卡页类型
+		// 选项页类型
 		constructor.layout = {
 			small: 0,
 			normal: 1

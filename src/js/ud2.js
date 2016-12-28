@@ -2529,7 +2529,7 @@ var ud2 = (function (window, $) {
 				}
 				else {
 					// ~~对未设置数据类型的单元格标记为null，并采用string类型 getDataTypeByValue(value);
-					valueType = null; 
+					valueType = null;
 				}
 			}());
 
@@ -2765,14 +2765,14 @@ var ud2 = (function (window, $) {
 					}
 				}
 			}
-			
+
 			// [*debug*]
 			// 在控制台输出当前数据表的值和类型
 			function debug() {
 				var de = [], r = 0, m = 0, rl, ml, c;
 				for (rl = rowCollection.length; r < rl; r++) {
 					de[r] = [];
-					for (m = 0, ml = rowCollection[r].cells.length; m < ml; m++) {	
+					for (m = 0, ml = rowCollection[r].cells.length; m < ml; m++) {
 						c = rowCollection[r].cells[m];
 						de[r][m] = '[' + c.dataType() + '],' + c.val();
 					}
@@ -3957,7 +3957,7 @@ var ud2 = (function (window, $) {
 			// direction[ud2.select.direction]: 方向值
 			function setLayout(layoutNo) {
 				// 移除旧CSS属性
-				if(layout === 0) $tabs.removeClass(cn('top'));
+				if (layout === 0) $tabs.removeClass(cn('top'));
 				if (layout === 1) $tabs.removeClass(cn('bottom'));
 				if (layout === 2) $tabs.removeClass(cn('left'));
 				if (layout === 3) $tabs.removeClass(cn('right'));
@@ -3971,31 +3971,31 @@ var ud2 = (function (window, $) {
 						layout = 0;
 						$tabs.addClass(cn('top'));
 						break;
-						}
+					}
 					case 'bottom':
 					case '1':
 					case 1: {
 						layout = 1;
 						$tabs.addClass(cn('bottom'));
 						break;
-						}
+					}
 					case 'left':
 					case '2':
 					case 2: {
 						layout = 2;
 						$tabs.addClass(cn('left'));
 						break;
-						}
+					}
 					case 'right':
 					case '3':
 					case 3: {
 						layout = 3;
 						$tabs.addClass(cn('right'));
 						break;
-						}
-						}
-				recountScrollSize();
+					}
 				}
+				recountScrollSize();
+			}
 			// 设置主题
 			// tm[string, number, ud2.tabs.theme]: 主题名称
 			function setTheme(tm) {
@@ -4256,7 +4256,7 @@ var ud2 = (function (window, $) {
 					}
 					else {
 						moveScroll(pageOpenNow);
-					}		
+					}
 				}
 				else if (page) {
 					return pageRemove(pageFind(page));
@@ -4857,7 +4857,7 @@ var ud2 = (function (window, $) {
 
 			var // elements数据源、jQuery数据源 或二维数组数据
 				// 数据    头部数据    底部数据
-				datas, datasHeader, datasFooter, 
+				datas, datasHeader, datasFooter,
 				// 列参数对象集合 行参数对象集合 列默认参数 行默认参数    单元格高度 控件高度  鼠标滑上背景改变颜色 鼠标滑上时的背景颜色
 				columnsInfo, rowsInfo, columnDefault, rowDefault, cellHeight, height, isHover, hoverColor,
 				// 是否开启选中行 是否支持行多选    空容器占位文本 当前已选择的行序号集合
@@ -4909,7 +4909,7 @@ var ud2 = (function (window, $) {
 					+ '<div class="' + STR_HEADER + '"><div class="' + STR_GRID + '" /></div>'
 					+ '<div class="' + STR_CONTENT + '"><div class="' + STR_GRID + '" /></div>'
 					+ '<div class="' + STR_FOOTER + '"><div class="' + STR_GRID + '" /></div></div>'
-					+ '<div class="' +cn(CSS_EMPTY) + '"><div>' + emptyText + '</div></div>',
+					+ '<div class="' + cn(CSS_EMPTY) + '"><div>' + emptyText + '</div></div>',
 				// 获取初始化的控件对象
 				current = control.current,
 				// 控件对象
@@ -5026,7 +5026,7 @@ var ud2 = (function (window, $) {
 				var isHeader = datasHeader || null,
 					// 数据列数
 					// 列数采取传入数据时，所有数据行中最大的单元格数量(或列参数数量)的最大值
-					dcl, len = Math.max(datas.columns.length, datasHeader ? datasHeader.columns.length: 1,
+					dcl, len = Math.max(datas.columns.length, datasHeader ? datasHeader.columns.length : 1,
 						datasFooter ? datasFooter.columns.length : 0,
 						optionsColumns ? optionsColumns.length : 0),
 					// 迭代变量
@@ -5142,7 +5142,7 @@ var ud2 = (function (window, $) {
 
 				// 设置高度
 				heightOperate(height);
-				
+
 				$datagrid.css('line-height', cellHeight - 2 + 'px');
 
 				$leftHeader.css(h);
@@ -5339,7 +5339,7 @@ var ud2 = (function (window, $) {
 						var dtCell = dt && dt.rows[i].cells[j] || null,
 							content = mode === 1 ? ci.title : dtCell.val(), $cell;
 
-						$cell = $emptyCell.clone().html(content).attr('title', content);
+						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(content).attr('title', content);
 						// 按照列的模式，将单元格插入到指定的行容器中
 						switch (ci.mode) {
 							case 0: case 1: { $cell.appendTo($rc); break; }
@@ -5422,7 +5422,7 @@ var ud2 = (function (window, $) {
 			function removeContentElements() {
 				var i = 0, j = 0,
 					c = rowsInfo.content, l = c.length, sl;
-				
+
 				// 清空已选择项目
 				if (isSelected) {
 					sl = selectedRows.length;
@@ -5493,7 +5493,7 @@ var ud2 = (function (window, $) {
 			// 数据行添加
 			// - ds[ud2.datatable, array]: 数据源
 			function dataRowAdd(ds) {
-				var rowCellArr =[];
+				var rowCellArr = [];
 
 				if (ds && ds.type === 'datatable') {
 					if (ds.rows[0]) {
@@ -9590,7 +9590,7 @@ var ud2 = (function (window, $) {
 		};
 
 	});
-	
+
 	// #endregion
 
 	// #region ud2 初始化及返回参数

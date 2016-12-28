@@ -5336,8 +5336,7 @@ var ud2 = (function (window, $) {
 					}
 					// 迭代列，将该行的全部单元格，按照列参数初始化，并插入到指定的行容器中
 					columnsInfo.forEach(function (ci, j) {
-						var dtCell = dt && dt.rows[i].cells[j] || null,
-							content = mode === 1 ? ci.title : dtCell.val(), $cell;
+						var content = mode === 1 ? ci.title : dt.rows[i].cells[j].val(), $cell;
 
 						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(content).attr('title', content);
 						// 按照列的模式，将单元格插入到指定的行容器中
@@ -5418,34 +5417,6 @@ var ud2 = (function (window, $) {
 				}
 			}
 
-			// 移除全部数据和相关元素
-			function removeContentElements() {
-				var i = 0, j = 0,
-					c = rowsInfo.content, l = c.length, sl;
-
-				// 清空已选择项目
-				if (isSelected) {
-					sl = selectedRows.length;
-					if (isAllSelected) setAllSelectedState(false);
-					if (sl > 0) {
-						for (; j < sl; j++) {
-							rowSelected(selectedRows[i]);
-						}
-					}
-					selectedRows.splice(0, sl);
-				}
-				// 关闭所有行相关事件
-				for (; i < l; i++) c[i].checkEvent.off();
-				// 清空容器
-				datas.dataEmpty();
-				$leftContentGrid.empty();
-				$centerContentGrid.empty();
-				$rightContentGrid.empty();
-
-				// 移除全部的行数据对象
-				rowsInfo.content.splice(0, l);
-			}
-
 			// #endregion	
 
 			// #region 公共方法
@@ -5473,7 +5444,7 @@ var ud2 = (function (window, $) {
 			// - return[ud2.datagrid]: 返回该控件对象
 			function dataFill(ds) {
 				// 移除原数据
-				removeContentElements();
+				dataEmpty();
 
 				// 如果传入数据是数据表则直接填装
 				// 否则，先通过参数实例化数据表，并进行填装
@@ -5520,6 +5491,36 @@ var ud2 = (function (window, $) {
 				else if (ds !== void 0) {
 					return dataRowAdd(datatable().rowAdd(ds));
 				}
+			}
+
+			// 移除全部数据和相关元素
+			function dataEmpty() {
+				var i = 0, j = 0,
+					c = rowsInfo.content, l = c.length, sl;
+
+				// 清空已选择项目
+				if (isSelected) {
+					sl = selectedRows.length;
+					if (isAllSelected) setAllSelectedState(false);
+					if (sl > 0) {
+						for (; j < sl; j++) {
+							rowSelected(selectedRows[i]);
+						}
+					}
+					selectedRows.splice(0, sl);
+					// 关闭所有行相关事件
+					for (; i < l; i++) c[i].checkEvent.off();
+				}
+				
+				// 清空容器
+				datas.dataEmpty();
+				$leftContentGrid.empty();
+				$centerContentGrid.empty();
+				$rightContentGrid.empty();
+				$noRow.addClass(CSS_ON);
+
+				// 移除全部的行数据对象
+				rowsInfo.content.splice(0, l);
 			}
 
 			// #endregion
@@ -5683,7 +5684,8 @@ var ud2 = (function (window, $) {
 				setRowSelected: setRowSelected,
 				setRowDeselected: setRowDeselected,
 				dataFill: dataFill,
-				dataRowAdd: dataRowAdd
+				dataRowAdd: dataRowAdd,
+				dataEmpty: dataEmpty
 			});
 
 			// #endregion

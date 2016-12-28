@@ -1705,7 +1705,6 @@ var ud2 = (function (window, $) {
 			if (!keyGroup[name]) keyGroup[name] = callbacks;
 			return eventObj;
 		}
-
 		// 移除快捷键
 		function remove(keyCode, callbacks, keyOptions) {
 			var isCtrl = !keyOptions || keyOptions && keyOptions.isCtrl === void 0 ? 0 : keyOptions.isCtrl ? 1 : 0,
@@ -2320,258 +2319,6 @@ var ud2 = (function (window, $) {
 
 		// #endregion
 
-		// #region 数据表构造方法
-
-		// 数据表初始化
-		// options[object]: 参数对象
-		// - id[string]: 数据表ID(名称)
-		// - columns[array]: 列对象集合
-		//   - {title, type}: 列对象参数对象
-		// - rows[array]: 行对象集合
-		//   - []: 每一个数组对应一个行数据
-		//     - <*>: 单元格的值
-		//     - <object>: 单元格参数对象
-		var constructor = creater('datatable', function (userOptions) {
-
-			// #region 私有字段
-
-			var // 数据表对象
-				dtObj = {},
-				// 数据表选项
-				columns, rows, id,
-				// 默认项
-				options = getOptions({
-					columns: [],
-					rows: []
-				}, userOptions, function (options) {
-					// 初始化ID
-					id = options.id || createControlID();
-					// 初始化列参数
-					if (!type.isArray(options.columns)) columns = [];
-					else columns = options.columns;
-					// 初始化行参数
-					if (!type.isArray(options.rows)) rows = [];
-					else rows = options.rows;
-				}),
-				// 行对象集合
-				rowCollection = [],
-				// 列对象集合
-				columnCollection = [];
-
-			// #endregion
-
-			// #region 私有方法
-
-			// 初始化行和列
-			function initColumnsAndRows(columns, rows) {
-				var i, l;
-				// 获取列对象
-				for (i = 0, l = columns.length; i < l; i++) columnAdd(columns[i]);
-				// 获取行对象
-				for (i = 0, l = rows.length; i < l; i++) rowAdd(rows[i]);
-			}
-			// 单元格数据补全
-			function completionCells() {
-				var // 行中字段最大数目 for循环的最大数目变动次数
-					max = 0, changeMax = 0,
-					// 循环i 循环j 补充量 行数 当前行的字段数量 单元格
-					i, j, m, l = rowCollection.length, rcl, ct;
-
-				for (i = 0; i < l; i++) {
-					if (max !== rowCollection[i].cells.length) changeMax++;
-					if (max < rowCollection[i].cells.length) {
-						max = rowCollection[i].cells.length;
-					}
-				}
-
-				if (changeMax > 1) {
-					for (i = 0; i < l; i++) {
-						rcl = rowCollection[i].cells.length;
-						if (max > rcl) for (j = 0, m = max - rcl; j < m; j++) {
-							ct = cell({ row: rowCollection[i], column: columnCollection[rcl + j] });
-							rowCollection[i].cells.push(ct);
-							columnCollection[rcl + j].cells.push(ct);
-						}
-					}
-				}
-			}
-
-			// #endregion
-
-			// #region 公共方法
-
-			// 添加数据列
-			// (title) 通过标题创建数据列
-			// - title[string]: 数据列标题
-			// (options) 通过参数对象创建数据列
-			// - title[string]: 数据列标题
-			// - type[ud2.datatable.dataType]: 值的数据类型
-			// return[ud2.datatable]: 返回该控件对象
-			function columnAdd(options) {
-				var cl = column(options), c;
-				columnCollection.push(cl);
-				// 在有数据情况下添加列，则补全其他行中的列单元格
-				if (rowCollection.length > 0) {
-					for (var i in rowCollection) {
-						c = cell({ row: rowCollection[i], column: cl });
-						cl.cells.push(c);
-						rowCollection[i].cells.push(c);
-					}
-				}
-				return dtObj;
-			}
-			// 添加数据行
-			// (valueArr) 通过单元格对象或值的集合创建数据行
-			// - valueArr[array]: 单元格对象或值的集合
-			// (options) 通过参数对象创建数据行
-			// - cells[array]: 单元格对象或值的集合
-			// return[ud2.datatable]: 返回该控件对象
-			function rowAdd(options) {
-				var r = row(options),
-					i = 0, rl = r.cells.length, cl = columnCollection.length, ct;
-
-				// 加入单元格对象
-				for (; i < rl; i++) {
-					if (!columnCollection[i]) columnAdd();
-					columnCollection[i].cells.push(r.cells[i]);
-					r.cells[i].bindColumn(columnCollection[i]);
-				}
-				// 如果数据列的数量大于行中添加的单元格数量，则补全当前行中的单元格
-				if (cl > rl) {
-					for (; i < cl; i++) {
-						ct = cell({ row: r, column: columnCollection[i] });
-						r.cells.push(ct);
-						columnCollection[i].cells.push(ct);
-					}
-				}
-				// 向数据行中添加此行对象
-				rowCollection.push(r);
-
-				// 当传入的行数据中的列数量不统一时，进行单元格数据补全
-				// 此项发生在本次添加的行中单元格的列数超过原数据行中的单元格数量
-				completionCells();
-
-				return dtObj;
-			}
-			// 移除数据列
-			// (index) 通过数据列集合的索引号删除列
-			// - index[number]: 数据列集合索引号
-			// (columnObj) 通过数据列对象来删除列
-			// - columnObj[column]: 数据列对象
-			// return[ud2.datatable]: 返回该控件对象
-			function columnRemove(whichColumn) {
-				var index, r;
-				if (type.isNaturalNumber(whichColumn)) {
-					if (columnCollection[whichColumn]) {
-						columnCollection.splice(whichColumn, 1);
-						for (r = rowCollection.length - 1; r >= 0; r--) {
-							rowCollection[r].cells.splice(whichColumn, 1);
-							if (rowCollection[r].cells.length === 0) rowCollection.splice(r, 1);
-						}
-					}
-				}
-				else if (whichColumn && whichColumn.type === TYPE_COLUMN) {
-					index = columnCollection.indexOf(whichColumn);
-					if (index !== -1) return columnRemove(index);
-				}
-				return dtObj;
-			}
-			// 移除数据行
-			// (index) 通过数据行集合的索引号删除行
-			// - index[number]: 数据行集合索引号
-			// (rowObj) 通过数据行对象来删除行
-			// - rowObj[row]: 数据行对象
-			// return[ud2.datatable]: 返回该控件对象
-			function rowRemove(whichRow) {
-				var index, r;
-				if (type.isNaturalNumber(whichRow)) {
-					if (rowCollection[whichRow]) {
-						rowCollection.splice(whichRow, 1);
-						for (r in columnCollection) columnCollection[r].cells.splice(whichRow, 1);
-					}
-				}
-				else if (whichRow && whichRow.type === TYPE_ROW) {
-					index = rowCollection.indexOf(whichRow);
-					if (index !== -1) return rowRemove(index);
-				}
-				return dtObj;
-			}
-			// 数据填装
-			// 可以通过table元素的jQuery对象填装数据
-			// 可以通过table元素的字符串填装数据 
-			// 可以通过二维数组填装数据
-			// 填装数据会先清空旧数据
-			function dataFill(datas) {
-				var i, l;
-				dataEmpty();
-				switch (true) {
-					case type.isArray(datas): {
-						i = 0;
-						l = datas.length;
-						for (; i < l; i++) {
-							if (type.isArray(datas[i])) rowAdd(datas[i]);
-						}
-						break;
-					}
-					default: {
-						return dataFill(convertTableToArray(datas));
-					}
-				}
-				return dtObj;
-			}
-			// 数据清空
-			// return[ud2.datatable]: 返回该控件对象
-			function dataEmpty() {
-				var i = 0, l = rowCollection.length;
-				for (; i < l; i++) rowRemove(0);
-				return dtObj;
-			}
-
-			// #endregion
-
-			// #region 初始化
-
-			// 初始化
-			(function init() {
-				// 初始化行和列
-				initColumnsAndRows(columns, rows);
-
-				// 向集合添加当前控件
-				collection.push(dtObj);
-				// 将数据表对象放入集合
-				if (id) collection[id] = dtObj;
-			})();
-
-			// #endregion
-
-			// #region 返回
-
-			// 返回数据表对象
-			return ud2.extend(dtObj, {
-				columns: columnCollection,
-				rows: rowCollection,
-				columnAdd: columnAdd,
-				columnRemove: columnRemove,
-				rowAdd: rowAdd,
-				rowRemove: rowRemove,
-				dataFill: dataFill,
-				dataEmpty: dataEmpty
-			});
-
-			// #endregion
-
-		});
-		// 绑定数据类型对象到数据表控件
-		constructor.dataType = dataType;
-		// 绑定控件集合到数据表控件
-		constructor.collection = collection;
-		// 通过值获取值所对应的数据类型
-		constructor.getDataType = getDataTypeByValue;
-		// 将传入值的类型强制转换为传入的数据类型
-		constructor.convertValue = convertValueByDataType;
-
-		// #endregion
-
 		// #region 内部对象
 
 		// 数据列初始化
@@ -2676,7 +2423,6 @@ var ud2 = (function (window, $) {
 			(function init() {
 				var cells,
 					i, l, c;
-
 				// 获取参数并初始化单元格
 				if (options && type.isArray(options)) {
 					initCell(options);
@@ -2727,7 +2473,7 @@ var ud2 = (function (window, $) {
 			var dataTypeOperate = propertier(function () {
 				return valueType;
 			}, function (mode) {
-				if (!dataType[mode]) mode = dataType.string;
+				if (!dataType[mode]) mode = null;
 				valueType = mode;
 				valueOperate(value);
 				return cellObj;
@@ -2795,6 +2541,288 @@ var ud2 = (function (window, $) {
 			});
 
 		};
+
+		// #endregion
+
+		// #region 数据表构造方法
+
+		// 数据表初始化
+		// options[object]: 参数对象
+		// - id[string]: 数据表ID(名称)
+		// - columns[array]: 列对象集合
+		//   - {title, type}: 列对象参数对象
+		// - rows[array]: 行对象集合
+		//   - []: 每一个数组对应一个行数据
+		//     - <*>: 单元格的值
+		//     - <object>: 单元格参数对象
+		var constructor = creater('datatable', function (userOptions) {
+
+			// #region 私有字段
+
+			var // 数据表对象
+				dtObj = {},
+				// 数据表选项
+				columns, rows, id,
+				// 默认项
+				options = getOptions({
+					columns: [],
+					rows: []
+				}, userOptions, function (options) {
+					// 初始化ID
+					id = options.id || createControlID();
+					// 初始化列参数
+					if (!type.isArray(options.columns)) columns = [];
+					else columns = options.columns;
+					// 初始化行参数
+					if (!type.isArray(options.rows)) rows = [];
+					else rows = options.rows;
+				}),
+				// 行对象集合
+				rowCollection = [],
+				// 列对象集合
+				columnCollection = [];
+
+			// #endregion
+
+			// #region 私有方法
+
+			// 初始化行和列
+			function initColumnsAndRows(columns, rows) {
+				var i, l;
+				// 获取列对象
+				for (i = 0, l = columns.length; i < l; i++) columnAdd(columns[i]);
+				// 获取行对象
+				for (i = 0, l = rows.length; i < l; i++) rowAdd(rows[i]);
+			}
+
+			// #endregion
+
+			// #region 公共方法
+
+			// 添加数据列
+			// (title) 通过标题创建数据列
+			// - title[string]: 数据列标题
+			// (options) 通过参数对象创建数据列
+			// - title[string]: 数据列标题
+			// - type[ud2.datatable.dataType]: 值的数据类型
+			// return[ud2.datatable]: 返回该控件对象
+			function columnAdd(options) {
+				var cl = column(options), c;
+				columnCollection.push(cl);
+				// 在有数据情况下添加列，则补全其他行中的列单元格
+				if (rowCollection.length > 0) {
+					for (var i in rowCollection) {
+						c = cell({ row: rowCollection[i], column: cl });
+						cl.cells.push(c);
+						rowCollection[i].cells.push(c);
+					}
+				}
+				return dtObj;
+			}
+			// 添加数据行
+			// (valueArr) 通过单元格对象或值的集合创建数据行
+			// - valueArr[array]: 单元格对象或值的集合
+			// (options) 通过参数对象创建数据行
+			// - cells[array]: 单元格对象或值的集合
+			// return[ud2.datatable]: 返回该控件对象
+			function rowAdd(options) {
+				var r = row(options),
+					i = 0, rl = r.cells.length, cl = columnCollection.length, ct;
+
+				// 加入单元格对象
+				for (; i < rl; i++) {
+					if (!columnCollection[i]) columnAdd();
+					columnCollection[i].cells.push(r.cells[i]);
+					r.cells[i].bindColumn(columnCollection[i]);
+				}
+				// 如果数据列的数量大于行中添加的单元格数量，则补全当前行中的单元格
+				if (cl > rl) {
+					for (; i < cl; i++) {
+						ct = cell({ row: r, column: columnCollection[i] });
+						r.cells.push(ct);
+						columnCollection[i].cells.push(ct);
+					}
+				}
+				// 向数据行中添加此行对象
+				rowCollection.push(r);
+
+				// 当传入的行数据中的列数量不统一时，进行单元格数据补全
+				// 此项发生在本次添加的行中单元格的列数超过原数据行中的单元格数量
+				completionCells();
+
+				return dtObj;
+			}
+			// 移除数据列
+			// (index) 通过数据列集合的索引号删除列
+			// - index[number]: 数据列集合索引号
+			// (columnObj) 通过数据列对象来删除列
+			// - columnObj[column]: 数据列对象
+			// return[ud2.datatable]: 返回该控件对象
+			function columnRemove(whichColumn) {
+				var index, r;
+				if (type.isNaturalNumber(whichColumn)) {
+					if (columnCollection[whichColumn]) {
+						columnCollection.splice(whichColumn, 1);
+						for (r = rowCollection.length - 1; r >= 0; r--) {
+							rowCollection[r].cells.splice(whichColumn, 1);
+							if (rowCollection[r].cells.length === 0) rowCollection.splice(r, 1);
+						}
+					}
+				}
+				else if (whichColumn && whichColumn.type === TYPE_COLUMN) {
+					index = columnCollection.indexOf(whichColumn);
+					if (index !== -1) return columnRemove(index);
+				}
+				return dtObj;
+			}
+			// 移除数据行
+			// (index) 通过数据行集合的索引号删除行
+			// - index[number]: 数据行集合索引号
+			// (rowObj) 通过数据行对象来删除行
+			// - rowObj[row]: 数据行对象
+			// return[ud2.datatable]: 返回该控件对象
+			function rowRemove(whichRow) {
+				var index, r;
+				if (type.isNaturalNumber(whichRow)) {
+					if (rowCollection[whichRow]) {
+						rowCollection.splice(whichRow, 1);
+						for (r in columnCollection) columnCollection[r].cells.splice(whichRow, 1);
+					}
+				}
+				else if (whichRow && whichRow.type === TYPE_ROW) {
+					index = rowCollection.indexOf(whichRow);
+					if (index !== -1) return rowRemove(index);
+				}
+				return dtObj;
+			}
+			// 数据填装
+			// 1. 可以通过table元素的jQuery对象填装数据
+			//    或通过table元素的字符串填装数据 
+			//    或通过二维数组填装数据
+			// 2. 可以将传入数据表(datatable)填装到此数据表中
+			//    在用传入数据表填装内容时，会受到当前数据表的列参数限制
+			// 填装数据会先清空旧数据
+			function dataFill(datas) {
+				var i, l;
+				dataEmpty();
+				switch (true) {
+					case type.isArray(datas): {
+						i = 0;
+						l = datas.length;
+						for (; i < l; i++) {
+							if (type.isArray(datas[i]) || type.isObject(datas[i])) rowAdd(datas[i]);
+						}
+						break;
+					}
+					case type.isObject(datas) && datas.type === 'datatable': {
+						datas.rows.forEach(function (row) {
+							var arrRow = [];
+							i = 0;
+							l = Math.min(row.cells.length, columnCollection.length);
+							for (; i < l; i++) arrRow.push({ value: row.cells[i].val(), type: columnCollection[i].dataType() });
+							rowAdd(arrRow);
+						});
+						break;
+					}
+					default: {
+						return dataFill(convertTableToArray(datas));
+					}
+				}
+				return dtObj;
+			}
+			// 数据清空
+			// return[ud2.datatable]: 返回该控件对象
+			function dataEmpty() {
+				var i = 0, l = rowCollection.length;
+				for (; i < l; i++) rowRemove(0);
+				return dtObj;
+			}
+			// 单元格数据补全
+			function completionCells() {
+				var // 行中字段最大数目 for循环的最大数目变动次数
+					max = 0, changeMax = 0,
+					// 循环i 循环j 补充量 行数 当前行的字段数量 单元格
+					i, j, m, l = rowCollection.length, rcl, ct;
+
+				for (i = 0; i < l; i++) {
+					if (max !== rowCollection[i].cells.length) changeMax++;
+					if (max < rowCollection[i].cells.length) {
+						max = rowCollection[i].cells.length;
+					}
+				}
+
+				if (changeMax > 1) {
+					for (i = 0; i < l; i++) {
+						rcl = rowCollection[i].cells.length;
+						if (max > rcl) for (j = 0, m = max - rcl; j < m; j++) {
+							ct = cell({ row: rowCollection[i], column: columnCollection[rcl + j] });
+							rowCollection[i].cells.push(ct);
+							columnCollection[rcl + j].cells.push(ct);
+						}
+					}
+				}
+			}
+			
+			// [*用于调试*]
+			// 在控制台输出当前数据表的值和类型
+			function debug() {
+				var de = [], r = 0, m = 0, rl, ml, c;
+				for (rl = rowCollection.length; r < rl; r++) {
+					de[r] = [];
+					for (m = 0, ml = rowCollection[r].cells.length; m < ml; m++) {	
+						c = rowCollection[r].cells[m];
+						de[r][m] = '[' + c.dataType() + '],' + c.val();
+					}
+				}
+				console.table(de);
+			}
+
+			// #endregion
+
+			// #region 初始化
+
+			// 初始化
+			(function init() {
+				// 初始化行和列
+				initColumnsAndRows(columns, rows);
+
+				// 向集合添加当前控件
+				collection.push(dtObj);
+				// 将数据表对象放入集合
+				if (id) collection[id] = dtObj;
+			})();
+
+			// #endregion
+
+			// #region 返回
+
+			// 返回数据表对象
+			return ud2.extend(dtObj, {
+				type: 'datatable',
+				columns: columnCollection,
+				rows: rowCollection,
+				columnAdd: columnAdd,
+				columnRemove: columnRemove,
+				rowAdd: rowAdd,
+				rowRemove: rowRemove,
+				completion: completionCells,
+				dataFill: dataFill,
+				dataEmpty: dataEmpty,
+
+				debug: debug
+			});
+
+			// #endregion
+
+		});
+		// 绑定数据类型对象到数据表控件
+		constructor.dataType = dataType;
+		// 绑定控件集合到数据表控件
+		constructor.collection = collection;
+		// 通过值获取值所对应的数据类型
+		constructor.getDataType = getDataTypeByValue;
+		// 将传入值的类型强制转换为传入的数据类型
+		constructor.convertValue = convertValueByDataType;
 
 		// #endregion
 
@@ -4768,6 +4796,12 @@ var ud2 = (function (window, $) {
 
 		var // className存于变量
 			cls = collection.className, cn = getClassName(cls),
+			// CSS常量
+			STR_LEFT = cn('left'), STR_CENTER = cn('center'), STR_RIGHT = cn('right'), STR_GRID = cn('grid'),
+			STR_HEADER = cn('header'), STR_CONTENT = cn('content'), STR_FOOTER = cn('footer'),
+			STR_CLS_ROW = cn('row', 1),
+			// 回调常量
+			RD = 'rowDeselected', RS = 'rowSelected',
 			// 单元格对齐方式
 			cellAlign = {
 				// 左对齐
@@ -4791,21 +4825,25 @@ var ud2 = (function (window, $) {
 			// 数据列初始化默认参数
 			columnDefaultOptions = {
 				// 列标题
-				title: '', // element-attr
+				title: '',
 				// 单元格的数据类型
-				type: null, // element-attr
+				type: null,
 				// 当前宽度 number(px) | auto
-				width: 120, // element-attr
+				width: 120,
 				// 单元格的最小宽度，通过flex压缩不能小于此宽度
 				minWidth: 50,
 				// 0 normal 1 flex 2 left 3 right
-				mode: 1, // element-attr
+				mode: 1,
 				// 是否可编辑
 				edit: false,
 				// 是否可排序
 				sort: false,
 				// 0 左侧 1 剧中 2 右侧
-				align: 0 // element-attr
+				align: 0
+			},
+			// 数据行初始化默认参数
+			rowDefaultOptions = {
+
 			};
 
 		// 重写集合初始化方法
@@ -4813,14 +4851,13 @@ var ud2 = (function (window, $) {
 
 			// #region 私有字段
 
-			var // elements数据源、jQuery数据源
-				// 或二维数组数据
-				// 数据    头部数据    底部数据     当前已选择的行序号集合
-				datas, datasHeader, datasFooter, selectedRows = [],
-				// 列参数对象集合 列默认参数 单元格高度 控件高度 行参数对象集合 鼠标滑上背景改变颜色 鼠标滑上时的背景颜色
-				columnsInfo, columnDefault, cellHeight, height, rowsInfo, isHover, hoverColor,
-				// 是否支持选中行 是否支持行多选    空容器占位文本
-				isSelected, isSelectedMultiple, emptyText,
+			var // elements数据源、jQuery数据源 或二维数组数据
+				// 数据    头部数据    底部数据
+				datas, datasHeader, datasFooter, 
+				// 列参数对象集合 行参数对象集合 列默认参数 行默认参数    单元格高度 控件高度  鼠标滑上背景改变颜色 鼠标滑上时的背景颜色
+				columnsInfo, rowsInfo, columnDefault, rowDefault, cellHeight, height, isHover, hoverColor,
+				// 是否开启选中行 是否支持行多选    空容器占位文本 当前已选择的行序号集合
+				isSelected, isSelectedMultiple, emptyText, selectedRows = [],
 				// 获取用户自定义项
 				options = control.getOptions([
 					'datas', 'datasFooter', 'columns', 'columnDefault',
@@ -4852,11 +4889,9 @@ var ud2 = (function (window, $) {
 					initColumns(options.columns);
 					// 初始化行对象
 					initRows();
+					// 初始化补全单元格
+					initCompletionCells();
 				}),
-				// CSS常量
-				STR_LEFT = cn('left'), STR_CENTER = cn('center'), STR_RIGHT = cn('right'), STR_GRID = cn('grid'),
-				STR_HEADER = cn('header'), STR_CONTENT = cn('content'), STR_FOOTER = cn('footer'),
-				STR_CLS_ROW = cn('row', 1),
 				// 控件结构
 				template = '<div class="' + STR_LEFT + '">'
 					+ '<div class="' + STR_HEADER + '"><div class="' + STR_GRID + '" /></div>'
@@ -4906,6 +4941,11 @@ var ud2 = (function (window, $) {
 				$centerHeaderGrid = $centerHeader.children(),
 				$centerContentGrid = $centerContent.children(),
 				$centerFooterGrid = $centerFooter.children(),
+				// 按左中右添加容器集合
+				// 集合内顺序为 0:content 1:header 2:footer 对应创建网格的mode参数
+				leftGrid = [$leftContentGrid, $leftHeaderGrid, $leftFooterGrid],
+				centerGrid = [$centerContentGrid, $centerHeaderGrid, $centerFooterGrid],
+				rightGrid = [$rightContentGrid, $rightHeaderGrid, $rightFooterGrid],
 				// 空行，用于克隆
 				$emptyRow = $div.clone().addClass(cn('row')),
 				// 空单元格，用于克隆
@@ -4936,10 +4976,10 @@ var ud2 = (function (window, $) {
 
 				datas = optionsDatas;
 
-				// 如果传入参数为字符串或jQuery对象，则强制按照符合jQuery标准获取jQuery对象，并通过此对象创建datatable
-				// 由jQuery对象创建datatable时，会将thead、tbody、tfoot分成三个datatable，分别存入datasHeader、datas、datasFooter
-				// 否则传入的参数如果是二维数组或其他参数，则直接按照dataFill方法推入datatable中处理
-				// 如果参数不存在，但存在control.origin元素时，则将此元素按照jQuery对象创建datatable的方式处理
+				// 如果传入参数为字符串或jQuery对象，则强制按照符合jQuery标准获取jQuery对象，并通过此对象创建数据表
+				// 由jQuery对象创建数据表时，会将thead、tbody、tfoot分成三个数据表，分别存入datasHeader、datas、datasFooter
+				// 否则传入的参数如果是二维数组或其他参数，则直接按照dataFill方法推入数据表中处理
+				// 如果参数不存在，但存在control.origin元素时，则将此元素按照jQuery对象创建数据表的方式处理
 				if (datas) {
 					if (type.isString(datas) || type.isJQuery(datas)) {
 						datas = convertToJQ(datas);
@@ -4951,7 +4991,7 @@ var ud2 = (function (window, $) {
 				}
 				else if (control.origin) datas = convertToJQ(control.origin);
 				else datas = datatable();
-				// jQuery对象创建datatable时的处理方式
+				// jQuery对象创建数据表时的处理方式
 				if (isJQ) {
 					$h = datas.find('thead');
 					$b = datas.find('tbody');
@@ -4976,13 +5016,15 @@ var ud2 = (function (window, $) {
 				columnDefault = columnDefaultOptions;
 				if (type.isObject(optionsColumnDefault)) columnDefault = mergeObjects(columnDefault, optionsColumnDefault);
 			}
-			// 初始化单元格
-			// optionsColumns[array]: options.columns 传入单元格参数
+			// 初始化列
+			// optionsColumns[array]: options.columns 传入列参数
 			function initColumns(optionsColumns) {
 				var isHeader = datasHeader || null,
 					// 数据列数
+					// 列数采取传入数据时，所有数据行中最大的单元格数量(或列参数数量)的最大值
 					dcl, len = Math.max(datas.columns.length, datasHeader ? datasHeader.columns.length: 1,
-						datasFooter ? datasFooter.columns.length : 0, optionsColumns ? optionsColumns.length : 0),
+						datasFooter ? datasFooter.columns.length : 0,
+						optionsColumns ? optionsColumns.length : 0),
 					// 迭代变量
 					i, l, icol, hop;
 
@@ -5018,6 +5060,30 @@ var ud2 = (function (window, $) {
 					}());
 				}
 			}
+			// 补全单元格，并更新单元格类型
+			// 此方法的目的是为了处理传入的列参数与单元格数量不匹配时，补全单元格
+			function initCompletionCells() {
+				var isFooter = !!datasFooter,
+					dtColLen = datas.columns.length,
+					colLen = columnsInfo.length,
+					dtFooterColLen,
+					i = 0, j = 0;
+
+				if (dtColLen < colLen) {
+					for (; i < colLen - dtColLen; i++) {
+						datas.columnAdd();
+					}
+				}
+				if (isFooter) {
+					dtFooterColLen = datasFooter.columns.length;
+					for (; j < colLen - dtFooterColLen; j++) {
+						datasFooter.columnAdd();
+					}
+				}
+
+				// 更新单元格数据类型
+				initCellDataType();
+			}
 			// 初始化行
 			function initRows(optionsRows) {
 				// 将传入参数赋值给行参数集合
@@ -5030,6 +5096,12 @@ var ud2 = (function (window, $) {
 				rowsInfo.header = [];
 				rowsInfo.content = [];
 				rowsInfo.footer = [];
+			}
+			// 初始化单元格数据类型
+			function initCellDataType() {
+				datas.columns.forEach(function (col, i) {
+					if (columnsInfo[i]) col.dataType(columnsInfo[i].type);
+				});
 			}
 
 			// 更新尺寸样式
@@ -5113,17 +5185,16 @@ var ud2 = (function (window, $) {
 				if (fl) updateCellSizeStyles(datasFooter, rowsInfo.footer);
 			}
 			// 更新单元格样式
-			function updateCellSizeStyles(datatable, arr) {
+			function updateCellSizeStyles(dt, arr) {
 				var // 迭代变量
 					isHeader = arr === rowsInfo.header,
-					i = 0, l = isHeader ? 1 : datatable.rows.length,
-					j, m, ci;
+					i = 0, l = isHeader ? 1 : dt.rows.length;
 
 				for (; i < l; i++) {
-					columnsInfo.forEach(function (obj, index) {
-						arr[i].cells[index].css({
-							width: obj.widthNow,
-							left: obj.cellLeft,
+					columnsInfo.forEach(function (ci, index) {
+						arr[i].public.cells[index].getContent().css({
+							width: ci.widthNow,
+							left: ci.cellLeft,
 							height: cellHeight
 						});
 					});
@@ -5198,59 +5269,178 @@ var ud2 = (function (window, $) {
 			}
 			// 创建网格元素
 			function createElements() {
-				var // 迭代变量
-					i, j, k, l, m, n,
-					// 样式变量 列参数对象
-					css, ci,
-					// 行及单元格变量
-					$rl, $rc, $rr;
-
 				// 创建全部元素
-				createTableElements(datasHeader, $leftHeaderGrid, $centerHeaderGrid, $rightHeaderGrid, rowsInfo.header);
-				createTableElements(datas, $leftContentGrid, $centerContentGrid, $rightContentGrid, rowsInfo.content);
-				if (datasFooter && datasFooter.rows.length) createTableElements(datasFooter, $leftFooterGrid, $centerFooterGrid, $rightFooterGrid, rowsInfo.footer);
+				createTableElements(datasHeader, 1);
+				createTableElements(datas);
+				if (datasFooter && datasFooter.rows.length) createTableElements(datasFooter, 2);
 			}
-			// 创建网格分区元素
-			function createTableElements(datatable, $left, $center, $right, arr) {
-				var // 迭代变量
-					isHeader = arr === rowsInfo.header,
-					isFooter = arr === rowsInfo.footer,
-					i = 0, l = isHeader ? 1 : datatable.rows.length,
-					j, m, ci, $rl, $rc, $rr, $cell, realHeight, content;
+			// 创建网格内的全部行和单元格
+			// dt[ud2.datatable]: 数据对象
+			// mode[number]: 行类型 0:content 1:header 2:footer
+			function createTableElements(dt, mode) {
+				var i = 0, l;
+				// 初始化行类型
+				mode = mode || 0;
+				// 获取行数，如果是header，则视为1行
+				l = mode === 1 ? 1 : dt.rows.length;
 
-				// 创建元素
+				// 迭代创建行元素
 				for (; i < l; i++) {
-					$rl = $emptyRow.clone().appendTo($left).css('top', i * cellHeight);
-					$rc = $emptyRow.clone().appendTo($center).css('top', i * cellHeight);
-					$rr = $emptyRow.clone().appendTo($right).css('top', i * cellHeight);
-					arr[i] = { $l: $rl, $c: $rc, $r: $rr, cells: [] };
+					createRowElements(dt, mode);
+				}
+			}
+			// 创建一个行，并创建行内的全部单元格，插入到网格
+			// dt[ud2.datatable]: 数据对象
+			// mode[number]: 行类型 0:content 1:header 2:footer
+			function createRowElements(dt, mode) {
+				var $rl, $rc, $rr, $check, realHeight, arr, nowIndex, ca = [];
 
-					if (isSelected && ((isHeader || isFooter) && i === 0 || !isHeader && !isFooter)) {
-						$cell = $emptyCell.clone().addClass(CSS_CHECKED).css({ textAlign: 'center', width: 38 });
-						$cell.html('<input type="checkbox" class="check" />').appendTo($rl);
-						if (isHeader || isFooter) {
-							realHeight = isHeader ? l * cellHeight : datasFooter.rows.length * cellHeight;
-							$cell.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
-						}
-						if (!isSelectedMultiple && (isHeader || isFooter)) {
-							$cell.addClass('disabled');
-						}
+				// 初始化行类型
+				mode = mode || 0;
+				// 获取行对象
+				if (mode === 0) arr = rowsInfo.content;
+				if (mode === 1) arr = rowsInfo.header;
+				if (mode === 2) arr = rowsInfo.footer;
+				nowIndex = arr.length;
+
+				// 创建行的空容器，用于装载单元格
+				$rl = $emptyRow.clone().appendTo(leftGrid[mode]).css('top', nowIndex * cellHeight);
+				$rc = $emptyRow.clone().appendTo(centerGrid[mode]).css('top', nowIndex * cellHeight);
+				$rr = $emptyRow.clone().appendTo(rightGrid[mode]).css('top', nowIndex * cellHeight);
+				// 创建行参数对象
+				arr[nowIndex] = { $: { left: $rl, center: $rc, right: $rr }, public: { cells: ca } };
+				// 判断是否开启选中行，如果开启选中行，则在行中添加一个checkbox来控制行的选中状态
+				if (isSelected && (mode && nowIndex === 0 || !mode)) {
+					$check = $emptyCell.clone().addClass('checkbox').css({ textAlign: 'center', width: 38 });
+					$check.html('<input type="checkbox" class="check" />').appendTo($rl);
+					if (mode) {
+						// 如果是header，则视为1行
+						realHeight = mode === 1 ? cellHeight : datasFooter.rows.length * cellHeight;
+						$check.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
+					}
+					if (!isSelectedMultiple && mode) {
+						$check.addClass('disabled');
 					}
 
-					columnsInfo.forEach(function (ci, j) {
-						content = arr === rowsInfo.header ? ci.title : datatable.rows[i].cells[j] ? datatable.rows[i].cells[j].val() : '';
-						$cell = $emptyCell.clone().css({ textAlign: ci.align })
-							.html(content).attr('title', content);
-
-						switch (ci.mode) {
-							case 0: case 1: { $cell.appendTo($rc); break; }
-							case 2: { $cell.appendTo($rl); break; }
-							case 3: { $cell.appendTo($rr); break; }
+					// 绑定checkbox单元格
+					arr[nowIndex].$.check = $check.children();
+					// 绑定事件
+					arr[nowIndex].checkEvent = event($check).setTap(function () {
+						if (mode) {
+							rowSelectedAll();
 						}
-
-						arr[i].cells[j] = $cell;
+						else {
+							rowSelected.call(this, arr[nowIndex]);
+						}
 					});
 				}
+				// 迭代列，将该行的全部单元格，按照列参数初始化，并插入到指定的行容器中
+				columnsInfo.forEach(function (ci, j) {
+					var dtCell = dt && dt.rows[nowIndex].cells[j] || null,
+						content = mode === 1 ? ci.title : dtCell.val(), $cell;
+					$cell = $emptyCell.clone().html(content).attr('title', content);
+					// 按照列的模式，将单元格插入到指定的行容器中
+					switch (ci.mode) {
+						case 0: case 1: { $cell.appendTo($rc); break; }
+						case 2: { $cell.appendTo($rl); break; }
+						case 3: { $cell.appendTo($rr); break; }
+					}
+
+					ca[j] = {
+						getContent: function () { return $cell; }
+					};
+				});
+			}
+			// 行选中操作事件回调
+			function rowSelected(ro) {
+				var isHave = selectedRows.indexOf(ro), len = selectedRows.length;
+
+				if (isHave === -1) {
+					// 非多选，取消默认选中的
+					if (!isSelectedMultiple && len > 0) {
+						selectedRows[0].$.check.prop(CSS_CHECKED, '');
+						selectedRows.pop();
+						controlCallbacks[RD].call(control.public, ro.public);
+					}
+					ro.$.check.attr(CSS_CHECKED, CSS_CHECKED);
+					selectedRows.push(ro);
+
+					if (isSelectedMultiple && len + 1 === rowsInfo.content.length) setAllSelectedState(true);
+				}
+				else {
+					ro.$.check.removeAttr(CSS_CHECKED);
+					selectedRows.splice(isHave, 1);
+
+					if (isAllSelected) setAllSelectedState(false);
+				}
+				controlCallbacks[isHave > -1 ? RD : RS].call(control.public, ro.public);
+			}
+			// 行全选操作事件回调
+			function rowSelectedAll() {
+				var // 发生改变的对象集合 当前操作选中与否的状态
+					ca = [], sc = isAllSelected;
+				if (rowsInfo.content.length === 0) return;
+				if (sc) {
+					setAllSelectedState(false);
+					selectedRows.forEach(function (ro) {
+						ro.$.check.removeAttr(CSS_CHECKED);
+						ca.push(ro.public);
+					});
+					selectedRows.splice(0, selectedRows.length);
+				}
+				else {
+					setAllSelectedState(true);
+					rowsInfo.content.forEach(function (ro) {
+						if (selectedRows.indexOf(ro) === -1) {
+							ro.$.check.attr(CSS_CHECKED, CSS_CHECKED);
+							selectedRows.push(ro);
+							ca.push(ro.public);
+						}
+					});
+				}
+				controlCallbacks[sc ? RD : RS].call(control.public, ca);
+			}
+			// 设置全选状态
+			// state[bool]: 状态
+			function setAllSelectedState(state) {
+				if (state) {
+					isAllSelected = true;
+					rowsInfo.header[0].$.check.attr(CSS_CHECKED, CSS_CHECKED);
+					rowsInfo.footer[0].$.check.attr(CSS_CHECKED, CSS_CHECKED);
+				}
+				else {
+					isAllSelected = false;
+					rowsInfo.header[0].$.check.removeAttr(CSS_CHECKED);
+					rowsInfo.footer[0].$.check.removeAttr(CSS_CHECKED);
+				}
+			}
+
+			// 移除全部数据和相关元素
+			function removeContentElements() {
+				var i = 0, j = 0,
+					c = rowsInfo.content, l = c.length, sl;
+				
+				// 清空已选择项目
+				if (isSelected) {
+					sl = selectedRows.length;
+					if (isAllSelected) setAllSelectedState(false);
+					if (sl > 0) {
+						for (; j < sl; j++) {
+							rowSelected(selectedRows[i]);
+						}
+					}
+					selectedRows.splice(0, sl);
+				}
+				// 关闭所有行相关事件
+				for (; i < l; i++) c[i].checkEvent.off();
+				// 清空容器
+				datas.dataEmpty();
+				$leftContentGrid.empty();
+				$centerContentGrid.empty();
+				$rightContentGrid.empty();
+
+				// 移除全部的行数据对象
+				rowsInfo.content.splice(0, l);
 			}
 
 			// #endregion	
@@ -5274,6 +5464,28 @@ var ud2 = (function (window, $) {
 					}
 					return control.public;
 				}
+			}
+			// 利用传入的数据源进行数据填充
+			// - ds[ud2.datatable, array, string]: 数据源
+			// - return[ud2.datagrid]: 返回该控件对象
+			function dataFill(ds) {
+				// 移除原数据
+				removeContentElements();
+
+				// 如果传入数据是数据表则直接填装
+				// 否则，先通过参数实例化数据表，并进行填装
+				if (ds && ds.type === 'datatable') {
+					datas.dataFill(ds);
+				} else {
+					return dataFill(datatable().dataFill(ds));
+				}
+
+				// 创建单元格
+				createTableElements(datas);
+				// 更新样式信息
+				updateInit();
+
+				return control.public;
 			}
 
 			// #endregion
@@ -5319,80 +5531,6 @@ var ud2 = (function (window, $) {
 						$rightContentGrid.children(STR_CLS_ROW).eq(index).children().css(css);
 					}
 				});
-			}
-			// 选项事件
-			function selectedEvent() {
-				var stChecked = ':first-child input',
-					RD = 'rowDeselected', RS = 'rowSelected';
-				if (!isSelected) return;
-
-				// 行选中状态操作
-				function rowSelected() {
-					var index = this.index(), arrIndex = selectedRows.indexOf(index), del;
-					$leftContentGrid.children().eq(index).find(stChecked).prop(CSS_CHECKED, arrIndex > -1 ? '' : CSS_CHECKED);
-					if (arrIndex > -1) {
-						selectedRows.splice(arrIndex, 1);
-					}
-					else {
-						if (!isSelectedMultiple && selectedRows.length > 0) {
-							del = selectedRows[0];
-							$leftContentGrid.children().eq(del).find(stChecked).prop(CSS_CHECKED, '');
-							selectedRows.splice(0, 1);
-							controlCallbacks[RD].call(control.public, [del], [datas.rows[del]]);
-						}
-						selectedRows.push(index);
-					}
-					controlCallbacks[arrIndex > -1 ? RD : RS].call(control.public, [index], [datas.rows[index]]);
-				}
-				// 通过checkbox单元格造作行选中状态
-				function cellCheckByRowSelected() {
-					rowSelected.call(this.parent());
-				}
-				// 改变全部行的选中状态
-				function rowSelectedAll() {
-					var selectIndex = [], selectRowObj = [], del = [];
-
-					// 迭代行元素，操作行的选中状态
-					datas.rows.forEach(function (a, i) {
-						if (isAllSelected) {
-							if (selectedRows.indexOf(i) > -1) {
-								del.push(i);
-							}
-						}
-						else {
-							if (selectedRows.indexOf(i) === -1) {
-								selectedRows.push(i);
-								selectIndex.push(i);
-								selectRowObj.push(datas.rows[i]);
-							}
-						}
-					});
-					// 迭代删除数组，删掉已取消选中的元素
-					if (isAllSelected) {
-						del.forEach(function (a, i) {
-							selectIndex.push(del[i]);
-							selectRowObj.push(datas.rows[del[i]]);
-							selectedRows.splice(selectedRows.indexOf(del[i]), 1);
-						});
-					}
-
-					$leftContentGrid.children().find(stChecked).prop(CSS_CHECKED, isAllSelected ? '' : CSS_CHECKED);
-					$leftHeaderGrid.find(stChecked).prop(CSS_CHECKED, isAllSelected ? '' : CSS_CHECKED);
-					$leftFooterGrid.find(stChecked).prop(CSS_CHECKED, isAllSelected ? '' : CSS_CHECKED);
-					controlCallbacks[isAllSelected ? RD : RS].call(control.public, selectIndex, selectRowObj);
-					isAllSelected = !isAllSelected;
-				}
-
-				// 绑定内容区域相关事件
-				event($leftContentGrid.find(STR_CLS_ROW + ' :first-child')).setTap(cellCheckByRowSelected);
-				event($centerContentGrid.children(STR_CLS_ROW)).setPress(rowSelected);
-				event($leftContentGrid.children(STR_CLS_ROW)).setPress(rowSelected);
-				event($rightContentGrid.children(STR_CLS_ROW)).setPress(rowSelected);
-				// 绑定首尾区域相关事件
-				if (isSelectedMultiple) {
-					event($leftHeaderGrid.find(STR_CLS_ROW + ' :first-child')).setTap(rowSelectedAll);
-					event($leftFooterGrid.find(STR_CLS_ROW + ' :first-child')).setTap(rowSelectedAll);
-				}
 			}
 			// 事件绑定
 			function bindEvent() {
@@ -5443,8 +5581,6 @@ var ud2 = (function (window, $) {
 
 				// 绑定hover效果
 				hoverEvent();
-				// 绑定selected效果
-				selectedEvent();
 			}
 
 			// #endregion
@@ -5471,9 +5607,9 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
-			// #region 重写方法
+			// #region 重写父方法
 
-			// 重写方法
+			// 重写父方法
 			var oldAppendTo = control.public.appendTo;
 			var oldPrependTo = control.public.prependTo;
 			var oldInsertAfter = control.public.insertAfter;
@@ -5481,18 +5617,22 @@ var ud2 = (function (window, $) {
 			function appendTo() {
 				oldAppendTo.apply(control.public, arguments);
 				updateInit();
+				return control.public;
 			}
 			function prependTo() {
 				oldPrependTo.apply(control.public, arguments);
 				updateInit();
+				return control.public;
 			}
 			function insertAfter() {
 				oldInsertAfter.apply(control.public, arguments);
 				updateInit();
+				return control.public;
 			}
 			function insertBefore() {
 				oldInsertBefore.apply(control.public, arguments);
 				updateInit();
+				return control.public;
 			}
 
 			// #endregion
@@ -5508,6 +5648,7 @@ var ud2 = (function (window, $) {
 				height: heightOperate,
 				setRowSelected: setRowSelected,
 				setRowDeselected: setRowDeselected,
+				dataFill: dataFill,
 				datas: datas
 			});
 

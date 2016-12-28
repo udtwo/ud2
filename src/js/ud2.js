@@ -2517,7 +2517,7 @@ var ud2 = (function (window, $) {
 
 					// 获取数据值类型
 					valueType = options.type;
-					// !! 目前数组值和函数值在此解决，未支持数组值和函数值
+					// ~~方法、数组值将会转换为空值
 					value = options.value === void 0
 						|| type.isArray(options.value) || type.isFunction(options.value) ? null : options.value;
 				}
@@ -2528,7 +2528,8 @@ var ud2 = (function (window, $) {
 					valueOperate(value);
 				}
 				else {
-					valueType = null; // !!! 对未设置数据类型的单元格标记为null，并采用string类型 getDataTypeByValue(value);
+					// ~~对未设置数据类型的单元格标记为null，并采用string类型 getDataTypeByValue(value);
+					valueType = null; 
 				}
 			}());
 
@@ -4794,6 +4795,7 @@ var ud2 = (function (window, $) {
 
 	});
 	// 数据网格控件
+	// !! 暂时未考虑控件的执行效率，待提高效率的方式有，数据行懒加载(显示)
 	controlCreater('datagrid', function (collection, constructor) {
 
 		var // className存于变量

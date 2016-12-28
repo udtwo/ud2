@@ -2612,7 +2612,7 @@ var ud2 = (function (window, $) {
 				// 在有数据情况下添加列，则补全其他行中的列单元格
 				if (rowCollection.length > 0) {
 					for (var i in rowCollection) {
-						c = cell({ row: rowCollection[i], column: cl });
+						c = cell({ row: rowCollection[i], column: cl, type: cl.dataType() });
 						cl.cells.push(c);
 						rowCollection[i].cells.push(c);
 					}
@@ -2634,6 +2634,8 @@ var ud2 = (function (window, $) {
 					if (!columnCollection[i]) columnAdd();
 					columnCollection[i].cells.push(r.cells[i]);
 					r.cells[i].bindColumn(columnCollection[i]);
+					// 更改类型
+					r.cells[i].dataType(columnCollection[i].dataType());
 				}
 				// 如果数据列的数量大于行中添加的单元格数量，则补全当前行中的单元格
 				if (cl > rl) {
@@ -2763,7 +2765,7 @@ var ud2 = (function (window, $) {
 				}
 			}
 			
-			// [*用于调试*]
+			// [*debug*]
 			// 在控制台输出当前数据表的值和类型
 			function debug() {
 				var de = [], r = 0, m = 0, rl, ml, c;
@@ -2808,7 +2810,7 @@ var ud2 = (function (window, $) {
 				completion: completionCells,
 				dataFill: dataFill,
 				dataEmpty: dataEmpty,
-
+				// [*debug*]
 				debug: debug
 			});
 
@@ -5191,6 +5193,9 @@ var ud2 = (function (window, $) {
 					i = 0, l = isHeader ? 1 : dt.rows.length;
 
 				for (; i < l; i++) {
+					arr[i].$.left.css('top', i * cellHeight);
+					arr[i].$.center.css('top', i * cellHeight);
+					arr[i].$.right.css('top', i * cellHeight);
 					columnsInfo.forEach(function (ci, index) {
 						arr[i].public.cells[index].getContent().css({
 							width: ci.widthNow,
@@ -5278,7 +5283,8 @@ var ud2 = (function (window, $) {
 			// dt[ud2.datatable]: 数据对象
 			// mode[number]: 行类型 0:content 1:header 2:footer
 			function createTableElements(dt, mode) {
-				var i = 0, l;
+				var i = 0, l,
+					$rl, $rc, $rr, $check, realHeight, arr, arrMax;
 				// 初始化行类型
 				mode = mode || 0;
 				// 获取行数，如果是header，则视为1行
@@ -5286,71 +5292,66 @@ var ud2 = (function (window, $) {
 
 				// 迭代创建行元素
 				for (; i < l; i++) {
-					createRowElements(dt, mode);
-				}
-			}
-			// 创建一个行，并创建行内的全部单元格，插入到网格
-			// dt[ud2.datatable]: 数据对象
-			// mode[number]: 行类型 0:content 1:header 2:footer
-			function createRowElements(dt, mode) {
-				var $rl, $rc, $rr, $check, realHeight, arr, nowIndex, ca = [];
+					// 获取行对象
+					if (mode === 0) arr = rowsInfo.content;
+					if (mode === 1) arr = rowsInfo.header;
+					if (mode === 2) arr = rowsInfo.footer;
+					arrMax = arr.length;
 
-				// 初始化行类型
-				mode = mode || 0;
-				// 获取行对象
-				if (mode === 0) arr = rowsInfo.content;
-				if (mode === 1) arr = rowsInfo.header;
-				if (mode === 2) arr = rowsInfo.footer;
-				nowIndex = arr.length;
-
-				// 创建行的空容器，用于装载单元格
-				$rl = $emptyRow.clone().appendTo(leftGrid[mode]).css('top', nowIndex * cellHeight);
-				$rc = $emptyRow.clone().appendTo(centerGrid[mode]).css('top', nowIndex * cellHeight);
-				$rr = $emptyRow.clone().appendTo(rightGrid[mode]).css('top', nowIndex * cellHeight);
-				// 创建行参数对象
-				arr[nowIndex] = { $: { left: $rl, center: $rc, right: $rr }, public: { cells: ca } };
-				// 判断是否开启选中行，如果开启选中行，则在行中添加一个checkbox来控制行的选中状态
-				if (isSelected && (mode && nowIndex === 0 || !mode)) {
-					$check = $emptyCell.clone().addClass('checkbox').css({ textAlign: 'center', width: 38 });
-					$check.html('<input type="checkbox" class="check" />').appendTo($rl);
-					if (mode) {
-						// 如果是header，则视为1行
-						realHeight = mode === 1 ? cellHeight : datasFooter.rows.length * cellHeight;
-						$check.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
-					}
-					if (!isSelectedMultiple && mode) {
-						$check.addClass('disabled');
-					}
-
-					// 绑定checkbox单元格
-					arr[nowIndex].$.check = $check.children();
-					// 绑定事件
-					arr[nowIndex].checkEvent = event($check).setTap(function () {
+					// 创建行的空容器，用于装载单元格
+					$rl = $emptyRow.clone().appendTo(leftGrid[mode]);
+					$rc = $emptyRow.clone().appendTo(centerGrid[mode]);
+					$rr = $emptyRow.clone().appendTo(rightGrid[mode]);
+					// 创建行参数对象
+					arr[arrMax] = { $: { left: $rl, center: $rc, right: $rr }, public: { cells: [] } };
+					if (mode === 0) arr[arrMax].public.dtRow = dt.rows[i];
+					// 判断是否开启选中行，如果开启选中行，则在行中添加一个checkbox来控制行的选中状态
+					if (isSelected && (mode && i === 0 || !mode)) {
+						$check = $emptyCell.clone().addClass('checkbox').css({ textAlign: 'center', width: 38 });
+						$check.html('<input type="checkbox" class="check" />').appendTo($rl);
 						if (mode) {
-							rowSelectedAll();
+							// 如果是header，则视为1行
+							realHeight = mode === 1 ? cellHeight : datasFooter.rows.length * cellHeight;
+							$check.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
 						}
-						else {
-							rowSelected.call(this, arr[nowIndex]);
+						if (!isSelectedMultiple && mode) {
+							$check.addClass('disabled');
 						}
+
+						// 绑定checkbox单元格
+						arr[arrMax].$.check = $check.children();
+						// 绑定事件
+						arr[arrMax].checkEvent = event($check).setTap((function (arrMax) {
+							return function () {
+								if (mode) {
+									rowSelectedAll();
+								}
+								else {
+									rowSelected.call(this, arr[arrMax]);
+								}
+							};
+						}(arrMax)));
+					}
+					// 迭代列，将该行的全部单元格，按照列参数初始化，并插入到指定的行容器中
+					columnsInfo.forEach(function (ci, j) {
+						var dtCell = dt && dt.rows[i].cells[j] || null,
+							content = mode === 1 ? ci.title : dtCell.val(), $cell;
+
+						$cell = $emptyCell.clone().html(content).attr('title', content);
+						// 按照列的模式，将单元格插入到指定的行容器中
+						switch (ci.mode) {
+							case 0: case 1: { $cell.appendTo($rc); break; }
+							case 2: { $cell.appendTo($rl); break; }
+							case 3: { $cell.appendTo($rr); break; }
+						}
+
+						arr[arrMax].public.cells[j] = {
+							getContent: function () { return $cell; }
+						};
 					});
 				}
-				// 迭代列，将该行的全部单元格，按照列参数初始化，并插入到指定的行容器中
-				columnsInfo.forEach(function (ci, j) {
-					var dtCell = dt && dt.rows[nowIndex].cells[j] || null,
-						content = mode === 1 ? ci.title : dtCell.val(), $cell;
-					$cell = $emptyCell.clone().html(content).attr('title', content);
-					// 按照列的模式，将单元格插入到指定的行容器中
-					switch (ci.mode) {
-						case 0: case 1: { $cell.appendTo($rc); break; }
-						case 2: { $cell.appendTo($rl); break; }
-						case 3: { $cell.appendTo($rr); break; }
-					}
-
-					ca[j] = {
-						getContent: function () { return $cell; }
-					};
-				});
 			}
+
 			// 行选中操作事件回调
 			function rowSelected(ro) {
 				var isHave = selectedRows.indexOf(ro), len = selectedRows.length;
@@ -5466,7 +5467,7 @@ var ud2 = (function (window, $) {
 				}
 			}
 			// 利用传入的数据源进行数据填充
-			// - ds[ud2.datatable, array, string]: 数据源
+			// - ds[ud2.datatable, array]: 数据源
 			// - return[ud2.datagrid]: 返回该控件对象
 			function dataFill(ds) {
 				// 移除原数据
@@ -5486,6 +5487,37 @@ var ud2 = (function (window, $) {
 				updateInit();
 
 				return control.public;
+			}
+			// 数据行添加
+			// - ds[ud2.datatable, array]: 数据源
+			function dataRowAdd(ds) {
+				var rowCellArr =[];
+
+				if (ds && ds.type === 'datatable') {
+					if (ds.rows[0]) {
+						columnsInfo.forEach(function (ci, i) {
+							if (ds.rows[0].cells[i]) {
+								ds.rows[0].cells[i].dataType(ci.type);
+							}
+							else {
+								ds.columnAdd({ type: ci.type });
+							}
+							rowCellArr[i] = ds.rows[0].cells[i].val();
+						});
+						// 向数据表中插入行
+						datas.rowAdd(rowCellArr);
+						// 创建单元格
+						createTableElements(ds);
+						// 更新样式信息
+						updateInit();
+
+						// 当前为全选状态时，加入新行后，取消全选状态
+						if (isAllSelected) setAllSelectedState(false);
+					}
+				}
+				else if (ds !== void 0) {
+					return dataRowAdd(datatable().rowAdd(ds));
+				}
 			}
 
 			// #endregion
@@ -5649,7 +5681,7 @@ var ud2 = (function (window, $) {
 				setRowSelected: setRowSelected,
 				setRowDeselected: setRowDeselected,
 				dataFill: dataFill,
-				datas: datas
+				dataRowAdd: dataRowAdd
 			});
 
 			// #endregion

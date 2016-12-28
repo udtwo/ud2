@@ -5358,8 +5358,8 @@ var ud2 = (function (window, $) {
 				if (isHave === -1) {
 					// 非多选，取消默认选中的
 					if (!isSelectedMultiple && len > 0) {
-						selectedRows[0].$.check.prop(CSS_CHECKED, '');
-						selectedRows.pop();
+						selectedRows[0].$.check.removeAttr(CSS_CHECKED);
+						selectedRows.splice(0, 1);
 						controlCallbacks[RD].call(control.public, ro.public);
 					}
 					ro.$.check.attr(CSS_CHECKED, CSS_CHECKED);

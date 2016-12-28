@@ -5379,7 +5379,7 @@ var ud2 = (function (window, $) {
 			function rowSelectedAll() {
 				var // 发生改变的对象集合 当前操作选中与否的状态
 					ca = [], sc = isAllSelected;
-				if (rowsInfo.content.length === 0) return;
+				if (rowsInfo.content.length === 0 || !isSelectedMultiple) return;
 				if (sc) {
 					setAllSelectedState(false);
 					selectedRows.forEach(function (ro) {

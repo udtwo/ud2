@@ -1820,30 +1820,11 @@ var ud2 = (function (window, $) {
 				// 初始化全部未初始化的控件
 				// 在页面初始化完成后，会自动调用此方法
 				createAllControl: function () {
-					var // 获取全部标记为控件的元素
-						$ud2Controls = $('[' + libName + ']');
-
-					// 迭代元素
-					$ud2Controls.each(function () {
-						var // 获取当前元素
-							$this = $(this),
-							// 获取控件类型
-							typeNames = getNames($this);
-
-						typeNames.forEach(function (item, index) {
-							var // 通过控件类型名称获取控件对象名称
-								controlName = getControlNameByName(item),
-								// 获取此空间是否被创建
-								isCreated = $this.attr(prefixLibName + item + '-ready'),
-								// 控件ID
-								id = $this.attr('ud2-id') || null;
-
-							if (!isCreated) {
-								if (id) ud2[controlName].create(id, $this);
-								else ud2[controlName].create($this);
-							}
-						});
-					});
+					createControl($('[' + libName + ']'));
+				},
+				// 初始化全部懒加载控件
+				createLazyControl: function(){
+					createControl($('[' + libName + '-lazy]'));
 				},
 				// 库已准备完成时的回调方法
 				ready: function (fn) {
@@ -1854,6 +1835,32 @@ var ud2 = (function (window, $) {
 				}
 			};
 
+		// 创建控件
+		function createControl($controls) {
+			// 迭代元素
+			$controls.each(function () {
+				var // 获取当前元素
+					$this = $(this);
+
+				// 遇懒加载属性，生成库属性
+				if ($this.attr(libName + '-lazy')) $this.attr(libName, $this.attr(libName + '-lazy'));
+
+				getNames($this).forEach(function (item, index) {
+					var // 通过控件类型名称获取控件对象名称
+						controlName = getControlNameByName(item),
+						// 获取此空间是否被创建
+						isCreated = $this.attr(prefixLibName + item + '-ready'),
+						// 控件ID
+						id = $this.attr('ud2-id') || null;
+
+					if (!isCreated) {
+						if (id) ud2[controlName].create(id, $this);
+						else ud2[controlName].create($this);
+					}
+				});
+			});
+		}
+		// 返回库对象
 		return ud2;
 	}());
 

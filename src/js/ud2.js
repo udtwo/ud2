@@ -5922,9 +5922,13 @@ var ud2 = (function (window, $) {
 					openState = true;
 					animateLock = true;
 					backmask.open(control.public);
-					window.setTimeout(function () { $dialog.addClass(CSS_ON); }, 10);
-					window.setTimeout(function () { animateLock = false; }, 310);
-					controlCallbacks.open.call(control.public);
+					window.setTimeout(function () {
+						$dialog.addClass(CSS_ON);
+					}, 10);
+					window.setTimeout(function () {
+						animateLock = false;
+						controlCallbacks.open.call(control.public);
+					}, 310);
 				}
 				return control.public;
 			}
@@ -5935,9 +5939,13 @@ var ud2 = (function (window, $) {
 					openState = false;
 					animateLock = true;
 					backmask.close(control.public);
-					window.setTimeout(function () { $dialog.removeClass(CSS_ON); }, 10);
-					window.setTimeout(function () { animateLock = false; }, 310);
-					controlCallbacks.close.call(control.public);
+					window.setTimeout(function () {
+						$dialog.removeClass(CSS_ON);
+					}, 10);
+					window.setTimeout(function () {
+						animateLock = false;
+						controlCallbacks.close.call(control.public);
+					}, 310);
 				}
 				return control.public;
 			}
@@ -5946,12 +5954,13 @@ var ud2 = (function (window, $) {
 				if (openState || animateLock) {
 					if (openState) close();
 					window.setTimeout(remove, 310);
-					return;
+					return control.public;
 				}
 
 				$dialog.remove();
 				eventObj.off();
 				control.remove();
+				return control.public;
 			}
 
 			// #endregion
@@ -6234,6 +6243,8 @@ var ud2 = (function (window, $) {
 
 			// #endregion
 
+			// #region 私有方法
+
 			// 设置位置
 			// pos[object, string, number]: 位置参数
 			function setPosition(pos) {
@@ -6246,6 +6257,8 @@ var ud2 = (function (window, $) {
 					default: case POS_TOPCENTER: case 'topCenter': case '0': case 0: { position = POS_TOPCENTER; break; }
 				}
 			}
+
+			// #endregion
 
 			// #region 公共方法
 
@@ -6273,9 +6286,7 @@ var ud2 = (function (window, $) {
 						case POS_TOPRIGHT: { css = { top: tb, right: NORMAL_LENGTH }; break; }
 						case POS_BOTTOMCENTER: { css = { bottom: tb, left: '50%', marginLeft: -w / 2 }; break; }
 						case POS_BOTTOMLEFT: { css = { bottom: tb, left: NORMAL_LENGTH }; break; }
-						case POS_BOTTOMRIGHT: {
-							css = { bottom: tb, right: NORMAL_LENGTH }; break;
-						}
+						case POS_BOTTOMRIGHT: { css = { bottom: tb, right: NORMAL_LENGTH }; break; }
 					}
 
 					control.public.data = { tb: tb };
@@ -6323,13 +6334,14 @@ var ud2 = (function (window, $) {
 			function remove() {
 				if (isOpen) {
 					close();
-					window.setTimeout(remove, 305);
-					return;
+					window.setTimeout(remove, 310);
+					return control.public;
 				}
 				$message.remove();
 				eventClose.off();
 				callbacks.pageResize.remove(resize);
 				control.remove();
+				return control.public;
 			}
 
 			// #endregion

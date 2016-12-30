@@ -73,7 +73,7 @@
 			ud2.event('.c').setTap(function () {
 				var a = ud2.dialog({
 					title: "全屏对话框",
-					position: "fullscreen",
+					position: "full-screen",
 					content: "<div style='height: 100%; line-height: 16; text-align: center;'>这是一个全屏的对话框</div>"
 				}).setClose(function () {
 					a.remove();
@@ -169,7 +169,11 @@
 				});
 			});
 			ud2.event('.q').setTap(function () {
-				ud2.dialog.confirm("这是一个confirm对话框", "这是一个confirm对话框");
+				ud2.dialog.confirm("这是一个confirm对话框", "这是一个confirm对话框", function () {
+					ud2.dialog.alert("操作提示", "您点击了确定", ud2.style.success);
+				}, function () {
+					ud2.dialog.alert("操作提示", "您点击了取消", ud2.style.danger);
+				});
 			});
 			ud2.event('.r').setTap(function () {
 				ud2.dialog.prompt("这是一个prompt对话框", "这是一个prompt对话框", function (val) {

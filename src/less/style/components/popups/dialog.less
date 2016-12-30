@@ -24,6 +24,37 @@
 		.transform(scale(1));
 	}
 }
+.ud2-dialog-top-left {
+	top: @LayoutPadding;
+	left: @LayoutPadding;
+}
+.ud2-dialog-top-right {
+	top: @LayoutPadding;
+	right: @LayoutPadding;
+}
+.ud2-dialog-bottom-left {
+	bottom: @LayoutPadding;
+	left: @LayoutPadding;
+}
+.ud2-dialog-bottom-right {
+	bottom: @LayoutPadding;
+	right: @LayoutPadding;
+}
+.ud2-dialog-full-screen {
+	top: @LayoutPadding;
+	left: @LayoutPadding;
+	bottom: @LayoutPadding;
+	right: @LayoutPadding;
+}
+.ud2-dialog-center {
+	top: 50%;
+	left: 50%;
+	.transform(translate(-50%, -50%) translateZ(0) scale(.8));
+	&.on {
+		.transform(translate(-50%, -50%) translateZ(0) scale(1));
+	}
+}
+
 // 设置内部容器为绝对定位
 .ud2-dialog-header, .ud2-dialog-body, .ud2-dialog-close {
 	position: absolute;
@@ -55,24 +86,29 @@
 // 对话框控件身体容器样式
 .ud2-dialog-body {
 	top: 3em; left: 0; right: 0; bottom: 0;
+
+	iframe {
+		width: 100%; height: 100%;
+		border: 0;
+	}
 }
 // 对话框控件尾部容器样式
 .ud2-dialog-footer {
 	position: absolute;
 	left: 0; bottom: 0; right: 0;
 	height: 3em;
-	line-height: 2.95em;
+	line-height: 3em;
 	background: @ColorWhiteDeeper;
 	text-align: center;
 
-	a:not(:only-child):not(:first-child) {
+	.btn:not(:only-child):not(:first-child) {
 		margin-left: .5em;
 	}
 }
 
 // 弹出对话框默认样式
 .ud2-dialog-built {
-	&, table {
+	table {
 		width: 100%; height: 100%;
 	}
 
@@ -93,5 +129,9 @@
 
 	td:only-child, td:not(:only-child):last-child {
 		line-height: 1.5;
+	}
+
+	input {
+		margin-top: .4em;
 	}
 }

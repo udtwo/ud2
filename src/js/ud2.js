@@ -71,7 +71,7 @@ var ud2 = (function (window, $) {
 		// 触碰事件组合
 		EVENT_DOWN = [POINTER_DOWN, TOUCH_START, MOUSE_DOWN].join(' '),
 		// 定位常量
-		POS_CENTER = 'center', POS_FULL = 'fullscreen',
+		POS_CENTER = 'center', POS_FULLSCREEN = 'full-screen',
 		POS_TOPLEFT = 'top-left', POS_TOPRIGHT = 'top-right',
 		POS_BOTTOMLEFT = 'bottom-left', POS_BOTTOMRIGHT = 'bottom-right',
 		POS_TOPCENTER = 'top-center', POS_BOTTOMCENTER = 'bottom-center',
@@ -1823,7 +1823,7 @@ var ud2 = (function (window, $) {
 					createControl($('[' + libName + ']'));
 				},
 				// 初始化全部懒加载控件
-				createLazyControl: function(){
+				createLazyControl: function () {
 					createControl($('[' + libName + '-lazy]'));
 				},
 				// 库已准备完成时的回调方法
@@ -3699,13 +3699,12 @@ var ud2 = (function (window, $) {
 				// 显示状态
 				isOpen = false;
 
-			// 将值强制转换为符合pageType的类型的值
-			// 默认值为ud2.tabs.pageType.html(0)
-			// return[ud2.tabs.pageType]: pageType的类型的值
-			function convertPageType(val) {
-				if (val && val.type === 1 || type.isString(val) && val === 'url' || val === 1) return 1;
-				if (val && val.type === 0 || type.isString(val) && val === 'html' || val === 0) return 0;
-				return 0;
+			// 设置选项页的类型
+			function setPageType(val) {
+				switch (val) {
+					case 'url': case 1: case '1': { pageType = 1; break; }
+					default: case 'html': case 0: case '0': { pageType = 0; break; }
+				}
 			}
 
 			// 标题操作
@@ -3838,7 +3837,7 @@ var ud2 = (function (window, $) {
 					btnClose = args[4];
 				}
 
-				pageType = convertPageType(pageType);
+				setPageType(pageType);
 				name = name || createControlID(TYPE_PAGE_NAME);
 				title = title || '未命名选项卡';
 				details = details || (pageType === 1 ? 'about:blank' : '');
@@ -5518,7 +5517,7 @@ var ud2 = (function (window, $) {
 					// 关闭所有行相关事件
 					for (; i < l; i++) c[i].checkEvent.off();
 				}
-				
+
 				// 清空容器
 				datas.dataEmpty();
 				$leftContentGrid.empty();
@@ -5714,10 +5713,8 @@ var ud2 = (function (window, $) {
 
 		var // className存于变量
 			cls = collection.className, cn = getClassName(cls),
-			// 对话框基础内容对象
-			$dialogBaseContent = $('<div class="' + cn('built') + '"><table><tr><td></td></tr></table></div>'),
-			// 对话框基础页脚内容对象
-			$dialogBaseFooter = $('<div class="' + cn('footer') + '"><a class="btn">确 定</a><a class="btn">取 消</a></div>');
+
+			FOOTER_SEND = '<a class="btn">确 定</a>', FOOTER_CANCEL = '<a class="btn">取 消</a>';
 
 		// 对话框参数处理方法
 		// (option)
@@ -5743,15 +5740,14 @@ var ud2 = (function (window, $) {
 				cancelFn = options[0].cancelFn;
 			}
 			else {
-				// 会话标题与内容
 				title = options[0] || '';
 				content = options[1] || '';
 
 				if (len === 3) {
-					if (type.isFunction(options[2])) { // sendFn
+					if (type.isFunction(options[2])) {
 						sendFn = options[2];
 					}
-					else { // icoStyle
+					else {
 						icoStyle = options[2];
 					}
 				}
@@ -5797,37 +5793,40 @@ var ud2 = (function (window, $) {
 			cancelFn = type.isFunction(cancelFn) ? cancelFn : fnNoop;
 			return fn(title, content, ico, icoStyle, sendFn, cancelFn);
 		}
-		// 对话框CSS样式重写
-		function dialogRewriteCSS($content, $base, $footer, ico, icoStyle) {
-			var $td = $base.find('td');
-			if (ico !== void 0) {
-				$td.before('<td><i class="ico fc-' + icoStyle.name + '">' + ico + '</i></td>');
-
-			}
-			else if (icoStyle !== void 0 && icoStyle.name !== 'normal') {
-				$td.before('<td><i class="ico fc-' + icoStyle.name + '">' + icoStyle.ico + '</i></td>');
-			}
-			$content.css('bottom', '3em').append($base).after($footer);
-		}
 		// 对话框事件绑定
 		function dialogBindEvent(dialog, $event, eventObj, sendFn, cancelFn, $input) {
+			var send, cancel;
 			if (eventObj.send) {
-				eventObj.send = event($event.eq(0)).setTap(function () {
-					if (dialog.getAnimateState()) return;
+				send = event($event.eq(0)).setTap(function () {
 					if (sendFn) sendFn($input && $input.val());
-					eventObj.send.off();
+					if (send) send.off();
+					if (cancel) cancel.off();
 					dialog.remove();
 				});
 			}
 
 			if (eventObj.cancel) {
-				eventObj.cancel = event($event.eq(1)).setTap(function () {
-					if (dialog.getAnimateState()) return;
+				cancel = event($event.eq(1)).setTap(function () {
 					if (cancelFn) cancelFn($input && $input.val());
-					eventObj.cancel.off();
+					if (send) send.off();
+					if (cancel) cancel.off();
 					dialog.remove();
 				});
 			}
+		}
+		// 对话框CSS样式重写
+		function dialogRewriteCSS($content, ico, icoStyle, content) {
+			var $base = $('<table><tr><td></td></tr></table>'),
+				$td = $base.find('td');
+			$content.addClass(cn('built'));
+			if (ico !== void 0) {
+				$td.before('<td><i class="ico fc-' + icoStyle.name + '">' + ico + '</i></td>');
+			}
+			else if (icoStyle !== void 0 && icoStyle.name !== 'normal') {
+				$td.before('<td><i class="ico fc-' + icoStyle.name + '">' + icoStyle.ico + '</i></td>');
+			}
+			$base.find('td:last').append(content);
+			$content.append($base);
 		}
 
 		// 重写集合初始化方法
@@ -5835,15 +5834,18 @@ var ud2 = (function (window, $) {
 
 			// #region 私有字段
 
-			var // 尺寸 位置     标题    内容     关闭按钮
-				size, position, title, content, btnClose,
+			var // 尺寸 位置     标题    内容     内容类型       底部    关闭按钮
+				size, position, title, content, contentType, footer, btnClose,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'size', 'position', 'title', 'content', ['btnClose', 'isBtnClose']
+					'size', 'position', 'title', ['btnClose', 'isBtnClose'],
+					'content', 'contentType', 'footer'
 				], function (options) {
 					// 初始化标题及内容
 					title = options.title || '未定义标题';
 					content = options.content || null;
+					footer = options.footer === void 0 ? null : options.footer;
+					setContentType(options.contentType);
 
 					// 初始化尺寸
 					size = getCoordinate(options.size, 400, 300);
@@ -5857,7 +5859,7 @@ var ud2 = (function (window, $) {
 				}),
 				// 控件结构
 				template = '<div class="' + cn('header') + '">' + title + '</div>'
-					+ '<div class="' + cn('body') + '"></div>'
+					+ '<div class="' + cn('body') + '" /><div class="' + cn('footer') + '" />'
 					+ '<a class="' + cn('close') + ' ico">&#xed1f;</a>',
 				// 获取初始化的控件对象
 				current = control.current,
@@ -5867,6 +5869,8 @@ var ud2 = (function (window, $) {
 				$header = $dialog.children('div').eq(0),
 				// 控件内容对象
 				$content = $dialog.children('div').eq(1),
+				// 控件底部对象
+				$footer = $dialog.children('div').eq(2),
 				// 关闭按钮对象
 				$close = $dialog.children('a'),
 				// 动画锁
@@ -5892,13 +5896,46 @@ var ud2 = (function (window, $) {
 			function setPosition(pos) {
 				switch (pos) {
 					case POS_CENTER: case '0': { position = POS_CENTER; break; }
-					case POS_FULL: case '1': case 'full': { position = POS_FULL; break; }
+					case POS_FULLSCREEN: case '1': case 'full': case 'fullScreen': { position = POS_FULLSCREEN; break; }
 					case POS_TOPLEFT: case '2': case 'topLeft': { position = POS_TOPLEFT; break; }
 					case POS_TOPRIGHT: case '3': case 'topRight': { position = POS_TOPRIGHT; break; }
 					case POS_BOTTOMLEFT: case '4': case 'bottomLeft': { position = POS_BOTTOMLEFT; break; }
 					case POS_BOTTOMRIGHT: case '5': case 'bottomRight': { position = POS_BOTTOMRIGHT; break; }
 					default: { position = getCoordinate(position, NORMAL_LENGTH, NORMAL_LENGTH); break; }
 				}
+			}
+			// 设置内容的类型
+			function setContentType(val) {
+				switch (val) {
+					case 'url': case 1: case '1': { contentType = 1; break; }
+					default: case 'html': case 0: case '0': { contentType = 0; break; }
+				}
+			}
+			// 解析底部参数
+			function analysisFooterArgs() {
+				var foot = [];
+
+				function analysisBtns(f) {
+					if (!type.isObject(f)) return;
+
+					var $btns = $a.clone().addClass('btn'), e = event($btns);
+					$btns.html(f.text || '');
+					$btns.event = e;
+					if (f.class) $btns.addClass(f.class);
+					if (f.tap) e.setTap(f.tap);
+					foot.push($btns);
+				}
+
+				if (type.isArray(footer)) {
+					footer.forEach(function (f) { analysisBtns(f); });
+				}
+				else {
+					analysisBtns(footer);
+				}
+
+				// 迭代生成的按钮对象
+				foot.forEach(function (f) { $footer.append(f); });
+				footer = foot;
 			}
 
 			// #endregion
@@ -5910,10 +5947,10 @@ var ud2 = (function (window, $) {
 			function getContent() {
 				return $content;
 			}
-			// 获取对话框处于动画状态
-			// return[bool]: 返回对话框是否在动画进行中
-			function getAnimateState() {
-				return animateLock;
+			// 获取对话框底部内容对象
+			// return[jquery]: 返回对话框底部内容对象
+			function getFooterContent() {
+				return $footer;
 			}
 			// 对话框开启
 			// return[ud2.dialog]: 返回该控件对象
@@ -5950,17 +5987,18 @@ var ud2 = (function (window, $) {
 				return control.public;
 			}
 			// 对话框移除
+			// return[null]: 返回空对象
 			function remove() {
 				if (openState || animateLock) {
 					if (openState) close();
 					window.setTimeout(remove, 310);
-					return control.public;
+					return null;
 				}
-
+				if (type.isArray(footer)) footer.forEach(function (f) { f.event.off(); });
 				$dialog.remove();
 				eventObj.off();
 				control.remove();
-				return control.public;
+				return null;
 			}
 
 			// #endregion
@@ -5990,27 +6028,23 @@ var ud2 = (function (window, $) {
 
 			// 样式重写
 			function rewriteCSS() {
-				var dialogCSS = {};
+				var dialogCSS = {}, ch;
 
 				// 修改样式
-				if (position !== POS_FULL) {
+				if (position !== POS_FULLSCREEN) {
 					dialogCSS.width = size.x;
 					dialogCSS.height = size.y;
 				}
-				if (position === POS_TOPLEFT) {
-					dialogCSS.top = NORMAL_LENGTH; dialogCSS.left = NORMAL_LENGTH;
-				}
-				else if (position === POS_TOPRIGHT) {
-					dialogCSS.top = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH;
-				}
-				else if (position === POS_BOTTOMLEFT) {
-					dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.left = NORMAL_LENGTH;
-				}
-				else if (position === POS_BOTTOMRIGHT) { dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH; }
-				else if (position === POS_FULL) { dialogCSS.top = NORMAL_LENGTH; dialogCSS.bottom = NORMAL_LENGTH; dialogCSS.left = NORMAL_LENGTH; dialogCSS.right = NORMAL_LENGTH; }
-				else if (position === POS_CENTER) { dialogCSS.top = '50%'; dialogCSS.left = '50%'; dialogCSS.marginLeft = -size.x / 2; dialogCSS.marginTop = -size.y / 2; }
+				
+				if (position === POS_TOPLEFT) $dialog.addClass(cn(POS_TOPLEFT));
+				else if (position === POS_TOPRIGHT) $dialog.addClass(cn(POS_TOPRIGHT));
+				else if (position === POS_BOTTOMLEFT) $dialog.addClass(cn(POS_BOTTOMLEFT));
+				else if (position === POS_BOTTOMRIGHT) $dialog.addClass(cn(POS_BOTTOMRIGHT));
+				else if (position === POS_FULLSCREEN) $dialog.addClass(cn(POS_FULLSCREEN));
+				else if (position === POS_CENTER) $dialog.addClass(cn(POS_CENTER));
 				else {
-					dialogCSS.top = position.y; dialogCSS.left = position.x;
+					dialogCSS.top = position.y;
+					dialogCSS.left = position.x;
 				}
 				$dialog.css(dialogCSS);
 
@@ -6020,11 +6054,31 @@ var ud2 = (function (window, $) {
 				}
 
 				// 内容初始化
-				if (control.origin.length) {
-					$content.append(control.origin);
+				switch (contentType) {
+					case 0: {
+						if (control.origin.length) $content.append(control.origin.html());
+						else $content.append(content);
+						break;
+					}
+					case 1: {
+						if (control.origin.length) ch = control.origin.html();
+						else ch = content;
+						$content.append('<iframe src="' + ch + '" />');
+						break;
+					}
+				}
+				// 判断底部元素
+				if (footer === null) {
+					$footer.remove();
 				}
 				else {
-					$content.append(content);
+					if ((type.isObject(footer) || type.isArray(footer)) && !type.isJQuery(footer)) {
+						analysisFooterArgs();
+					}
+					else {
+						$footer.html(footer);
+					}
+					$content.css('bottom', '3em');
 				}
 
 				// 放置到文档中
@@ -6054,7 +6108,7 @@ var ud2 = (function (window, $) {
 			// 返回
 			return extendObjects(control.public, {
 				getContent: getContent,
-				getAnimateState: getAnimateState,
+				getFooterContent: getFooterContent,
 				open: open,
 				close: close,
 				remove: remove,
@@ -6068,12 +6122,18 @@ var ud2 = (function (window, $) {
 		// 对话框位置
 		constructor.position = {
 			center: POS_CENTER,
-			full: POS_FULL,
+			fullScreen: POS_FULLSCREEN,
 			topLeft: POS_TOPLEFT,
 			topRight: POS_TOPRIGHT,
 			bottomLeft: POS_BOTTOMLEFT,
 			bottomRight: POS_BOTTOMRIGHT
 		};
+		// 选项页类型
+		constructor.contentType = {
+			html: 0,
+			url: 1
+		};
+
 		// 弹出对话框
 		constructor.alert = function () {
 
@@ -6081,27 +6141,20 @@ var ud2 = (function (window, $) {
 			return dialogArgs.call(this, argsToArray(arguments), function (title, content, ico, icoStyle, sendFn) {
 
 				var // 对话框对象
-					dialog = constructor({ title: title, size: [300, 220], btnClose: false }),
+					dialog = constructor({ title: title, size: [300, 220], btnClose: false, footer: FOOTER_SEND }),
 					// 对话框内容对象
 					$content = dialog.getContent(),
-					// 弹出内容的默认架构
-					$base = $dialogBaseContent.clone(),
-					// 对话框页脚内容
-					$footer = $dialogBaseFooter.clone(),
+					// 对话框底部对象
+					$footer = dialog.getFooterContent(),
 					// 事件对象
-					eventObj = {
-						send: 1
-					};
+					eventObj = { send: 1 };
 
 				// 初始化
 				(function init() {
-					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
-					dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn);
-
-					$base.find('td:last').append(content);
-					$footer.find('a:last').remove();
-
-					dialog.open();
+					dialogRewriteCSS($content, ico, icoStyle, content);
+					dialog.setOpen(function () {
+						dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn);
+					}).open();
 				}());
 
 			});
@@ -6113,26 +6166,20 @@ var ud2 = (function (window, $) {
 			// 解析传入参数
 			return dialogArgs.call(this, argsToArray(arguments), function (title, content, ico, icoStyle, sendFn, cancelFn) {
 				var // 对话框对象
-					dialog = constructor({ title: title, size: [300, 220], btnClose: false }),
+					dialog = constructor({ title: title, size: [300, 220], btnClose: false, footer: FOOTER_SEND + FOOTER_CANCEL }),
 					// 对话框内容对象
 					$content = dialog.getContent(),
-					// 弹出内容的默认架构
-					$base = $dialogBaseContent.clone(),
 					// 对话框页脚内容
-					$footer = $dialogBaseFooter.clone(),
+					$footer = dialog.getFooterContent(),
 					// 事件对象
-					eventObj = {
-						send: 1, cancel: 1
-					};
+					eventObj = { send: 1, cancel: 1 };
 
 				// 初始化
 				(function init() {
-					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
-					dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn, cancelFn);
-
-					$base.find('td:last').append(content);
-
-					dialog.open();
+					dialogRewriteCSS($content, ico, icoStyle, content);
+					dialog.setOpen(function () {
+						dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn, cancelFn);
+					}).open();
 				}());
 
 			});
@@ -6144,34 +6191,28 @@ var ud2 = (function (window, $) {
 			// 解析传入参数
 			return dialogArgs.call(this, argsToArray(arguments), function (title, content, ico, icoStyle, sendFn, cancelFn) {
 				var // 对话框对象
-					dialog = constructor({ title: title, size: [300, 220], btnClose: false }),
+					dialog = constructor({ title: title, size: [300, 220], btnClose: false, footer: FOOTER_SEND + FOOTER_CANCEL }),
 					// 对话框内容对象
 					$content = dialog.getContent(),
-					// 弹出内容的默认架构
-					$base = $dialogBaseContent.clone(),
 					// 对话框页脚内容
-					$footer = $dialogBaseFooter.clone(),
+					$footer = dialog.getFooterContent(),
 					// 输入框内容对象
 					$input = $('<input type="text" class="textbox" />'),
 					// 事件对象
-					eventObj = {
-						send: 1, cancel: 1
-					};
+					eventObj = { send: 1, cancel: 1 };
 
 				// 初始化
 				(function init() {
-					dialogRewriteCSS($content, $base, $footer, ico, icoStyle);
-					dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn, cancelFn, $input);
-
-					$base.find('td:last').append(content).append($input);
-
-					dialog.open();
+					dialogRewriteCSS($content, ico, icoStyle, content);
+					$content.find('td:last').append($input);
+					dialog.setOpen(function () {
+						dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn, cancelFn, $input);
+					}).open();
 				}());
 
 			});
 
 		};
-
 	});
 	// 浮动消息控件
 	controlCreater('message', function (collection, constructor) {
@@ -6331,17 +6372,18 @@ var ud2 = (function (window, $) {
 				return control.public;
 			}
 			// 移除浮动消息控件
+			// return[null]: 返回空对象
 			function remove() {
 				if (isOpen) {
 					close();
 					window.setTimeout(remove, 310);
-					return control.public;
+					return null;
 				}
 				$message.remove();
 				eventClose.off();
 				callbacks.pageResize.remove(resize);
 				control.remove();
-				return control.public;
+				return null;
 			}
 
 			// #endregion
@@ -8869,18 +8911,10 @@ var ud2 = (function (window, $) {
 				event($power).setTap(toggle);
 				eventKeyObj = eventKeyShortcut({ autoOn: false })
 					.add(KEYCODE.ENTER, function () { $value.blur(); close(); })
-					.add(KEYCODE.LEFT, function () {
-						if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 1));
-					})
-					.add(KEYCODE.RIGHT, function () {
-						if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 1));
-					})
-					.add(KEYCODE.UP, function () {
-						if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 7));
-					})
-					.add(KEYCODE.DOWN, function () {
-						if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7));
-					});
+					.add(KEYCODE.LEFT, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 1)); })
+					.add(KEYCODE.RIGHT, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 1)); })
+					.add(KEYCODE.UP, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 7)); })
+					.add(KEYCODE.DOWN, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7)); });
 
 				$value.on('focus', inputFocus);
 			}

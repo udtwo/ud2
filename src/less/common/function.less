@@ -288,10 +288,7 @@
 }
 // 栅格布局生成器
 .grid(@rowClass: row, @columnClass: col) {
-	.@{rowClass} {
-		.layout();
-	}
-
+	
 	.gc-style(@index) when (@index = 1) {
 		@col: ~'.@{columnClass}-@{index}';
 		@row: ~'.@{columnClass}-@{index}>.@{rowClass}';
@@ -311,6 +308,8 @@
 			min-height: 1px;
 			padding-left: @LayoutPadding;
 			padding-right: @LayoutPadding;
+			margin-top: @LayoutPadding;
+			margin-bottom: @LayoutPadding;
 		}
 
 		@{row} {
@@ -338,6 +337,8 @@
 	.gc-width(@index) when (@index =< @GridMaxColumn) {
 		.@{columnClass}-@{index} {
 			width: 100% / @GridMaxColumn * @index;
+			margin-top: 0;
+			margin-bottom: 0;
 		}
 		.gc-width(@index + 1);
 	}
@@ -345,6 +346,10 @@
 	.gc-style(1);
 
 	@media (min-width: @SmallScreenMinWidth) {
+		.@{rowClass} {
+			.layout();
+		}
+
 		.gc-float(1);
 		.gc-width(1);
 	}

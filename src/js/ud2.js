@@ -8454,7 +8454,7 @@ var ud2 = (function (window, $) {
 				},
 				// 控件结构
 				template = '<input type="text" placeholder="' + placeholder + '" maxlength="20" class="ud2-ctrl-textbox" />'
-					+ '<span class="ud2-ctrl-power"><i class="ico ico-calendar"></i><i class="ico ico-solid-cancel"></i></span>'
+					+ '<span class="ud2-ctrl-power"><i class="ico ico-calendar" /><i class="ico ico-solid-cancel" /></span>'
 					+ '<div class="' + cn('list') + '">'
 
 					// 日期列表
@@ -8475,6 +8475,8 @@ var ud2 = (function (window, $) {
 				current = control.current,
 				// 控件对象
 				$date = current.html(template),
+				// 列表控件
+				$list = $date.children(cn('list', 1)),
 				// 输入控件
 				$value = $date.children('input'),
 				// 开关容器
@@ -8495,6 +8497,8 @@ var ud2 = (function (window, $) {
 				isOpen = false,
 				// 键盘快捷事件
 				eventKeyObj,
+				// 超出尺寸
+				overSize,
 				// 回调函数
 				controlCallbacks = {
 					// 开启回调
@@ -8817,6 +8821,7 @@ var ud2 = (function (window, $) {
 					$listYM.hide();
 
 					eventKeyObj.on();
+					resize($win.width());
 					controlCallbacks.open.call(control.public);
 				}
 				return control.public;
@@ -8906,6 +8911,19 @@ var ud2 = (function (window, $) {
 				callbacks.ctrlClose.fire($date);
 				open();
 			}
+			// 尺寸重置回调
+			function resize(winWidth) {
+				var c;
+				if (!isOpen) return;
+				if (!overSize) overSize = parseFloat($list.offset().left) + parseFloat($list.outerWidth());
+				if (overSize > winWidth) {
+					c = winWidth - overSize;
+					$list.css('left', c - 1);
+				}
+				else {
+					$list.css('left', -1);
+				}
+			}
 			// 事件绑定
 			function bindEvent() {
 				event($power).setTap(toggle);
@@ -8917,6 +8935,7 @@ var ud2 = (function (window, $) {
 					.add(KEYCODE.DOWN, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7)); });
 
 				$value.on('focus', inputFocus);
+				callbacks.pageResize.add(resize);
 			}
 
 			// #endregion
@@ -8931,7 +8950,7 @@ var ud2 = (function (window, $) {
 					control.origin.remove();
 					control.transferStyles();
 					control.transferAttrs({ accept: $value, attrReg: 'name|tabindex' });
-				}
+			}
 				// 设置自动关闭方法
 				control.autoClose = close;
 
@@ -8951,15 +8970,15 @@ var ud2 = (function (window, $) {
 			// #region 返回
 
 			return extendObjects(control.public, {
-				placeholder: placeholderOperate,
-				format: formatOperate,
-				val: val,
-				open: open,
-				close: close,
-				toggle: toggle,
-				setOpen: setOpen,
-				setClose: setClose,
-				setChange: setChange
+					placeholder: placeholderOperate,
+					format: formatOperate,
+					val: val,
+					open: open,
+					close: close,
+					toggle: toggle,
+					setOpen: setOpen,
+					setClose: setClose,
+					setChange: setChange
 			});
 
 			// #endregion
@@ -9685,7 +9704,8 @@ var ud2 = (function (window, $) {
 
 		// 窗口尺寸改变事件
 		$win.on('resize orientationchange', function () {
-			callbacks.pageResize.fire();
+			var w = $win.width();
+			callbacks.pageResize.fire(w);
 		});
 		// 文档发生按键抬起的回调对象
 		$dom.on('keydown', function (event) {

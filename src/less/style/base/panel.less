@@ -67,10 +67,6 @@
 		border-top: 1px solid;
 		border-top-color: inherit;
 	}
-
-	+ .table {
-		border-top-width: 1px;
-	}
 }
 // 面板标题样式
 .panel-title {
@@ -154,7 +150,9 @@
 // 表格面板样式
 .panel > .table {
 	border-width: 0;
-
+	border-radius: 0;
+}
+.panel > .table, .panel > .panel-body {
 	+ .table {
 		border-top-width: 1px;
 	}

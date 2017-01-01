@@ -3286,6 +3286,7 @@ var ud2 = (function (window, $) {
 
 		// 重计算滚动条滚动位置
 		// (?) time[number]: 滚动条重置动画时间
+		// return[ud2.scroll]: 返回该控件对象
 		function recountPosition(time) {
 			time = parseInt(time) || 0;
 			getScrollData();
@@ -3302,7 +3303,7 @@ var ud2 = (function (window, $) {
 		// x[number]: 滚动到 X 坐标
 		// y[number]: 滚动到 Y 坐标
 		// time[number]: 滚动用时
-		// return[scroll]: 返回滚动条对象
+		// return[ud2.scroll]: 返回该控件对象
 		function move(x, y, time) {
 			time = time || 0;
 			translateMove(-x, -y, time);
@@ -3313,7 +3314,7 @@ var ud2 = (function (window, $) {
 		// - return[bool]: 返回当前是否被跟随
 		// (state) 设置跟随状态
 		// - state[bool]: 是否被跟随
-		// - return[scroll]: 返回滚动对象
+		// - return[ud2.scroll]: 返回该控件对象
 		function oplock(state) {
 			if (state !== void 0) {
 				isOplock = !!state;
@@ -3325,7 +3326,7 @@ var ud2 = (function (window, $) {
 		}
 		// 绑定一个scroll控件跟随此控件
 		// scroll[scroll]: 待绑定的scroll控件
-		// return[scroll]: 返回滚动对象
+		// return[ud2.scroll]: 返回该控件对象
 		function followerBind(scroll) {
 			if (type.isObject(scroll) && scroll.type && scroll.type === SCROLL_NAME) {
 				followers.push(scroll);
@@ -3334,7 +3335,7 @@ var ud2 = (function (window, $) {
 		}
 		// 解绑一个scroll控件跟随此控件
 		// scroll[scroll]: 待解绑的scroll控件
-		// return[scroll]: 返回滚动对象
+		// return[ud2.scroll]: 返回该控件对象
 		function followerUnbind(scroll) {
 			var index;
 			if (type.isObject(scroll) && scroll.type && scroll.type === SCROLL_NAME) {
@@ -3893,11 +3894,11 @@ var ud2 = (function (window, $) {
 
 			// #region 私有字段
 
-			var // 是否有菜单工具 布局方式 选项卡可滚动 选项卡自动移动 目录自动移动  高度     主题
-				isMenu, layout, isTabScroll, isTabAutoMove, isMenuAutoMove, height, theme,
+			var // 是否有菜单工具 布局方式 选项卡可滚动 选项卡自动移动 目录自动移动  高度  选项卡最大宽度  主题
+				isMenu, layout, isTabScroll, isTabAutoMove, isMenuAutoMove, height, maxWidth, theme,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'layout', ['menu', 'isMenu'], 'height', 'theme',
+					'layout', ['menu', 'isMenu'], 'height', 'maxWidth', 'theme',
 					['tabScroll', 'isTabScroll'],
 					['tabAutoMove', 'isTabAutoMove'],
 					['menuAutoMove', 'isMenuAutoMove']
@@ -3912,6 +3913,8 @@ var ud2 = (function (window, $) {
 					isMenuAutoMove = attrBoolCheck(options.menuAutoMove, true);
 					// 初始化是否自动填满父层
 					height = options.height || null;
+					// 初始化横向选项卡组的选项卡最大宽度
+					maxWidth = options.maxWidth;
 					// 获取主题，在初始化时，赋值主题
 					theme = options.theme;
 
@@ -3967,6 +3970,7 @@ var ud2 = (function (window, $) {
 				if (layout === 1) $tabs.removeClass(cn('bottom'));
 				if (layout === 2) $tabs.removeClass(cn('left'));
 				if (layout === 3) $tabs.removeClass(cn('right'));
+				pageCollection.forEach(function (p) { p.getTab().removeAttr('style'); });
 
 				// 加入新CSS属性
 				switch (layoutNo) {
@@ -4002,6 +4006,16 @@ var ud2 = (function (window, $) {
 				}
 				recountScrollSize();
 			}
+			// 设置横向选项卡组的选项卡最大宽度
+			// mWidth[number]: 选项卡的最大宽度
+			function setMaxWidth(mWidth) {
+				if (mWidth === 'auto'){
+					maxWidth = null;
+				}
+				else {
+					maxWidth = parseInt(mWidth) || 150;
+				}
+			}
 			// 设置主题
 			// tm[string, number, ud2.tabs.theme]: 主题名称
 			function setTheme(tm) {
@@ -4029,12 +4043,21 @@ var ud2 = (function (window, $) {
 			function recountScrollSize(size) {
 				if (size === void 0) {
 					scrollSize = 0;
-					pageCollection.forEach(function (element) {
-						if (layout === 0 || layout === 1)
-							element.size = element.getTab().outerWidth();
-						else
-							element.size = element.getTab().outerHeight();
-						scrollSize += element.size;
+					pageCollection.forEach(function (page) {
+						// 重计算滚动尺寸
+						if (layout === 0 || layout === 1) {
+							size = Math.ceil(page.getTab().width());
+							if (maxWidth && maxWidth < size) size = maxWidth;
+							page.getTab().css('width', size);
+						}
+						else {
+							size = Math.ceil(page.getTab().height());
+							page.getTab().css('height', size);
+						}
+
+						// 赋值新尺寸
+						page.size = size;
+						recountScrollSize(size);
 					});
 				}
 				else {
@@ -4126,6 +4149,7 @@ var ud2 = (function (window, $) {
 			function layoutOperate(mode) {
 				if (mode !== void 0) {
 					setLayout(mode);
+					recountScrollSize();
 					return control.public;
 				}
 				else {
@@ -4181,16 +4205,21 @@ var ud2 = (function (window, $) {
 					// 将元素加入到容器中
 					$tabBox.append(page.getTab());
 					$contentBox.append(page.getContent());
+					
 					// 重计算滚动尺寸
-					if (layout === 0 || layout === 1) size = page.getTab().width();
-					else size = page.getTab().height();
-					// 对尺寸整数化
-					size = Math.ceil(size);
-					if (layout === 0 || layout === 1) page.getTab().css('width', size);
-					else page.getTab().css('height', size);
+					if (layout === 0 || layout === 1) {
+						size = Math.ceil(page.getTab().width());
+						if (maxWidth && maxWidth < size) size = maxWidth;
+						page.getTab().css('width', size);
+					}
+					else {
+						size = Math.ceil(page.getTab().height());
+						page.getTab().css('height', size);
+					}
 					// 赋值新尺寸
 					page.size = size;
 					recountScrollSize(size);
+
 					if (isTabScroll) tabBoxScroll.recountPosition();
 					// 生成菜单项
 					if (isMenu) {
@@ -4214,8 +4243,12 @@ var ud2 = (function (window, $) {
 						e = e.add(page.getTabLink().children('span'));
 						ce = ce.add(page.getTabLink().find('i'));
 					}
-					page.event = event(e).setTap(function () { pageOpen(page); menuClose(); });
-					page.closeEvent = event(ce).setTap(function () { pageRemove(page); });
+					page.event = event(e).setTap(function () {
+						pageOpen(page); menuClose();
+					});
+					page.closeEvent = event(ce).setTap(function () {
+						pageRemove(page);
+					});
 				}
 				return control.public;
 			}
@@ -4377,6 +4410,8 @@ var ud2 = (function (window, $) {
 
 				// 设置布局
 				setLayout(layout);
+				// 设置横向选项卡组的选项卡最大宽度
+				setMaxWidth(options.maxWidth);
 				// 设置主题
 				setTheme(theme);
 				// 如果目录存在，加入目录对象

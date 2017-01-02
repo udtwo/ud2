@@ -4,6 +4,7 @@
 	"version": "1.0.0",
 	"authors": [ "Peak", "Toad" ],
 	"private": false,
+	"keywords": ["js", "css", "ud2"],
 	"license": "MIT",
 	"repository": {
 		"type": "git",

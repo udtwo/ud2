@@ -1,9 +1,9 @@
 ﻿/// <reference path="../ud2.js" />
 
-ud2.libExtend(function (inn) {
+// 开关控件
+ud2.libExtend(function (inn, ud2) {
 	'use strict';
 
-	// 开关控件
 	inn.controlCreater('switch', function (collection, constructor) {
 
 		var // className存于变量
@@ -20,7 +20,7 @@ ud2.libExtend(function (inn) {
 					// 默认值
 					value = parseInt(options.value) === 1 ? 1 : 0;
 					// 默认是否禁用
-					isDisabled = (options.disabled, false);
+					isDisabled = inn.boolCheck(options.disabled, false);
 					// 默认颜色
 					color = options.color || '';
 				}),
@@ -219,4 +219,5 @@ ud2.libExtend(function (inn) {
 		};
 
 	});
+
 });

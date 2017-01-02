@@ -311,6 +311,24 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			arr[20] = [arr[0], arr[4], arr[8]].join(' ');
 			return arr;
 		}()),
+		// 键盘编码
+		keyCode = {
+			'A': 65, 'B': 66, 'C': 67, 'D': 68, 'E': 69, 'F': 70, 'G': 71,
+			'H': 72, 'I': 73, 'J': 74, 'K': 75, 'L': 76, 'M': 77, 'N': 78,
+			'O': 79, 'P': 80, 'Q': 81, 'R': 82, 'S': 83, 'T': 84,
+			'U': 85, 'V': 86, 'W': 87, 'X': 88, 'Y': 89, 'Z': 90,
+			'LEFT': 37, 'UP': 38, 'RIGHT': 39, 'DOWN': 40,
+			'KEY0': 48, 'KEY1': 49, 'KEY2': 50, 'KEY3': 51, 'KEY4': 52, 'KEY5': 53,
+			'KEY6': 54, 'KEY7': 55, 'KEY8': 56, 'KEY9': 57, '`': 192, 'BACK': 8,
+			'NUM0': 96, 'NUM1': 97, 'NUM2': 98, 'NUM3': 99, 'NUM4': 100,
+			'NUM5': 101, 'NUM6': 102, 'NUM7': 103, 'NUM8': 104, 'NUM9': 105,
+			'ENTER': 13, 'NUM+': 107, 'NUM-': 109, 'NUM*': 106, 'NUM/': 111,
+			'-': 189, '=': 187, ',': 188, '.': 190, '/': 191, '\\': 220,
+			'SHIFT': 16, 'CTRL': 17, 'ALT': 18, 'CAPS': 20, 'TAB': 9,
+			'[': 219, ']': 221, ';': 186, '\'': 222,
+			'F1': 112, 'F2': 113, 'F3': 114, 'F4': 115, 'F5': 116, 'F6': 117,
+			'F7': 118, 'F8': 119, 'F9': 120, 'F10': 121, 'F11': 122, 'F12': 123
+		},
 
 		// 常用元素组合(jquery elements)
 		jqe = [$('<div />'), $('<span />'), $('<a />')],
@@ -324,6 +342,10 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 		seed = {},
 		// 空方法
 		noop = function () { },
+		// 窗口发生尺寸改变时延迟回调时间
+		resizeDelayTime = 120,
+		// 窗口发生尺寸改变时
+		resizeDelayTimer,
 		// 返回页面是否加载完成
 		pageLoaded = false;
 
@@ -487,7 +509,75 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			return !!val;
 		}
 	}
-	
+	// 参数转数组
+	// args[arguments]: 待转换的参数
+	function argsToArray(args) {
+		return Array.prototype.slice.call(args);
+	}
+	// 遮罩层
+	function backmask() {
+		var // 遮罩对象
+			backmaskObj = {},
+			// 遮罩层内容对象
+			$backmask = $('<div class="' + prefixLibName + 'backmask"></div>'),
+			// 调用者
+			callerCollection = [],
+			// 开启状态
+			openState = false;
+
+		// 添加调用者
+		function callerAdd(caller) {
+			if (callerCollection.indexOf(caller) === -1) {
+				callerCollection.push(caller);
+				return true;
+			}
+			return false;
+		}
+		// 移除调用者
+		function callerRemove(caller) {
+			var index = callerCollection.indexOf(caller);
+			if (index > -1) {
+				callerCollection.splice(index, 1);
+				return true;
+			}
+			return false;
+		}
+
+		// 开启遮罩层
+		// caller[object]: 调用遮罩层的对象
+		function open(caller) {
+			if (callerAdd(caller)) $backmask.addClass('on');
+			return backmaskObj;
+		}
+		// 关闭遮罩层
+		// caller[object]: 调用遮罩层的对象
+		function close(caller) {
+			if (callerRemove(caller) && !callerCollection.length) $backmask.removeClass('on');
+			return backmaskObj;
+		}
+
+		// 初始化
+		(function init() {
+			callbacks.pageReady.add(function () {
+				$body.append($backmask);
+			});
+		}());
+
+		// 返回
+		return extendObjects(backmaskObj, {
+			open: open,
+			close: close
+		});
+	}
+	// 生成控件可支持的样式枚举
+	// [...string]: 可支持的样式名称
+	function createStyle() {
+		var arr = arguments, len = arr.length, i = 0, style = {};
+		for (; i < len; i++) {
+			style[arguments[i]] = arguments[i];
+		}
+		return style;
+	}
 
 	// #endregion
 
@@ -739,7 +829,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 				// 控件移除
 				remove: function () {
 					var index = this.public.collection.indexOf(this), i;
-					callbacks.ctrlClose.remove(autoClose);
+					callbacks.autoClose.remove(autoClose);
 					this.public.collection.splice(index, 1);
 					delete this.public.collection[this.public.id];
 					for (i in this.public) delete this.public[i];
@@ -935,7 +1025,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 	// 库扩展
 	// callbacks[function]: 回调方法
 	function libExtend(callbacks) {
-		callbacks(internal);
+		callbacks(internal, ud2);
 	}
 
 	// #endregion
@@ -1999,8 +2089,11 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 
 		// 窗口尺寸改变事件
 		$win.on('resize orientationchange', function () {
-			var w = $win.width();
-			callbacks.pageResize.fire(w);
+			if (resizeDelayTimer) window.clearTimeout(resizeDelayTimer);
+			resizeDelayTimer = window.setTimeout(function () {
+				var w = $win.width(), h = $win.height();
+				callbacks.pageResize.fire(w, h);
+			}, resizeDelayTime);
 		});
 		// 文档发生按键抬起的回调对象
 		$dom.on(anEvent[14], function (event) {
@@ -2019,34 +2112,45 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 
 	// 扩展internal对象
 	extendObjects(internal, {
-		// 名称组合
+		// 类库公共前缀
+		prefix: prefixLibName,
+		// 用于克隆对象
+		jqe: jqe,
+		// 名称组合(array names)
 		an: {
 			pos: anPos,
 			event: anEvent
 		},
-		// 类库公共前缀
-		prefix: prefixLibName,
 		// 空操作方法
 		noop: noop,
-		// 内部公用方法
+		// 遮罩层对象
+		backmask: backmask(),
+		// 内部方法
+		win: function () { return $win; },
+		body: function () { return $body; },
+		argsToArray: argsToArray,
+		attrValue: getAttrValue,
 		boolCheck: boolCheck,
-		attrName: getAttrValue,
+		options: getOptions,
+		createStyle: createStyle,
 		// 控件内部方法
-		createControlID: createControlID,
 		creater: creater,
+		createControlID: createControlID,
 		controlCreater: controlCreater,
-		className: getClassName,
-		convertToJQ: convertToJQ
+		convertToJQ: convertToJQ,
+		className: getClassName
 	});
 	// 向window公开ud2
 	window[libName] = extendObjects(ud2, {
 		libExtend: libExtend,
+		callbacks: callbacks,
 		// 扩展公共方法
 		extend: extendObjects,
 		merge: mergeObjects,
 		clone: cloneObjects,
 		propertier: propertier,
 		deviceScreenState: deviceScreenState,
+		time: getTime,
 		// 扩展公共对象
 		regex: regex,
 		type: type,
@@ -2054,6 +2158,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 		form: form,
 		color: color,
 		style: style,
+		key: keyCode,
 		// 控件公共方法
 		createAllControl: createAllControl,
 		createLazyControl: createLazyControl,

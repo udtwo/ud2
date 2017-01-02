@@ -29,7 +29,23 @@ module.exports = function (grunt) {
 				},
 				files: {
 					'dist/js/ud2.js': [
-						'src/js/ud2.js'
+						'src/js/ud2.js',
+						'src/js/functions/datatable.js',
+
+						'src/js/contents/scroll.js',
+						'src/js/contents/datagrid.js',
+						'src/js/contents/tabs.js',
+						'src/js/contents/page.js',
+
+						'src/js/popups/dialog.js',
+						'src/js/popups/message.js',
+
+						'src/js/controls/switch.js',
+						'src/js/controls/select.js',
+						'src/js/controls/number.js',
+						'src/js/controls/range.js',
+						'src/js/controls/date.js',
+						'src/js/controls/file.js'
 					]
 				}
 			}

@@ -48,6 +48,16 @@
 			<button class="btn p">alert自定义图标对话框</button> 
 			<button class="btn q">confirm对话框</button> 
 			<button class="btn r">prompt对话框</button> 
+
+			<hr class="hr hr-dotted" />
+
+			<h5>iframe对话框</h5>
+			<button class="btn s">iframe对话框</button>
+
+			<hr class="hr hr-dotted" />
+
+			<h5>自定义按钮对话框</h5>
+			<button class="btn t">自定义按钮对话框</button>
 		</div>
 	</fieldset>
 
@@ -179,6 +189,40 @@
 				ud2.dialog.prompt("这是一个prompt对话框", "这是一个prompt对话框", function (val) {
 					ud2.dialog.alert("prompt的值", val)
 				});
+			});
+
+			ud2.event('.s').setTap(function () {
+				var a = ud2.dialog({
+					title: '这是一个iframe对话框',
+					content: 'dialog.html',
+					contentType: ud2.dialog.contentType.url
+				}).setClose(function () {
+					a.remove();
+				}).open();
+			});
+
+			ud2.event('.t').setTap(function () {
+				ud2.dialog({
+					title: '这是一个自定义按钮对话框',
+					content: '<div style="padding: 20px;">这是默认的内容</div>',
+					contentType: ud2.dialog.contentType.html,
+					footer: [
+						{
+							text: 'danger', tap: function () {
+								ud2.dialog.alert('自定义按钮', '这是一个自定义按钮触发执行的alert', ud2.style.danger);
+							},
+							class: 'danger'
+						},
+						{
+							text: 'success', tap: function () {
+								ud2.dialog.alert('自定义按钮', '这是一个自定义按钮触发执行的alert', ud2.style.success);
+							},
+							class: 'success'
+						}
+					]
+				}).setClose(function () {
+					this.remove();
+				}).open();
 			});
 		});
 	</script>

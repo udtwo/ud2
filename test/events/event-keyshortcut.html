@@ -92,9 +92,9 @@
 
 	<script>
 		var event = ud2.eventKeyShortcut();
-		event.add(ud2.common.key.S, function () { ud2.dialog.alert('你好', '你好', ud2.style.info); });
-		event.add(ud2.common.key.S, function () { ud2.dialog.alert('欢迎', '欢迎', ud2.style.warning); }, { isCtrl: 1 });
-		event.add(ud2.common.key.S, function () { ud2.dialog.alert('你好，欢迎', '你好，欢迎', ud2.style.success); }, { isCtrl: 1, isAlt: 1 });
+		event.add(ud2.key.S, function () { ud2.dialog.alert('你好', '你好', ud2.style.info); });
+		event.add(ud2.key.S, function () { ud2.dialog.alert('欢迎', '欢迎', ud2.style.warning); }, { isCtrl: 1 });
+		event.add(ud2.key.S, function () { ud2.dialog.alert('你好，欢迎', '你好，欢迎', ud2.style.success); }, { isCtrl: 1, isAlt: 1 });
 	</script>
 </body>
 </html>

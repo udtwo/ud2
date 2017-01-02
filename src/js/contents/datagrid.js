@@ -532,7 +532,7 @@ ud2.libExtend(function (inn, ud2) {
 						// 绑定checkbox单元格
 						arr[arrMax].$.check = $check.children();
 						// 绑定事件
-						arr[arrMax].checkEvent = event($check).setTap((function (arrMax) {
+						arr[arrMax].checkEvent = ud2.event($check).setTap((function (arrMax) {
 							return function () {
 								if (mode) {
 									rowSelectedAll();
@@ -569,17 +569,17 @@ ud2.libExtend(function (inn, ud2) {
 				if (isHave === -1) {
 					// 非多选，取消默认选中的
 					if (!isSelectedMultiple && len > 0) {
-						selectedRows[0].$.check.removeAttr(CSS_CHECKED);
+						selectedRows[0].$.check.removeAttr('checked');
 						selectedRows.splice(0, 1);
 						controlCallbacks[RD].call(control.public, ro.public);
 					}
-					ro.$.check.attr(CSS_CHECKED, CSS_CHECKED);
+					ro.$.check.attr('checked', 'checked');
 					selectedRows.push(ro);
 
 					if (isSelectedMultiple && len + 1 === rowsInfo.content.length) setAllSelectedState(true);
 				}
 				else {
-					ro.$.check.removeAttr(CSS_CHECKED);
+					ro.$.check.removeAttr('checked');
 					selectedRows.splice(isHave, 1);
 
 					if (isAllSelected) setAllSelectedState(false);
@@ -594,7 +594,7 @@ ud2.libExtend(function (inn, ud2) {
 				if (sc) {
 					setAllSelectedState(false);
 					selectedRows.forEach(function (ro) {
-						ro.$.check.removeAttr(CSS_CHECKED);
+						ro.$.check.removeAttr('checked');
 						ca.push(ro.public);
 					});
 					selectedRows.splice(0, selectedRows.length);
@@ -603,7 +603,7 @@ ud2.libExtend(function (inn, ud2) {
 					setAllSelectedState(true);
 					rowsInfo.content.forEach(function (ro) {
 						if (selectedRows.indexOf(ro) === -1) {
-							ro.$.check.attr(CSS_CHECKED, CSS_CHECKED);
+							ro.$.check.attr('checked', 'checked');
 							selectedRows.push(ro);
 							ca.push(ro.public);
 						}
@@ -616,13 +616,13 @@ ud2.libExtend(function (inn, ud2) {
 			function setAllSelectedState(state) {
 				if (state) {
 					isAllSelected = true;
-					rowsInfo.header[0].$.check.attr(CSS_CHECKED, CSS_CHECKED);
-					rowsInfo.footer[0].$.check.attr(CSS_CHECKED, CSS_CHECKED);
+					rowsInfo.header[0].$.check.attr('checked', 'checked');
+					if (rowsInfo.footer[0]) rowsInfo.footer[0].$.check.attr('checked', 'checked');
 				}
 				else {
 					isAllSelected = false;
-					rowsInfo.header[0].$.check.removeAttr(CSS_CHECKED);
-					rowsInfo.footer[0].$.check.removeAttr(CSS_CHECKED);
+					rowsInfo.header[0].$.check.removeAttr('checked');
+					if (rowsInfo.footer[0]) rowsInfo.footer[0].$.check.removeAttr('checked');
 				}
 			}
 

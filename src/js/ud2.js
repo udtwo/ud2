@@ -343,7 +343,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 		// 空方法
 		noop = function () { },
 		// 窗口发生尺寸改变时延迟回调时间
-		resizeDelayTime = 120,
+		resizeDelayTime = 60,
 		// 窗口发生尺寸改变时
 		resizeDelayTimer,
 		// 返回页面是否加载完成

@@ -137,8 +137,6 @@ ud2.libExtend(function (inn, ud2) {
 				isOpen = false,
 				// 键盘快捷事件
 				eventKeyObj,
-				// 超出尺寸
-				overSize,
 				// 回调函数
 				controlCallbacks = {
 					// 开启回调
@@ -553,17 +551,12 @@ ud2.libExtend(function (inn, ud2) {
 			}
 			// 尺寸重置回调
 			function resize(winWidth) {
-				var c;
+				var c, w;
 				if (!isOpen) return;
-				overSize = parseFloat($list.offset().left) + parseFloat($list.outerWidth());
-
-				if (overSize > winWidth) {
-					c = winWidth - overSize;
-					$list.css('left', c - 1);
-				}
-				else {
-					$list.css('left', -1);
-				}
+				$list.css('left', -1);
+				w = parseInt($list.offset().left) + parseInt($list.outerWidth()) - 1;
+				c = winWidth - w;
+				$list.css('left', c < -1 ? c : -1);
 			}
 			// 事件绑定
 			function bindEvent() {

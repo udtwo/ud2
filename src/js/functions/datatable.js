@@ -68,20 +68,19 @@ ud2.libExtend(function (inn, ud2) {
 				var $td = $(this),
 					datagrid = inn.prefix + 'datagrid-',
 					dataType = $td.attr(datagrid + 'data-type'),
-					cellType, cellAlign, cellWidth, cellMode,
+					cellType, cellAlign, cellWidth, cellMode, cellMaxWidth,
 					opt = {};
 
 				opt.value = $td.html();
 				if (dataType) opt.type = dataType;
 				if (parentNodeName === 'thead') {
-					cellType = $td.attr(datagrid + 'cell-data-type');
-					cellAlign = $td.attr(datagrid + 'cell-align');
-					cellWidth = $td.attr(datagrid + 'cell-width');
-					cellMode = $td.attr(datagrid + 'cell-mode');
-					if (cellType) opt.cellType = cellType;
-					if (cellAlign) opt.cellAlign = cellAlign;
-					if (cellWidth) opt.cellWidth = cellWidth;
-					if (cellMode) opt.cellMode = cellMode;
+					opt._ = {
+						type: $td.attr(datagrid + 'data-type'),
+						align: $td.attr(datagrid + 'align'),
+						width: $td.attr(datagrid + 'width'),
+						minWidth: $td.attr(datagrid + 'min-width'),
+						mode: $td.attr(datagrid + 'mode')
+					};
 				}
 
 				d.push(opt);
@@ -344,10 +343,7 @@ ud2.libExtend(function (inn, ud2) {
 				cellObj.column = options.column || null;
 				cellObj.row = options.row || null;
 				// 绑定其他属性
-				if (options.cellType) cellObj.cellType = options.cellType;
-				if (options.cellAlign) cellObj.cellAlign = options.cellAlign;
-				if (options.cellWidth) cellObj.cellWidth = options.cellWidth;
-				if (options.cellMode) cellObj.cellMode = options.cellMode;
+				if (options._) cellObj._ = options._;
 
 				// 获取数据值类型
 				valueType = options.type;

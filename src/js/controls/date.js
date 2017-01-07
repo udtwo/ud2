@@ -555,7 +555,7 @@ ud2.libExtend(function (inn, ud2) {
 				if (!isOpen) return;
 				$list.css('left', -1);
 				w = parseInt($list.offset().left) + parseInt($list.outerWidth()) - 1;
-				c = winWidth - w;
+				c = winWidth - w - 2;
 				$list.css('left', c < -1 ? c : -1);
 			}
 			// 事件绑定

@@ -47,10 +47,6 @@ ud2.libExtend(function (inn, ud2) {
 				minWidth: 50,
 				// 0 normal 1 flex 2 left 3 right
 				mode: 1,
-				// 是否可编辑
-				edit: false,
-				// 是否可排序
-				sort: false,
 				// 0 左侧 1 剧中 2 右侧
 				align: 0
 			},
@@ -251,10 +247,11 @@ ud2.libExtend(function (inn, ud2) {
 					if (!ud2.type.isObject(columnsInfo[i])) columnsInfo[i] = {};
 					icol = columnsInfo[i] = ud2.merge(columnDefault, columnsInfo[i]);
 					icol.title = datas.columns[i] && datas.columns[i].title() || hop && hop.val() || icol.title;
-					icol.type = datas.columns[i] && datas.columns[i].dataType() || hop && hop.cellType || icol.type;
-					icol.align = hop && hop.cellAlign || icol.align;
-					icol.model = hop && hop.cellMode || icol.mode;
-					icol.width = parseInt(hop && hop.cellWidth) || icol.width;
+					icol.type = datas.columns[i] && datas.columns[i].dataType() || hop && hop._.type || icol.type;
+					icol.align = hop && hop._.align || icol.align;
+					icol.model = hop && hop._.mode || icol.mode;
+					icol.width = parseInt(hop && hop._.width) || icol.width;
+					icol.minWidth = parseInt(hop && hop._.minWidth) || icol.minWidth;
 					if (icol.minWidth > icol.width && icol.mode === 1) icol.width = icol.minWidth;
 					icol.align = (function () {
 						switch (icol.align) {
@@ -404,9 +401,9 @@ ud2.libExtend(function (inn, ud2) {
 					i = 0, l = isHeader ? 1 : dt.rows.length;
 
 				for (; i < l; i++) {
-					arr[i].$.left.css('top', i * cellHeight);
-					arr[i].$.center.css('top', i * cellHeight);
-					arr[i].$.right.css('top', i * cellHeight);
+					arr[i].$.left.css('height', cellHeight);
+					arr[i].$.center.css('height', cellHeight);
+					arr[i].$.right.css('height', cellHeight);
 					columnsInfo.forEach(function (ci, index) {
 						arr[i].public.cells[index].getContent().css({
 							width: ci.widthNow,
@@ -515,7 +512,6 @@ ud2.libExtend(function (inn, ud2) {
 					$rr = $emptyRow.clone().appendTo(rightGrid[mode]);
 					// 创建行参数对象
 					arr[arrMax] = { $: { left: $rl, center: $rc, right: $rr }, public: { cells: [] } };
-					if (mode === 0) arr[arrMax].public.dtRow = dt.rows[i];
 					// 判断是否开启选中行，如果开启选中行，则在行中添加一个checkbox来控制行的选中状态
 					if (isSelected && (mode && i === 0 || !mode)) {
 						$check = $emptyCell.clone().addClass('checkbox').css({ textAlign: 'center', width: 38 });

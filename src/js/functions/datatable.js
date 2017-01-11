@@ -73,15 +73,6 @@ ud2.libExtend(function (inn, ud2) {
 
 				opt.value = $td.html();
 				if (dataType) opt.type = dataType;
-				if (parentNodeName === 'thead') {
-					opt._ = {
-						type: $td.attr(datagrid + 'data-type'),
-						align: $td.attr(datagrid + 'align'),
-						width: $td.attr(datagrid + 'width'),
-						minWidth: $td.attr(datagrid + 'min-width'),
-						mode: $td.attr(datagrid + 'mode')
-					};
-				}
 
 				d.push(opt);
 			});
@@ -342,8 +333,6 @@ ud2.libExtend(function (inn, ud2) {
 				// 绑定行列对象
 				cellObj.column = options.column || null;
 				cellObj.row = options.row || null;
-				// 绑定其他属性
-				if (options._) cellObj._ = options._;
 
 				// 获取数据值类型
 				valueType = options.type;

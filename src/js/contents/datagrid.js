@@ -37,8 +37,6 @@ ud2.libExtend(function (inn, ud2) {
 			},
 			// 数据列初始化默认参数
 			columnDefaultOptions = {
-				// 列标题
-				title: '',
 				// 单元格的数据类型
 				type: null,
 				// 当前宽度 number(px) | auto
@@ -69,7 +67,7 @@ ud2.libExtend(function (inn, ud2) {
 				isSelected, isSelectedMultiple, emptyText, selectedRows = [],
 				// 获取用户自定义项
 				options = control.getOptions([
-					'datas', 'datasFooter', 'columns', 'columnDefault',
+					'datas', 'datasHeader', 'datasFooter', 'columns', 'columnDefault',
 					'cellHeight', 'height', ['hover', 'isHover'], 'hoverColor',
 					['selected', 'isSelected'], ['selectedMultiple', 'isSelectedMultiple'],
 					'emptyText'
@@ -91,7 +89,7 @@ ud2.libExtend(function (inn, ud2) {
 					emptyText = options.emptyText || '此处没有任何数据';
 
 					// 初始化传入数据
-					initDatas(options.datas, options.datasFooter);
+					initDatas(options.datas, options.datasHeader, options.datasFooter);
 					// 初始化列默认对象
 					initColumnDefault(options.columnDefault);
 					// 初始化列对象
@@ -175,7 +173,7 @@ ud2.libExtend(function (inn, ud2) {
 
 			// 初始化传入数据
 			// optionsData[array, string, jQuery]: options.data 传入数据参数
-			function initDatas(optionsDatas, optionsDatasFooter) {
+			function initDatas(optionsDatas, optionsDatasHeader, optionsDatasFooter) {
 				var // 传入的数据是否符合jQuery对象
 					isJQ = true,
 					// 头部主体及底部容器
@@ -184,7 +182,6 @@ ud2.libExtend(function (inn, ud2) {
 					i, j;
 
 				datas = optionsDatas;
-
 				// 如果传入参数为字符串或jQuery对象，则强制按照符合jQuery标准获取jQuery对象，并通过此对象创建数据表
 				// 由jQuery对象创建数据表时，会将thead、tbody、tfoot分成三个数据表，分别存入datasHeader、datas、datasFooter
 				// 否则传入的参数如果是二维数组或其他参数，则直接按照dataFill方法推入数据表中处理
@@ -198,16 +195,34 @@ ud2.libExtend(function (inn, ud2) {
 						isJQ = false;
 					}
 				}
-				else if (control.origin) datas = inn.convertToJQ(control.origin);
-				else datas = ud2.datatable();
+				else if (control.origin) {
+					datas = inn.convertToJQ(control.origin);
+				}
+				else {
+					datas = ud2.datatable();
+					jsJQ = false;
+				}
+
 				// jQuery对象创建数据表时的处理方式
 				if (isJQ) {
+					control.origin = datas;
 					$h = datas.find('thead');
 					$b = datas.find('tbody');
 					$f = datas.find('tfoot');
-					datasHeader = ud2.datatable().dataFill($h);
 					datas = ud2.datatable().dataFill($b);
-					datasFooter = ud2.datatable().dataFill($f);
+					if ($h.length) datasHeader = ud2.datatable().dataFill($h);
+					if ($f.length) datasFooter = ud2.datatable().dataFill($f);
+				}
+
+
+				// 是否存在顶部数据
+				if (optionsDatasHeader) {
+					datasHeader = ud2.datatable().dataFill(optionsDatasHeader);
+				}
+				// 顶部数据是否存在行
+				// 如果存在行，且顶部数据行中的列数少于列参数的个数，则补全单元格
+				if (datasHeader && datasHeader.columns.length < datas.columns.length) {
+					for (i = 0, j = datas.columns.length - datasHeader.columns.length; i < j; i++) datasHeader.columnAdd();
 				}
 				// 是否存在底部数据
 				if (optionsDatasFooter) {
@@ -231,27 +246,39 @@ ud2.libExtend(function (inn, ud2) {
 				var isHeader = datasHeader || null,
 					// 数据列数
 					// 列数采取传入数据时，所有数据行中最大的单元格数量(或列参数数量)的最大值
-					dcl, len = Math.max(datas.columns.length, datasHeader ? datasHeader.columns.length : 1,
-						datasFooter ? datasFooter.columns.length : 0,
-						optionsColumns ? optionsColumns.length : 0),
+					dcl, len,
 					// 迭代变量
-					i, l, icol, hop;
+					i, l, icol;
 
+				// 存在col元素，则将col元素解析为列对象
+				if ((!optionsColumns || !optionsColumns.length) && control.origin) {
+					optionsColumns = [];
+					control.origin.find('col').each(function (i, me) {
+						me = $(me);
+						var width = parseInt(me.attr(cn('width'))), minWidth = parseInt(me.attr(cn('min-width'))),
+							mode = me.attr(cn('mode')), align = me.attr(cn('align')), type = me.attr(cn('type'));
+						optionsColumns[i] = {};
+						if (width) optionsColumns[i].width = width;
+						if (minWidth) optionsColumns[i].minWidth = minWidth;
+						if (mode) optionsColumns[i].mode = mode;
+						if (align) optionsColumns[i].align = align;
+						if (type) optionsColumns[i].type = type;
+					});
+				}
+
+				len = Math.max(datas.columns.length,
+					datasHeader ? datasHeader.columns.length : 0,
+					datasFooter ? datasFooter.columns.length : 0,
+					optionsColumns ? optionsColumns.length : 0);
 				// 将传入参数赋值给列参数集合
 				columnsInfo = optionsColumns;
 
 				// 将已传入的数据列参数对象加入到数据列参数组中
 				if (!ud2.type.isArray(columnsInfo)) columnsInfo = [];
 				for (i = 0; i < len; i++) {
-					hop = datasHeader && datasHeader.rows[0] && datasHeader.rows[0].cells[i];
 					if (!ud2.type.isObject(columnsInfo[i])) columnsInfo[i] = {};
 					icol = columnsInfo[i] = ud2.merge(columnDefault, columnsInfo[i]);
-					icol.title = datas.columns[i] && datas.columns[i].title() || hop && hop.val() || icol.title;
-					icol.type = datas.columns[i] && datas.columns[i].dataType() || hop && hop._.type || icol.type;
-					icol.align = hop && hop._.align || icol.align;
-					icol.model = hop && hop._.mode || icol.mode;
-					icol.width = parseInt(hop && hop._.width) || icol.width;
-					icol.minWidth = parseInt(hop && hop._.minWidth) || icol.minWidth;
+
 					if (icol.minWidth > icol.width && icol.mode === 1) icol.width = icol.minWidth;
 					icol.align = (function () {
 						switch (icol.align) {
@@ -261,7 +288,7 @@ ud2.libExtend(function (inn, ud2) {
 						}
 					}());
 					icol.mode = (function () {
-						switch (icol.model) {
+						switch (icol.mode) {
 							case 1: case '1': case 'flex': { return 1; }
 							case 2: case '2': case 'left': { return 2; }
 							case 3: case '3': case 'rigth': { return 3; }
@@ -273,22 +300,23 @@ ud2.libExtend(function (inn, ud2) {
 			// 补全单元格，并更新单元格类型
 			// 此方法的目的是为了处理传入的列参数与单元格数量不匹配时，补全单元格
 			function initCompletionCells() {
-				var isFooter = !!datasFooter,
+				var isHeader = !!datasHeader,
+					isFooter = !!datasFooter,
 					dtColLen = datas.columns.length,
 					colLen = columnsInfo.length,
-					dtFooterColLen,
-					i = 0, j = 0;
+					dtHeaderColLen, dtFooterColLen,
+					i;
 
 				if (dtColLen < colLen) {
-					for (; i < colLen - dtColLen; i++) {
-						datas.columnAdd();
-					}
+					for (i = 0; i < colLen - dtColLen; i++) datas.columnAdd();
+				}
+				if (isHeader) {
+					dtHeaderColLen = datasHeader.columns.length;
+					for (i = 0; i < colLen - dtHeaderColLen; i++) datasHeader.columnAdd();
 				}
 				if (isFooter) {
 					dtFooterColLen = datasFooter.columns.length;
-					for (; j < colLen - dtFooterColLen; j++) {
-						datasFooter.columnAdd();
-					}
+					for (i = 0; i < colLen - dtFooterColLen; i++) datasFooter.columnAdd();
 				}
 
 				// 更新单元格数据类型
@@ -340,16 +368,17 @@ ud2.libExtend(function (inn, ud2) {
 			}
 			// 更新高度样式
 			function updateHeightStyles() {
-				var fl = datasFooter && datasFooter.rows.length || 0, fh = cellHeight * fl,
-					h = { height: cellHeight },
-					t = { top: cellHeight },
-					b = { bottom: fh },
-					e = { height: fh, bottom: 0 };
+				var hl = (datasHeader && datasHeader.rows.length || 0) * cellHeight,
+					fl = (datasFooter && datasFooter.rows.length || 0) * cellHeight,
+					h = { height: hl },
+					t = { top: hl },
+					b = { bottom: fl },
+					e = { height: fl, bottom: 0 };
 
 				// 设置高度
 				heightOperate(height);
-
-				$datagrid.css('line-height', cellHeight - 2 + 'px');
+				// 设置行间距
+				$datagrid.css('line-height', cellHeight - 1 + 'px');
 
 				$leftHeader.css(h);
 				$leftContent.css(t);
@@ -358,47 +387,47 @@ ud2.libExtend(function (inn, ud2) {
 				$rightHeader.css(h);
 				$rightContent.css(t);
 
-				$leftHeaderGrid.css({ height: cellHeight });
+				$leftHeaderGrid.css({ height: hl });
 				$leftContentGrid.css({ height: cellHeight * datas.rows.length });
 
-				$centerHeaderGrid.css({ height: cellHeight });
+				$centerHeaderGrid.css({ height: hl });
 				$centerContentGrid.css({ height: cellHeight * datas.rows.length - 1 });
 
-				$rightHeaderGrid.css({ height: cellHeight });
+				$rightHeaderGrid.css({ height: hl });
 				$rightContentGrid.css({ height: cellHeight * datas.rows.length });
 
-				$noRow.css({ top: cellHeight });
+				$noRow.css({ top: hl });
 
 				if (fl) {
 					$leftContent.css(b);
 					$leftFooter.css(e);
-					$leftFooterGrid.css({ height: fh });
+					$leftFooterGrid.css({ height: fl });
 
 					$centerContent.css(b);
 					$centerFooter.css(e);
-					$centerFooterGrid.css({ height: fh });
+					$centerFooterGrid.css({ height: fl });
 
 					$rightContent.css(b);
 					$rightFooter.css(e);
-					$rightFooterGrid.css({ height: fh });
+					$rightFooterGrid.css({ height: fl });
 
-					$noRow.css({ bottom: fh });
+					$noRow.css({ bottom: fl });
 				}
 			}
 			// 更新全部单元格样式
 			function updateAllCellSizeStyles() {
-				var fl = datasFooter && datasFooter.rows.length || 0;
+				var hl = datasHeader && datasHeader.rows.length || 0,
+					fl = datasFooter && datasFooter.rows.length || 0;
 				gridFlexCount();
 				// 更新每个单元格样式
-				updateCellSizeStyles(datasHeader, rowsInfo.header);
 				updateCellSizeStyles(datas, rowsInfo.content);
+				if (hl) updateCellSizeStyles(datasHeader, rowsInfo.header);
 				if (fl) updateCellSizeStyles(datasFooter, rowsInfo.footer);
 			}
 			// 更新单元格样式
 			function updateCellSizeStyles(dt, arr) {
 				var // 迭代变量
-					isHeader = arr === rowsInfo.header,
-					i = 0, l = isHeader ? 1 : dt.rows.length;
+					i = 0, l = dt.rows.length;
 
 				for (; i < l; i++) {
 					arr[i].$.left.css('height', cellHeight);
@@ -483,8 +512,8 @@ ud2.libExtend(function (inn, ud2) {
 			// 创建网格元素
 			function createElements() {
 				// 创建全部元素
-				createTableElements(datasHeader, 1);
 				createTableElements(datas);
+				if (datasHeader && datasHeader.rows.length) createTableElements(datasHeader, 1);
 				if (datasFooter && datasFooter.rows.length) createTableElements(datasFooter, 2);
 			}
 			// 创建网格内的全部行和单元格
@@ -492,57 +521,62 @@ ud2.libExtend(function (inn, ud2) {
 			// mode[number]: 行类型 0:content 1:header 2:footer
 			function createTableElements(dt, mode) {
 				var i = 0, l,
-					$rl, $rc, $rr, $check, realHeight, arr, arrMax;
+					$rl, $rc, $rr, $check, realHeight, arr;
 				// 初始化行类型
 				mode = mode || 0;
 				// 获取行数，如果是header，则视为1行
-				l = mode === 1 ? 1 : dt.rows.length;
+				l = dt.rows.length;
+				// 获取行对象
+				if (mode === 0) arr = rowsInfo.content;
+				if (mode === 1) arr = rowsInfo.header;
+				if (mode === 2) arr = rowsInfo.footer;
 
 				// 迭代创建行元素
-				for (; i < l; i++) {
-					// 获取行对象
-					if (mode === 0) arr = rowsInfo.content;
-					if (mode === 1) arr = rowsInfo.header;
-					if (mode === 2) arr = rowsInfo.footer;
-					arrMax = arr.length;
+				for (; i < l; i++) (function () {
+					var row;
 
 					// 创建行的空容器，用于装载单元格
 					$rl = $emptyRow.clone().appendTo(leftGrid[mode]);
 					$rc = $emptyRow.clone().appendTo(centerGrid[mode]);
 					$rr = $emptyRow.clone().appendTo(rightGrid[mode]);
 					// 创建行参数对象
-					arr[arrMax] = { $: { left: $rl, center: $rc, right: $rr }, public: { cells: [] } };
+					row = { $: { left: $rl, center: $rc, right: $rr }, public: { cells: [] } };
+					arr.push(row);
 					// 判断是否开启选中行，如果开启选中行，则在行中添加一个checkbox来控制行的选中状态
 					if (isSelected && (mode && i === 0 || !mode)) {
 						$check = $emptyCell.clone().addClass('checkbox').css({ textAlign: 'center', width: 38 });
 						$check.html('<input type="checkbox" class="check" />').appendTo($rl);
 						if (mode) {
-							// 如果是header，则视为1行
-							realHeight = mode === 1 ? cellHeight : datasFooter.rows.length * cellHeight;
+							realHeight
+								= mode === 1
+								? datasHeader.rows.length * cellHeight
+								: datasFooter.rows.length * cellHeight;
 							$check.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
+						}
+						else {
+							$check.css({ 'height': cellHeight, 'line-height': cellHeight - 3 + 'px' });
 						}
 						if (!isSelectedMultiple && mode) {
 							$check.addClass('disabled');
 						}
 
 						// 绑定checkbox单元格
-						arr[arrMax].$.check = $check.children();
+						row.$.check = $check.children();
 						// 绑定事件
-						arr[arrMax].checkEvent = ud2.event($check).setTap((function (arrMax) {
-							return function () {
-								if (mode) {
-									rowSelectedAll();
-								}
-								else {
-									rowSelected.call(this, arr[arrMax]);
-								}
-							};
-						}(arrMax)));
+						row.checkEvent = ud2.event($check).setTap(function () {
+							if (mode) {
+								rowSelectedAll();
+							}
+							else {
+								rowSelected.call(this, row);
+							}
+						});
 					}
 					// 迭代列，将该行的全部单元格，按照列参数初始化，并插入到指定的行容器中
 					columnsInfo.forEach(function (ci, j) {
-						var content = mode === 1 ? ci.title : dt.rows[i].cells[j].val(), $cell;
+						var content, $cell;
 
+						content = dt.rows[i].cells[j].val();
 						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(content).attr('title', content);
 						// 按照列的模式，将单元格插入到指定的行容器中
 						switch (ci.mode) {
@@ -551,36 +585,36 @@ ud2.libExtend(function (inn, ud2) {
 							case 3: { $cell.appendTo($rr); break; }
 						}
 
-						arr[arrMax].public.cells[j] = {
+						row.public.cells[j] = {
 							getContent: function () { return $cell; }
 						};
 					});
-				}
+				}());
 			}
 
 			// 行选中操作事件回调
-			function rowSelected(ro) {
-				var isHave = selectedRows.indexOf(ro), len = selectedRows.length;
+			function rowSelected(row) {
+				var isHave = selectedRows.indexOf(row), len = selectedRows.length;
 
 				if (isHave === -1) {
 					// 非多选，取消默认选中的
 					if (!isSelectedMultiple && len > 0) {
 						selectedRows[0].$.check.removeAttr('checked');
 						selectedRows.splice(0, 1);
-						controlCallbacks[RD].call(control.public, ro.public);
+						controlCallbacks[RD].call(control.public, row.public);
 					}
-					ro.$.check.attr('checked', 'checked');
-					selectedRows.push(ro);
+					row.$.check.attr('checked', 'checked');
+					selectedRows.push(row);
 
 					if (isSelectedMultiple && len + 1 === rowsInfo.content.length) setAllSelectedState(true);
 				}
 				else {
-					ro.$.check.removeAttr('checked');
+					row.$.check.removeAttr('checked');
 					selectedRows.splice(isHave, 1);
 
 					if (isAllSelected) setAllSelectedState(false);
 				}
-				controlCallbacks[isHave > -1 ? RD : RS].call(control.public, ro.public);
+				controlCallbacks[isHave > -1 ? RD : RS].call(control.public, row.public);
 			}
 			// 行全选操作事件回调
 			function rowSelectedAll() {
@@ -589,19 +623,19 @@ ud2.libExtend(function (inn, ud2) {
 				if (rowsInfo.content.length === 0 || !isSelectedMultiple) return;
 				if (sc) {
 					setAllSelectedState(false);
-					selectedRows.forEach(function (ro) {
-						ro.$.check.removeAttr('checked');
-						ca.push(ro.public);
+					selectedRows.forEach(function (row) {
+						row.$.check.removeAttr('checked');
+						ca.push(row.public);
 					});
 					selectedRows.splice(0, selectedRows.length);
 				}
 				else {
 					setAllSelectedState(true);
-					rowsInfo.content.forEach(function (ro) {
-						if (selectedRows.indexOf(ro) === -1) {
-							ro.$.check.attr('checked', 'checked');
-							selectedRows.push(ro);
-							ca.push(ro.public);
+					rowsInfo.content.forEach(function (row) {
+						if (selectedRows.indexOf(row) === -1) {
+							row.$.check.attr('checked', 'checked');
+							selectedRows.push(row);
+							ca.push(row.public);
 						}
 					});
 				}
@@ -645,8 +679,8 @@ ud2.libExtend(function (inn, ud2) {
 				}
 			}
 			// 利用传入的数据源进行数据填充
-			// - ds[ud2.datatable, array]: 数据源
-			// - return[ud2.datagrid]: 返回该控件对象
+			// ds[ud2.datatable, array]: 数据源
+			// return[ud2.datagrid]: 返回该控件对象
 			function dataFill(ds) {
 				// 移除原数据
 				dataEmpty();
@@ -667,7 +701,8 @@ ud2.libExtend(function (inn, ud2) {
 				return control.public;
 			}
 			// 数据行添加
-			// - ds[ud2.datatable, array]: 数据源
+			// ds[ud2.datatable, array]: 数据源
+			// return[ud2.datagrid]: 返回该控件对象
 			function dataRowAdd(ds) {
 				var rowCellArr = [];
 
@@ -696,6 +731,43 @@ ud2.libExtend(function (inn, ud2) {
 				else if (ds !== void 0) {
 					return dataRowAdd(ud2.datatable().rowAdd(ds));
 				}
+
+				return control.public;
+			}
+			// 获取已被选中的数据行
+			// return[array]: 返回已被选中的数据行对象集合
+			function dataRowSelected() {
+				return selectedRows.map(function (r) { return r.public; });
+			}
+			// 数据行删除
+			// row[ud2.datagrid.row, array]: 数据行对象
+			// return[ud2.datagrid]: 返回该控件对象
+			function dataRowDelete(row) {
+				var del, cIndex, sIndex, i, l;
+
+				if (ud2.type.isArray(row)) {
+					for (i = 0, l = row.length; i < l; i++) dataRowDelete(row[i]);
+				}
+				else {
+					del = rowsInfo.content.filter(function (r) { return r.public === row; });
+					if (del.length) {
+						if (isSelected) {
+							sIndex = selectedRows.indexOf(del[0]);
+							del[0].checkEvent.off();
+							del[0].$.check.remove();
+							selectedRows.splice(sIndex, 1);
+						}
+
+						cIndex = rowsInfo.content.indexOf(del[0]);
+						del[0].$.left.remove();
+						del[0].$.center.remove();
+						del[0].$.right.remove();
+
+						rowsInfo.content.splice(cIndex, 1);
+					}
+				}
+
+				return control.public;
 			}
 
 			// 移除全部数据和相关元素
@@ -890,6 +962,8 @@ ud2.libExtend(function (inn, ud2) {
 				setRowDeselected: setRowDeselected,
 				dataFill: dataFill,
 				dataRowAdd: dataRowAdd,
+				dataRowDelete: dataRowDelete,
+				dataRowSelected: dataRowSelected,
 				dataEmpty: dataEmpty
 			});
 

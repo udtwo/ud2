@@ -377,8 +377,6 @@ ud2.libExtend(function (inn, ud2) {
 
 				// 设置高度
 				heightOperate(height);
-				// 设置行间距
-				$datagrid.css('line-height', cellHeight - 1 + 'px');
 
 				$leftHeader.css(h);
 				$leftContent.css(t);
@@ -434,10 +432,20 @@ ud2.libExtend(function (inn, ud2) {
 					arr[i].$.center.css('height', cellHeight);
 					arr[i].$.right.css('height', cellHeight);
 					columnsInfo.forEach(function (ci, index) {
-						arr[i].public.cells[index].getContent().css({
-							width: ci.widthNow,
+						var cell = arr[i].public.cells[index], h, w = ci.widthNow, l, j = 0;
+						if (cell.merge) return;
+						if (cell.rowspan) h = cellHeight * (cell.rowspan || 1);
+						else h = cellHeight;
+						if (cell.colspan) {
+							for (l = cell.colspan - 1; l > 0 ; l--) { j++; w += columnsInfo[index + j].widthNow; }
+							cell.getContent().css('text-align', 'center');
+						}
+
+						cell.getContent().css({
+							width: w,
 							left: ci.cellLeft,
-							height: cellHeight
+							height: h,
+							lineHeight: h - 1 + 'px'
 						});
 					});
 				}
@@ -574,10 +582,12 @@ ud2.libExtend(function (inn, ud2) {
 					}
 					// 迭代列，将该行的全部单元格，按照列参数初始化，并插入到指定的行容器中
 					columnsInfo.forEach(function (ci, j) {
-						var content, $cell;
-
-						content = dt.rows[i].cells[j].val();
-						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(content).attr('title', content);
+						var content = dt.rows[i].cells[j], $cell, cell;
+						row.public.cells[j] = cell = {};
+						// 如果单元格为被合并模式，则取消建立此单元格
+						if (content.merge) { cell.merge = 1; return; }
+						// 建立单元格
+						$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(content.val()).attr('title', content.val());
 						// 按照列的模式，将单元格插入到指定的行容器中
 						switch (ci.mode) {
 							case 0: case 1: { $cell.appendTo($rc); break; }
@@ -585,9 +595,10 @@ ud2.libExtend(function (inn, ud2) {
 							case 3: { $cell.appendTo($rr); break; }
 						}
 
-						row.public.cells[j] = {
-							getContent: function () { return $cell; }
-						};
+						cell.getContent = function () { return $cell; };
+						if (content.colspan) cell.colspan = content.colspan;
+						if (content.rowspan) cell.rowspan = content.rowspan;
+						if (content.merge) cell.merge = content.merge;
 					});
 				}());
 			}

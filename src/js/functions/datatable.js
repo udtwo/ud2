@@ -26,36 +26,36 @@ ud2.libExtend(function (inn, ud2) {
 	// table[jQuery, string, object]: 待转换值
 	// return[array]: 转换后的二维数组
 	function convertTableToArray(table) {
-		var $table = inn.convertToJQ(table),
-			$tr = $table.find('tr'), $td = $table.find('td'), datas = [];
+		var $table = inn.convertToJQ(table), $tr = $table.find('tr'),
+			datas = [];
 
-		// !! 解决colspan与rowspan的问题，目前的解决方式采用复制单元格的值
-		$td.filter('[colspan]').each(function () {
+		$table.find('td').filter('[colspan]').each(function () {
 			var $me = $(this), cs = parseInt($me.attr('colspan')),
 				i, l;
 
-			$me.removeAttr('colspan');
+			$me.removeAttr('colspan').attr('span-col', cs);
 			if (cs > 1) {
 				for (i = 0, l = cs - 1; i < l; i++) {
-					$me.after($me.clone());
+					$me.after($me.clone().attr('merge', '1'))
 				}
 			}
 		});
-		$td.filter('[rowspan]').each(function () {
-			var $me = $(this), rs = parseInt($me.attr('rowspan')),
+
+		$table.find('td').filter('[rowspan]').each(function () {
+			var $me = $(this), rs = parseInt($me.attr('rowspan')) ,
 				i, l, index, pIndex, $p;
 
-			$me.removeAttr('rowspan');
+			$me.removeAttr('rowspan').attr('span-row', rs);
 			if (rs > 1) {
 				for (i = 0, l = rs - 1; i < l; i++) {
 					$p = $me.parent();
 					pIndex = $p.index();
 					index = $me.index();
 					if (index === 0) {
-						$tr.eq(pIndex + i + 1).prepend($me.clone());
+						$tr.eq(pIndex + i + 1).prepend($me.clone().attr('merge', '1'));
 					}
 					else {
-						$tr.eq(pIndex + i + 1).children().eq(index - 1).after($me.clone());
+						$tr.eq(pIndex + i + 1).children().eq(index - 1).after($me.clone().attr('merge', '1'));
 					}
 				}
 			}
@@ -68,11 +68,17 @@ ud2.libExtend(function (inn, ud2) {
 				var $td = $(this),
 					datagrid = inn.prefix + 'datagrid-',
 					dataType = $td.attr(datagrid + 'data-type'),
+					spanCol = $td.attr('span-col'),
+					spanRow = $td.attr('span-row'),
+					merge = $td.attr('merge'),
 					cellType, cellAlign, cellWidth, cellMode, cellMaxWidth,
 					opt = {};
 
 				opt.value = $td.html();
 				if (dataType) opt.type = dataType;
+				if (spanCol) opt.colspan = spanCol;
+				if (spanRow) opt.rowspan = spanRow;
+				if (merge) opt.merge = true;
 
 				d.push(opt);
 			});
@@ -305,17 +311,13 @@ ud2.libExtend(function (inn, ud2) {
 		// 绑定行对象
 		// return[cell]: 返回单元格对象
 		function bindRow(row) {
-			if (row && row.type === TYPE_ROW && cellObj.row === null) {
-				cellObj.row = row;
-			}
+			if (row && row.type === TYPE_ROW && cellObj.row === null) cellObj.row = row;
 			return cellObj;
 		}
 		// 绑定列对象
 		// return[cell]: 返回单元格对象
 		function bindColumn(column) {
-			if (column && column.type === TYPE_COLUMN && cellObj.column === null) {
-				cellObj.column = column;
-			}
+			if (column && column.type === TYPE_COLUMN && cellObj.column === null) cellObj.column = column;
 			return cellObj;
 		}
 
@@ -330,9 +332,11 @@ ud2.libExtend(function (inn, ud2) {
 			}
 			else {
 				if (!ud2.type.isObject(options)) options = {};
-				// 绑定行列对象
-				cellObj.column = options.column || null;
-				cellObj.row = options.row || null;
+				bindColumn(options.columns);
+				bindRow(options.row);
+				if (options.colspan) cellObj.colspan = parseInt(options.colspan) || 1;
+				if (options.rowspan) cellObj.rowspan = parseInt(options.rowspan) || 1;
+				if (options.merge) cellObj.merge = true;
 
 				// 获取数据值类型
 				valueType = options.type;
@@ -347,7 +351,7 @@ ud2.libExtend(function (inn, ud2) {
 				valueOperate(value);
 			}
 			else {
-				// ~~对未设置数据类型的单元格标记为null，并采用string类型 getDataTypeByValue(value);
+				// 对未设置数据类型的单元格标记为null，并采用string类型 getDataTypeByValue(value);
 				valueType = null;
 			}
 		}());
@@ -589,6 +593,7 @@ ud2.libExtend(function (inn, ud2) {
 		// 在控制台输出当前数据表的值和类型
 		function debug() {
 			var de = [], r = 0, m = 0, rl, ml, c;
+			console.group('value');
 			for (rl = rowCollection.length; r < rl; r++) {
 				de[r] = [];
 				for (m = 0, ml = rowCollection[r].cells.length; m < ml; m++) {
@@ -597,6 +602,31 @@ ud2.libExtend(function (inn, ud2) {
 				}
 			}
 			console.table(de);
+			console.groupEnd();
+
+			console.group('merge');
+			de = [], r = 0;
+			for (rl = rowCollection.length; r < rl; r++) {
+				de[r] = [];
+				for (m = 0, ml = rowCollection[r].cells.length; m < ml; m++) {
+					c = rowCollection[r].cells[m];
+					de[r][m] = c.merge;
+				}
+			}
+			console.table(de);
+			console.groupEnd();
+
+			console.group('rowspan, colspan');
+			de = [], r = 0;
+			for (rl = rowCollection.length; r < rl; r++) {
+				de[r] = [];
+				for (m = 0, ml = rowCollection[r].cells.length; m < ml; m++) {
+					c = rowCollection[r].cells[m];
+					de[r][m] = c.rowspan + ',' + c.colspan;
+				}
+			}
+			console.table(de);
+			console.groupEnd();
 		}
 
 		// #endregion

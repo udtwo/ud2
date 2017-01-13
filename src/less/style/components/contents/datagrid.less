@@ -55,9 +55,6 @@
 	border-left-color: transparent;
 	.textOverflow();
 
-	&:last-child {
-		border-right-color: transparent;
-	}
 
 	&.checkbox::before {
 		content: '';
@@ -134,14 +131,12 @@
 }
 // 网格左侧容器样式
 .ud2-datagrid-left {
-	left: 0;
-	.ud2-datagrid-cell:last-child {
-		border-right-color: @DatagridBorderColor;
-	}
+	left: -1px;
 }
 // 网格右侧容器样式
 .ud2-datagrid-right {
-	right: 0;
+	right: -1px;
+	
 	.ud2-datagrid-cell:first-child {
 		border-left-color: @DatagridBorderColor;
 	}
@@ -160,9 +155,7 @@
 	bottom: -1px;
 	border-top: 1px solid @DatagridBorderColor;
 }
-// 设置单元格显示下边框的情况
-.ud2-datagrid-header:last-child, .ud2-datagrid-footer {
-	.ud2-datagrid-row:last-child > .ud2-datagrid-cell {
-		border-bottom-color: transparent;
-	}
+// 滚动条位置修正
+.ud2-datagrid-content .ud2-scroll-bar:nth-child(2) {
+	right: 2px !important;
 }

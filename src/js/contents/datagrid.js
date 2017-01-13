@@ -352,7 +352,7 @@ ud2.libExtend(function (inn, ud2) {
 				$leftHeaderGrid.css({ width: wl });
 				$leftContentGrid.css({ width: wl });
 
-				$center.css({ left: wl, right: wr });
+				$center.css({ left: wl - 1, right: wr > 0 ? wr - 2 : -1 });
 				$centerHeaderGrid.css({ width: wc });
 				$centerContentGrid.css({ width: wc - 1 });
 
@@ -441,7 +441,7 @@ ud2.libExtend(function (inn, ud2) {
 						else h = cellHeight;
 						if (cell.colspan) {
 							z++;
-							for (j = cell.colspan - 1; j > 0; j--) { m++; w += columnsInfo[index + m].widthNow; }
+							for (j = cell.colspan - 1; j > 0; j--) { m++; w += columnsInfo[index + m] && columnsInfo[index + m].widthNow || 0; }
 							cell.getContent().css('text-align', 'center');
 						}
 

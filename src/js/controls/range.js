@@ -249,7 +249,7 @@ ud2.libExtend(function (inn, ud2) {
 				if (v !== void 0) {
 					v = convertValue(r !== void 0 ?
 						[v, r].join(',') :
-						type.isArray(v) ? v.join(',') : v);
+						ud2.type.isArray(v) ? v.join(',') : v);
 					setValue(v[0], v[1]);
 					return control.public;
 				}

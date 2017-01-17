@@ -605,6 +605,7 @@ ud2.libExtend(function (inn, ud2) {
 						}
 						// 设置单元格对象属性
 						cell.getContent = function () { return $cell; };
+						cell.val = content.val;
 						if (content.colspan) cell.colspan = content.colspan;
 						if (content.rowspan) cell.rowspan = content.rowspan;
 						if (content.merge) cell.merge = content.merge;

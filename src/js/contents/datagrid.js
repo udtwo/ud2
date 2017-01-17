@@ -979,6 +979,7 @@ ud2.libExtend(function (inn, ud2) {
 				prependTo: prependTo,
 				insertAfter: insertAfter,
 				insertBefore: insertBefore,
+
 				height: heightOperate,
 				setRowSelected: setRowSelected,
 				setRowDeselected: setRowDeselected,

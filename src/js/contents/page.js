@@ -344,10 +344,45 @@ ud2.libExtend(function (inn, ud2) {
 
 			// #endregion
 
+			// #region 重写父方法
+
+			// 重写父方法
+			var oldAppendTo = control.public.appendTo;
+			var oldPrependTo = control.public.prependTo;
+			var oldInsertAfter = control.public.insertAfter;
+			var oldInsertBefore = control.public.insertBefore;
+			function appendTo() {
+				oldAppendTo.apply(control.public, arguments);
+				resize();
+				return control.public;
+			}
+			function prependTo() {
+				oldPrependTo.apply(control.public, arguments);
+				resize();
+				return control.public;
+			}
+			function insertAfter() {
+				oldInsertAfter.apply(control.public, arguments);
+				resize();
+				return control.public;
+			}
+			function insertBefore() {
+				oldInsertBefore.apply(control.public, arguments);
+				resize();
+				return control.public;
+			}
+
+			// #endregion
+
 			// #region 返回
 
 			// 返回
 			return ud2.extend(control.public, {
+				appendTo: appendTo,
+				prependTo: prependTo,
+				insertAfter: insertAfter,
+				insertBefore: insertBefore,
+
 				layout: layoutOperate,
 				isText: isTextOperate,
 				isIco: isIcoOperate,

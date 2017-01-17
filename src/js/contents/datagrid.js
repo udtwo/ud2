@@ -704,6 +704,7 @@ ud2.libExtend(function (inn, ud2) {
 			function dataFill(ds) {
 				// 移除原数据
 				dataEmpty();
+				contentScroll.move(0, 0);
 
 				// 如果传入数据是数据表则直接填装
 				// 否则，先通过参数实例化数据表，并进行填装

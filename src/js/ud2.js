@@ -171,7 +171,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 				// return[bool]: 是否符合长度规定
 				isLength: function (text, length, maxLength) {
 					text = textTypeHandler(text);
-					length = length || Number.MAX_VALUE;
+					length = length === void 0 ? Number.MAX_VALUE : length;
 					// 判断是否符合最小值和最大值的长度
 					if (maxLength !== void 0) {
 						if (maxLength < length) maxLength = length;

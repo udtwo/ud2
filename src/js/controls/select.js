@@ -934,7 +934,7 @@ ud2.libExtend(function (inn, ud2) {
 			function bindEvent() {
 				ud2.event($box).setTap(toggle);
 				$tab.on(inn.an.event[17], function () {
-					callbacks.ctrlClose.fire($select);
+					ud2.callbacks.autoClose.fire($select);
 					open();
 				});
 			}

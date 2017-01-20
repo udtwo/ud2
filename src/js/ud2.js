@@ -230,7 +230,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 				// 检测字符串是否符合身份证规范
 				// text[string]: 待检测的字符串
 				// return[bool]: 是否符合身份证号规范
-				isIDCard: function () {
+				isIDCard: function (text) {
 					text = textTypeHandler(text);
 					text = text.toUpperCase();
 					if (regex.idCard.test(text)) {

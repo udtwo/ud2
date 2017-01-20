@@ -1465,6 +1465,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 					$dom.on(anEvent[9], mouseMove);
 					// 绑定up事件
 					$dom.on(anEvent[10], mouseUp);
+					$dom.on(anEvent[13], mouseUp);
 				}
 			}
 			// touchMove事件触发函数

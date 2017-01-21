@@ -595,7 +595,7 @@ ud2.libExtend(function (inn, ud2) {
 						}
 						else {
 							// 建立单元格
-							$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(content.val()).attr('title', content.val());
+							$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(content.val()).attr('title', content.val().replace(/<[^>]+>/, ''));
 						}
 						// 按照列的模式，将单元格插入到指定的行容器中
 						switch (ci.mode) {

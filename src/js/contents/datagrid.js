@@ -587,7 +587,7 @@ ud2.libExtend(function (inn, ud2) {
 					}
 					// 迭代列，将该行的全部单元格，按照列参数初始化，并插入到指定的行容器中
 					columnsInfo.forEach(function (ci, j) {
-						var content = dt.rows[i].cells[j], $cell, cell;
+						var content = dt.rows[i].cells[j], $cell, cell, val;
 						row.public.cells[j] = cell = {};
 						// 如果单元格为被合并模式，则取消建立此单元格
 						if (content.merge) {
@@ -595,7 +595,8 @@ ud2.libExtend(function (inn, ud2) {
 						}
 						else {
 							// 建立单元格
-							$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(content.val()).attr('title', content.val().replace(/<[^>]+>/g, ''));
+							val = content.val();
+							$cell = $emptyCell.clone().css({ textAlign: ci.align }).html(val).attr('title', val ? val.toString().replace(/<[^>]+>/g, '') : '');
 						}
 						// 按照列的模式，将单元格插入到指定的行容器中
 						switch (ci.mode) {

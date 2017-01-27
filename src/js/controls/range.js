@@ -338,7 +338,6 @@ ud2.libExtend(function (inn, ud2) {
 			}
 			// 输入框获取焦点
 			function inputFocus() {
-				ud2.callbacks.autoClose.fire($range);
 				open();
 			}
 			// 输入框失去焦点事件

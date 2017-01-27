@@ -2086,6 +2086,10 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			$dom.on(anEvent[20], '.message:not([ud2]) .message-close', function () {
 				$(this).parent().remove();
 			});
+
+			$dom.on(anEvent[17], 'input, button, a', function () {
+				callbacks.autoClose.fire(event.target);
+			})
 		});
 
 		// 窗口尺寸改变事件

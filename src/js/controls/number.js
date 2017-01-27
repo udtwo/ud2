@@ -195,7 +195,6 @@ ud2.libExtend(function (inn, ud2) {
 
 				$value.on(inn.an.event[17], function () {
 					eventKeyObj.on();
-					ud2.callbacks.autoClose.fire($number);
 					$number.addClass('on');
 				}).blur(function () {
 					eventKeyObj.off();

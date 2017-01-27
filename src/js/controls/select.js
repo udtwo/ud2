@@ -933,10 +933,7 @@ ud2.libExtend(function (inn, ud2) {
 			// 事件绑定
 			function bindEvent() {
 				ud2.event($box).setTap(toggle);
-				$tab.on(inn.an.event[17], function () {
-					ud2.callbacks.autoClose.fire($select);
-					open();
-				});
+				$tab.on(inn.an.event[17], open);
 			}
 
 			// #endregion

@@ -544,11 +544,6 @@ ud2.libExtend(function (inn, ud2) {
 
 			// #region 事件处理
 
-			// 输入框获取焦点事件回调
-			function inputFocus() {
-				ud2.callbacks.autoClose.fire($date);
-				open();
-			}
 			// 尺寸重置回调
 			function resize(winWidth) {
 				var c, w;
@@ -568,7 +563,7 @@ ud2.libExtend(function (inn, ud2) {
 					.add(ud2.key.UP, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 7)); })
 					.add(ud2.key.DOWN, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7)); });
 
-				$value.on('focus', inputFocus);
+				$value.on('focus', open);
 				ud2.callbacks.pageResize.add(resize);
 			}
 

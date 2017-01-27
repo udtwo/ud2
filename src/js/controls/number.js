@@ -187,7 +187,6 @@ ud2.libExtend(function (inn, ud2) {
 			function bindEvent() {
 				ud2.event($prev).setTap(prev);
 				ud2.event($next).setTap(next);
-				ud2.eventMouseWheel($value).setDown(next).setUp(prev);
 				eventKeyObj = ud2.eventKeyShortcut({ autoOn: false })
 					.add(ud2.key.UP, prev)
 					.add(ud2.key.DOWN, next)

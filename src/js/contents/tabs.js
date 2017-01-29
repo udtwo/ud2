@@ -208,8 +208,8 @@ ud2.libExtend(function (inn, ud2) {
 					}
 					case 1: {
 						$content.append('<iframe id="' + name + '" name="' + name + '" src="' + details + '" />').addClass('iframe');
-						// 通过此项设置让safari中的iframe正常滚动
-						if (ud2.support.safari) {
+						// 通过此项设置让apple中的iframe正常滚动
+						if (ud2.support.apple) {
 							$content.css({
 								'-webkit-overflow-scrolling': 'touch',
 								'overflow-y': 'scroll'

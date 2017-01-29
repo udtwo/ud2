@@ -400,6 +400,13 @@ ud2.libExtend(function (inn, ud2) {
 						if (control.origin.length) ch = control.origin.html();
 						else ch = content;
 						$content.append('<iframe src="' + ch + '" />');
+						// 通过此项设置让safari中的iframe正常滚动
+						if (ud2.support.safari) {
+							$content.css({
+								'-webkit-overflow-scrolling': 'touch',
+								'overflow-y': 'scroll'
+							});
+						}
 						break;
 					}
 				}

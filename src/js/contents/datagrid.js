@@ -762,11 +762,6 @@ ud2.libExtend(function (inn, ud2) {
 			function dataRowSelected() {
 				return selectedRows.map(function (r) { return r.public; });
 			}
-			// 获取全部数据行
-			// return[ud2.datagrid]: 返回该控件对象
-			function dataAll() {
-				return rowsInfo.content.map(function (r) { return r.public; });
-			}
 			// 数据行删除
 			// row[ud2.datagrid.row, array]: 数据行对象
 			// return[ud2.datagrid]: 返回该控件对象
@@ -774,7 +769,7 @@ ud2.libExtend(function (inn, ud2) {
 				var del, cIndex, sIndex, i, l;
 
 				if (ud2.type.isArray(row)) {
-					for (i = 0, l = row.length; i < l; i++) dataRowDelete(row[i]);
+					for (i = 0, l = row.length; i < l; i++) dataRowRemove(row[i]);
 				}
 				else {
 					del = rowsInfo.content.filter(function (r) { return r.public === row; });
@@ -796,6 +791,11 @@ ud2.libExtend(function (inn, ud2) {
 				}
 
 				return control.public;
+			}
+			// 获取全部数据行
+			// return[ud2.datagrid]: 返回该控件对象
+			function dataAll() {
+				return rowsInfo.content.map(function (r) { return r.public; });
 			}
 
 			// 移除全部数据和相关元素

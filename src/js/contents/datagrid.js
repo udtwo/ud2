@@ -762,10 +762,15 @@ ud2.libExtend(function (inn, ud2) {
 			function dataRowSelected() {
 				return selectedRows.map(function (r) { return r.public; });
 			}
+			// 获取全部数据行
+			// return[ud2.datagrid]: 返回该控件对象
+			function dataAll() {
+				return rowsInfo.content.map(function (r) { return r.public; });
+			}
 			// 数据行删除
 			// row[ud2.datagrid.row, array]: 数据行对象
 			// return[ud2.datagrid]: 返回该控件对象
-			function dataRowDelete(row) {
+			function dataRowRemove(row) {
 				var del, cIndex, sIndex, i, l;
 
 				if (ud2.type.isArray(row)) {
@@ -986,8 +991,9 @@ ud2.libExtend(function (inn, ud2) {
 				setRowDeselected: setRowDeselected,
 				dataFill: dataFill,
 				dataRowAdd: dataRowAdd,
-				dataRowDelete: dataRowDelete,
+				dataRowRemove: dataRowRemove,
 				dataRowSelected: dataRowSelected,
+				dataAll: dataAll,
 				dataEmpty: dataEmpty
 			});
 

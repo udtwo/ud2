@@ -346,7 +346,7 @@ ud2.libExtend(function (inn, ud2) {
 			function updateWidthStyles() {
 				var g = gridWidthCount(),
 					wl = g.l, wc = g.c, wr = g.r,
-					fl = datasFooter && datasFooter.rows.length || 0;
+					fl = rowsInfo.footer.length;
 
 				$left.css({ width: wl });
 				$leftHeaderGrid.css({ width: wl });
@@ -368,8 +368,8 @@ ud2.libExtend(function (inn, ud2) {
 			}
 			// 更新高度样式
 			function updateHeightStyles() {
-				var hl = (datasHeader && datasHeader.rows.length || 0) * cellHeight,
-					fl = (datasFooter && datasFooter.rows.length || 0) * cellHeight,
+				var hl = (rowsInfo.header.length) * cellHeight,
+					fl = (rowsInfo.footer.length) * cellHeight,
 					h = { height: hl },
 					t = { top: hl },
 					b = { bottom: fl },
@@ -414,18 +414,18 @@ ud2.libExtend(function (inn, ud2) {
 			}
 			// 更新全部单元格样式
 			function updateAllCellSizeStyles() {
-				var hl = datasHeader && datasHeader.rows.length || 0,
-					fl = datasFooter && datasFooter.rows.length || 0;
+				var hl = rowsInfo.header.length || 0,
+					fl = rowsInfo.footer.length || 0;
 				gridFlexCount();
 				// 更新每个单元格样式
-				updateCellSizeStyles(datas, rowsInfo.content);
-				if (hl) updateCellSizeStyles(datasHeader, rowsInfo.header);
-				if (fl) updateCellSizeStyles(datasFooter, rowsInfo.footer);
+				updateCellSizeStyles(rowsInfo.content);
+				if (hl) updateCellSizeStyles(rowsInfo.header);
+				if (fl) updateCellSizeStyles(rowsInfo.footer);
 			}
 			// 更新单元格样式
-			function updateCellSizeStyles(dt, arr) {
+			function updateCellSizeStyles(arr) {
 				var // 迭代变量
-					i = 0, l = dt.rows.length;
+					i = 0, l = arr.length;
 
 				for (; i < l; i++) {
 					arr[i].$.left.css('height', cellHeight);
@@ -457,7 +457,7 @@ ud2.libExtend(function (inn, ud2) {
 			}
 			// 更新初始化
 			function updateInit() {
-				if (datas.rows.length === 0) $noRow.addClass('on');
+				if (rowsInfo.content.length === 0) $noRow.addClass('on');
 				else $noRow.removeClass('on');
 
 				updateWidthStyles();
@@ -741,7 +741,7 @@ ud2.libExtend(function (inn, ud2) {
 							rowCellArr[i] = ds.rows[0].cells[i].val();
 						});
 						// 向数据表中插入行
-						datas.rowAdd(rowCellArr);
+						// datas.rowAdd(rowCellArr);
 						// 创建单元格
 						createTableElements(ds);
 						// 更新样式信息
@@ -779,6 +779,8 @@ ud2.libExtend(function (inn, ud2) {
 							del[0].checkEvent.off();
 							del[0].$.check.remove();
 							selectedRows.splice(sIndex, 1);
+
+							if (selectedRows.length === 0 && isAllSelected) setAllSelectedState(false);
 						}
 
 						cIndex = rowsInfo.content.indexOf(del[0]);
@@ -818,7 +820,7 @@ ud2.libExtend(function (inn, ud2) {
 				}
 
 				// 清空容器
-				datas.dataEmpty();
+				// datas.dataEmpty();
 				$leftContentGrid.empty();
 				$centerContentGrid.empty();
 				$rightContentGrid.empty();

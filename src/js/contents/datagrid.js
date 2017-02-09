@@ -368,8 +368,8 @@ ud2.libExtend(function (inn, ud2) {
 			}
 			// 更新高度样式
 			function updateHeightStyles() {
-				var hl = (rowsInfo.header.length) * cellHeight,
-					fl = (rowsInfo.footer.length) * cellHeight,
+				var hl = rowsInfo.header.length * cellHeight,
+					fl = rowsInfo.footer.length * cellHeight,
 					h = { height: hl },
 					t = { top: hl },
 					b = { bottom: fl },
@@ -386,13 +386,13 @@ ud2.libExtend(function (inn, ud2) {
 				$rightContent.css(t);
 
 				$leftHeaderGrid.css({ height: hl });
-				$leftContentGrid.css({ height: cellHeight * datas.rows.length });
+				$leftContentGrid.css({ height: cellHeight * rows.content.length });
 
 				$centerHeaderGrid.css({ height: hl });
-				$centerContentGrid.css({ height: cellHeight * datas.rows.length - 1 });
+				$centerContentGrid.css({ height: cellHeight * rows.content.length - 1 });
 
 				$rightHeaderGrid.css({ height: hl });
-				$rightContentGrid.css({ height: cellHeight * datas.rows.length });
+				$rightContentGrid.css({ height: cellHeight * rows.content.length });
 
 				$noRow.css({ top: hl });
 
@@ -746,8 +746,6 @@ ud2.libExtend(function (inn, ud2) {
 						createTableElements(ds);
 						// 更新样式信息
 						updateInit();
-						// 重计算尺寸
-						contentScroll.recountPosition();
 
 						// 当前为全选状态时，加入新行后，取消全选状态
 						if (isAllSelected) setAllSelectedState(false);

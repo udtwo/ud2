@@ -746,6 +746,8 @@ ud2.libExtend(function (inn, ud2) {
 						createTableElements(ds);
 						// 更新样式信息
 						updateInit();
+						// 重计算尺寸
+						contentScroll.recountPosition();
 
 						// 当前为全选状态时，加入新行后，取消全选状态
 						if (isAllSelected) setAllSelectedState(false);

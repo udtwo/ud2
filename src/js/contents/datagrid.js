@@ -386,13 +386,13 @@ ud2.libExtend(function (inn, ud2) {
 				$rightContent.css(t);
 
 				$leftHeaderGrid.css({ height: hl });
-				$leftContentGrid.css({ height: cellHeight * rows.content.length });
+				$leftContentGrid.css({ height: cellHeight * rowsInfo.content.length });
 
 				$centerHeaderGrid.css({ height: hl });
-				$centerContentGrid.css({ height: cellHeight * rows.content.length - 1 });
+				$centerContentGrid.css({ height: cellHeight * rowsInfo.content.length - 1 });
 
 				$rightHeaderGrid.css({ height: hl });
-				$rightContentGrid.css({ height: cellHeight * rows.content.length });
+				$rightContentGrid.css({ height: cellHeight * rowsInfo.content.length });
 
 				$noRow.css({ top: hl });
 

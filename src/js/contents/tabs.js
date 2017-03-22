@@ -223,7 +223,7 @@ ud2.libExtend(function (inn, ud2) {
 						// 通过此项设置让apple中的iframe正常滚动
 						if (ud2.support.apple) {
 							$content.css({ '-webkit-overflow-scrolling': 'touch', 'overflow-y': 'scroll' });
-							$iframe.event.on('load', function () {
+							$iframe.on('load', function () {
 								$iframe.timer = window.setInterval(function () {
 									var h = $iframe.contents().find('body').height();
 									if (!$iframe.h || h !== $iframe.h) {
@@ -232,8 +232,7 @@ ud2.libExtend(function (inn, ud2) {
 									}
 								}, 500);
 							});
-
-						}
+						}			
 						break;
 					}
 				}
@@ -638,7 +637,7 @@ ud2.libExtend(function (inn, ud2) {
 					// 移除iframe
 					if (page.pageType() === 1) {
 						if (ud2.support.apple) {
-							page.getIframe().event.off('load');
+							page.getIframe().off('load');
 							window.clearInterval(page.getIframe().timer);
 						}
 						page.getIframe().detach();

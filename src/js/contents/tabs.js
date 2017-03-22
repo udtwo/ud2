@@ -99,12 +99,6 @@ ud2.libExtend(function (inn, ud2) {
 					return details;
 				}
 			}
-			// 页面类型操作
-			// () 获取页面类型
-			// - return [number]: 返回类型编号
-			function pageTypeOperate() {
-				return pageType;
-			}
 			// 将对象加入到选项卡控件中
 			// whichTabs[ud2.tabs]: 选项卡控件
 			// return[ud2.tabs.page]: 返回该选项页对象
@@ -169,6 +163,12 @@ ud2.libExtend(function (inn, ud2) {
 			function getIframe() {
 				return $iframe;
 			}
+			// 页面类型操作
+			// () 获取页面类型
+			// - return [number]: 返回类型编号
+			function getPageType() {
+				return pageType;
+			}
 
 			// 初始化
 			(function init() {
@@ -232,7 +232,7 @@ ud2.libExtend(function (inn, ud2) {
 									}
 								}, 500);
 							});
-						}			
+						}
 						break;
 					}
 				}
@@ -246,8 +246,8 @@ ud2.libExtend(function (inn, ud2) {
 				getTabLink: getTabLink,
 				getContent: getContent,
 				getIframe: getIframe,
+				getPageType: getPageType,
 				openState: openState,
-				pageType: pageTypeOperate,
 				title: titleOperate,
 				details: detailsOperate,
 				tabsIn: tabsIn,
@@ -635,7 +635,7 @@ ud2.libExtend(function (inn, ud2) {
 					page.event.off();
 					page.closeEvent.off();
 					// 移除iframe
-					if (page.pageType() === 1) {
+					if (page.getPageType() === 1) {
 						if (ud2.support.apple) {
 							page.getIframe().off('load');
 							window.clearInterval(page.getIframe().timer);
@@ -844,7 +844,5 @@ ud2.libExtend(function (inn, ud2) {
 			html: 0,
 			url: 1
 		};
-
 	});
-
 });

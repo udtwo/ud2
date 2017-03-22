@@ -228,7 +228,7 @@ ud2.libExtend(function (inn, ud2) {
 									var h = $iframe.contents().find('body').height();
 									if (!$iframe.h || h !== $iframe.h) {
 										$iframe.h = h;
-										$iframe.h(h);
+										$iframe.height(h);
 									}
 								}, 500);
 							});

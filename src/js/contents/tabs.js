@@ -248,7 +248,7 @@ ud2.libExtend(function (inn, ud2) {
 				getContent: getContent,
 				getIframe: getIframe,
 				openState: openState,
-				pageType: pageType,
+				pageType: pageTypeOperate,
 				title: titleOperate,
 				details: detailsOperate,
 				tabsIn: tabsIn,

@@ -44,8 +44,8 @@ ud2.libExtend(function (inn, ud2) {
 				pageObj = { tabs: null },
 				// 类型    标题    详情     是否包含关闭按钮 页名称
 				pageType, title, details, btnClose, name,
-				// 选项卡对象 内容对象 菜单项
-				$tab, $content, $tabLink,
+				// 选项卡对象 内容对象 iframe对象 菜单项
+				$tab, $content, $iframe, $tabLink,
 				// 显示状态
 				isOpen = false;
 
@@ -98,6 +98,12 @@ ud2.libExtend(function (inn, ud2) {
 				else {
 					return details;
 				}
+			}
+			// 页面类型操作
+			// () 获取页面类型
+			// - return [number]: 返回类型编号
+			function pageTypeOperate() {
+				return pageType;
 			}
 			// 将对象加入到选项卡控件中
 			// whichTabs[ud2.tabs]: 选项卡控件
@@ -157,10 +163,15 @@ ud2.libExtend(function (inn, ud2) {
 			function getContent() {
 				return $content;
 			}
+			// 获取框架内容对象
+			// 紧当类型为1时有效
+			// return[jquery]: 返回框架内容对象
+			function getIframe() {
+				return $iframe;
+			}
 
 			// 初始化
 			(function init() {
-
 				if (len === 1 && ud2.type.isObject(argObj = args[0])) {
 					pageType = argObj.type;
 					name = argObj.name;
@@ -207,20 +218,25 @@ ud2.libExtend(function (inn, ud2) {
 						break;
 					}
 					case 1: {
-						$content.append('<iframe id="' + name + '" name="' + name + '" src="' + details + '" />').addClass('iframe');
+						$iframe = $('<iframe id="' + name + '" name="' + name + '" src="' + details + '" />');
+						$content.append($iframe).addClass('iframe');
 						// 通过此项设置让apple中的iframe正常滚动
 						if (ud2.support.apple) {
-							$content.css({
-								'-webkit-overflow-scrolling': 'touch',
-								'overflow-y': 'scroll'
+							$content.css({ '-webkit-overflow-scrolling': 'touch', 'overflow-y': 'scroll' });
+							$iframe.event.on('load', function () {
+								$iframe.timer = window.setInterval(function () {
+									var h = $iframe.contents().find('body').height();
+									if (!$iframe.h || h !== $iframe.h) {
+										$iframe.h = h;
+										$iframe.h(h);
+									}
+								}, 500);
 							});
+
 						}
 						break;
 					}
 				}
-
-				
-
 			}());
 
 			// 返回
@@ -230,7 +246,9 @@ ud2.libExtend(function (inn, ud2) {
 				getTab: getTab,
 				getTabLink: getTabLink,
 				getContent: getContent,
+				getIframe: getIframe,
 				openState: openState,
+				pageType: pageType,
 				title: titleOperate,
 				details: detailsOperate,
 				tabsIn: tabsIn,
@@ -614,9 +632,17 @@ ud2.libExtend(function (inn, ud2) {
 					// 移除元素
 					page.getTab().detach();
 					page.getTabLink().detach();
-					page.getContent().detach();
+					page.getContent().detach();				
 					page.event.off();
 					page.closeEvent.off();
+					// 移除iframe
+					if (page.pageType() === 1) {
+						if (ud2.support.apple) {
+							page.getIframe().event.off('load');
+							window.clearInterval(page.getIframe().timer);
+						}
+						page.getIframe().detach();
+					}
 					// 解绑关系
 					page.tabs = null;
 

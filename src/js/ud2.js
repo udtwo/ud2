@@ -121,7 +121,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 				// 判断是否为苹果平台
 				apple: !!u.match(/(ipad|iphone|ipod|macintosh)/i),
 				// 判断是否为安卓平台
-				andjroid: u.indexOf('Android') > -1,
+				android: u.indexOf('Android') > -1,
 				// 判断是否为移动终端
 				mobile: !!u.match(/mobile|mobi|mini/i),
 				// 判断是否支持Touch触摸事件
@@ -2092,7 +2092,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 		});
 
 		// 窗口尺寸改变事件
-		$win.on('resize orientationchange', function () {
+		$win.on('orientationchange resize', function () {
 			if (resizeDelayTimer) window.clearTimeout(resizeDelayTimer);
 			resizeDelayTimer = window.setTimeout(function () {
 				var w = $win.width(), h = $win.height();

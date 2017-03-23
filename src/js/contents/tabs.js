@@ -225,11 +225,8 @@ ud2.libExtend(function (inn, ud2) {
 							$content.css({ '-webkit-overflow-scrolling': 'touch', 'overflow-y': 'scroll' });
 							$iframe.on('load', function () {
 								$iframe.timer = window.setInterval(function () {
-									var h = $iframe.contents().find('body').height();
-									if (!$iframe.h || h !== $iframe.h) {
-										$iframe.h = h;
-										$iframe.height(h);
-									}
+									var h = $iframe.contents().find('body').outerHeight();
+									if (!$iframe.h || h !== $iframe.h) { $iframe.h = h; $iframe.height(h); }
 								}, 500);
 							});
 						}

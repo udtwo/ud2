@@ -1,27 +1,29 @@
 {
 	"name": "ud2",
 	"description": "ud2 controls library",
-	"version": "1.0.0",
+	"version": "1.0.3",
 	"authors": [ "Peak" ],
 	"private": false,
-	"keywords": [ "js", "css", "ud2" ],
+	"keywords": [ "javascript", "css", "ud2", "library" ],
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "http://udtwo.com/"
+		"url": "git+https://github.com/udtwo/ud2.git"
 	},
+	"files": [
+		"/src/",
+		"/test/",
+		"/dist/",
+		"/vendor/",
+		"bower.json",
+		"package.json",
+		"license",
+		"readme.md"
+	],
+	"main": "dist/js/ud2.js",
 	"dependencies": {
 		"jquery": "3.1.1"
 	},
-	"ignore": [
-		"/*",
-		"!bower.json",
-		"!license.txt",
-		"!readme.md",
-		"!/src/",
-		"!/test/",
-		"!/dist/"
-	],
 	"devDependencies": {
 		"grunt": "1.0.1",
 		"grunt-contrib-copy": "1.0.0",

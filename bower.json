@@ -1,0 +1,24 @@
+{
+	"name": "ud2",
+	"description": "ud2 controls library",
+	"version": "1.0.3",
+	"authors": [ "Peak" ],
+	"private": false,
+	"keywords": [ "javascript", "css", "ud2", "library" ],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/udtwo/ud2.git"
+	},
+	"ignore": [
+		"/*",
+		"!/src/",
+		"!/test/",
+		"!/dist/",
+		"!/vendor/",
+		"!license",
+		"!bower.json",
+		"!package.json",
+		"!readme.md"
+	]
+}

@@ -309,6 +309,11 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 					'focus', 'blur', 'click'];
 
 			arr[20] = [arr[0], arr[4], arr[8]].join(' ');
+			// JQuery替代focus的事件，支持冒泡
+			arr[21] = 'focusin';
+			arr[22] = 'focusout';
+			// 点击边缘或其他元素获取焦点时，关闭控件的事件名称组合
+			arr[23] = [arr[0], arr[4], arr[8], arr[21]].join(' ');
 			return arr;
 		}()),
 		// 键盘编码
@@ -1306,7 +1311,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 					}
 				}
 			}
-			// 临时遮罩阻止touch穿透行为
+			// [弃用]临时遮罩阻止touch穿透行为
 			// ?? 取消此方法的使用，原使用在 ??#1处
 			function temporaryMask() {
 				if (!support.mobile) return;
@@ -1334,6 +1339,8 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 
 			// #region 事件回调及处理
 
+			// 阻止默认行为的处理函数
+			// event[eventObject]: 事件对象
 			function preventHandler(event) {
 				var $target = $(event.target), targetName = $target.prop('tagName').toLowerCase();
 				if (targetName !== 'input' && targetName !== 'textarea') {
@@ -1418,7 +1425,6 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			// eventStart事件触发函数
 			// event[eventObject]: 事件对象
 			function eventStart(event) {
-				preventHandler(event);
 				if (stopPropagation) event.stopPropagation();
 
 				var // 事件类型
@@ -1429,6 +1435,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 					touches;
 
 				if (type === 'touchstart') {
+					preventHandler(event);
 					touches = o.changedTouches;
 
 					// 当触点集合长度为0，则添加move、end、cancel事件监听
@@ -1665,7 +1672,8 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 				} else {
 					if (pointer) {
 						origin.off(anEvent[0], pointerDown);
-					} else {
+					}
+					else {
 						origin.off(anEvent[4] + ' ' + anEvent[8], eventStart);
 					}
 
@@ -2072,16 +2080,14 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 
 			// 当用户触碰屏幕且未触碰任何有价值(无效触碰)控件时，执行页面触碰按下的事件回调
 			// 用途是解决部分控件当触碰控件外时执行相应回调方法
-			$dom.on(anEvent[20], function (event) {
+			$dom.on(anEvent[23], function (event) {
 				var typeName = 'ctrlCloseEvent', type = event.type, domType = $dom.data(typeName);
+				console.log(domType, type, !domType, type === domType);
 				if (!domType || type === domType) {
 					$dom.data(typeName, type);
 					callbacks.autoClose.fire(event.target);
 				}
-				if (type === anEvent[8]) $dom.data(typeName, null);
-			});
-			$dom.on(anEvent[17], 'input, button, .btn, .check, .radio, .textbox', function () {
-				callbacks.autoClose.fire(event.target);
+				if (type === anEvent[8] || type === anEvent[21]) $dom.data(typeName, null);
 			});
 
 			// 默认事件处理

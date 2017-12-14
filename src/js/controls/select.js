@@ -336,14 +336,14 @@ ud2.libExtend(function (inn, ud2) {
 					isSelected = !isDisabled && !!argObj.isSelected;
 				}
 				else {
-					label = args[0] || '未命名选项';
+					label = args[0];
 					value = args[1];
 					isDisabled = !!args[2];
 					isSelected = !isDisabled && !!args[3];
 				}
 				// 未传递参数时，给定默认值
-				label = String(label);
-				value = String(value) || label;
+				label = String(label) || '未命名选项';
+				value = String(value);
 				// 创建选项内容元素
 				$option = inn.jqe[2].clone()
 					.html(label)
@@ -524,7 +524,7 @@ ud2.libExtend(function (inn, ud2) {
 				for (var i = 0, l = $options.length, option; i < l; i++) {
 					var $select = $options.eq(i),
 						name = $options.eq(i).html(),
-						val = $options.eq(i).val() || $options.eq(i).attr('value') || $options.eq(i).attr(cn('value')),
+						val = $options.eq(i).attr('value') || $options.eq(i).attr(cn('value')) || '',
 						disabled = !!($options.eq(i).attr('disabled') !== void 0 && $options.eq(i).attr('disabled') !== 'false'
 							|| $options.eq(i).attr(cn('disabled')) !== void 0 && $options.eq(i).attr(cn('disabled')) !== 'false'),
 						selected = !!($options.eq(i).attr('selected') !== void 0 && $options.eq(i).attr('selected') !== 'false'
@@ -711,7 +711,7 @@ ud2.libExtend(function (inn, ud2) {
 				else {
 					for (i = 0; i < optionValueCollection.length; i++) valArr.push(optionValueCollection[i].val());
 					$value.val(valArr.join(','));
-					return isMultiple ? valArr : valArr[0] ? valArr[0] : null;
+					return isMultiple ? valArr : valArr[0] !== null ? valArr[0] : null;
 				}
 			}
 			// 控件值对象集合操作

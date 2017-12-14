@@ -19,17 +19,25 @@
 			<h5>默认</h5>
 			<p>
 				<select ud2="select">
-					<option value="1">这是一个列表项目1</option>
+					<option value="">这是一个列表项目1</option>
 					<option value="1">这是一个列表项目2</option>
 					<option value="2">这是一个列表项目3</option>
-					<option value="1">这是一个列表项目4</option>
-					<option value="3">这是一个列表项目5</option>
-					<option value="4">这是一个列表项目6</option>
+					<option value="3">这是一个列表项目4</option>
+					<option value="4">这是一个列表项目5</option>
+					<option value="5">这是一个列表项目6</option>
 					<option value="null">这是一个列表项目7</option>
-					<option value="6">这是一个列表项目8</option>
-					<option value="7">这是一个列表项目9</option>
-					<option value="4">这是一个列表项目0</option>
+					<option>这是一个列表项目8</option>
+					<option ud2-select-value="ud2-select-value">这是一个列表项目9</option>
+					<option value="其他">这是一个列表项目0</option>
 				</select>
+				<script>
+					$(function () {
+						var select = ud2.select.collection[0];
+						select.setChange(function (value) {
+							ud2.message.info('您选择了' + value + '值');
+						});
+					});
+				</script>
 			</p>
 
 			<hr class="hr" />

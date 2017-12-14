@@ -2082,7 +2082,6 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			// 用途是解决部分控件当触碰控件外时执行相应回调方法
 			$dom.on(anEvent[23], function (event) {
 				var typeName = 'ctrlCloseEvent', type = event.type, domType = $dom.data(typeName);
-				console.log(domType, type, !domType, type === domType);
 				if (!domType || type === domType) {
 					$dom.data(typeName, type);
 					callbacks.autoClose.fire(event.target);

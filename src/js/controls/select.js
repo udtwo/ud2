@@ -343,7 +343,7 @@ ud2.libExtend(function (inn, ud2) {
 				}
 				// 未传递参数时，给定默认值
 				label = String(label) || '未命名选项';
-				value = String(value);
+				if (value !== null) value = String(value);
 				// 创建选项内容元素
 				$option = inn.jqe[2].clone()
 					.html(label)
@@ -524,11 +524,16 @@ ud2.libExtend(function (inn, ud2) {
 				for (var i = 0, l = $options.length, option; i < l; i++) {
 					var $select = $options.eq(i),
 						name = $options.eq(i).html(),
-						val = $options.eq(i).attr('value') || $options.eq(i).attr(cn('value')) || '',
+						attrVal = $options.eq(i).attr('value'),
+						attrPrivateVal = $options.eq(i).attr(cn('value')),
+						val = attrPrivateVal === void 0
+							? attrVal === void 0 ? null : attrVal
+							: attrPrivateVal,
 						disabled = !!($options.eq(i).attr('disabled') !== void 0 && $options.eq(i).attr('disabled') !== 'false'
 							|| $options.eq(i).attr(cn('disabled')) !== void 0 && $options.eq(i).attr(cn('disabled')) !== 'false'),
 						selected = !!($options.eq(i).attr('selected') !== void 0 && $options.eq(i).attr('selected') !== 'false'
 							|| $options.eq(i).attr(cn('selected')) !== void 0 && $options.eq(i).attr(cn('selected')) !== 'false');
+					console.log(attrVal, attrPrivateVal, val);
 
 					option = constructor.option(name, val, disabled, selected);
 					if (noGroup) {

@@ -433,8 +433,8 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			else {
 				name = String(name);
 				opt = control.userOptions[name];
-				if (opt === void 0) opt = control.getOriginAttr(name, 1);
 				if (opt === void 0) opt = control.getOriginAttr(name);
+				if (opt === void 0) opt = control.getOriginAttr(name, 1);
 				return opt;
 			}
 		}

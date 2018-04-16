@@ -43,7 +43,8 @@ ud2.libExtend(function (inn, ud2) {
 				width: 120,
 				// 单元格的最小宽度，通过flex压缩不能小于此宽度
 				minWidth: 50,
-				// 0 normal 1 flex 2 left 3 right
+				// 0 normal   1 flex       2 left   3 right
+				// 默认单元格  固定宽度单元格  左侧固定  右侧固定
 				mode: 1,
 				// 0 左侧 1 剧中 2 右侧
 				align: 0
@@ -80,7 +81,7 @@ ud2.libExtend(function (inn, ud2) {
 					// 初始化是否开启鼠标滑上背景改变颜色
 					isHover = inn.boolCheck(options.hover, true);
 					// 初始化鼠标滑上时的背景颜色
-					hoverColor = options.hoverColor || '#EDF7FF';
+					hoverColor = options.hoverColorv || '#EDF7FF';
 					// 初始化选中行
 					isSelected = inn.boolCheck(options.selected, false);
 					// 初始化多选

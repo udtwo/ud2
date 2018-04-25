@@ -533,7 +533,6 @@ ud2.libExtend(function (inn, ud2) {
 							|| $options.eq(i).attr(cn('disabled')) !== void 0 && $options.eq(i).attr(cn('disabled')) !== 'false'),
 						selected = !!($options.eq(i).attr('selected') !== void 0 && $options.eq(i).attr('selected') !== 'false'
 							|| $options.eq(i).attr(cn('selected')) !== void 0 && $options.eq(i).attr(cn('selected')) !== 'false');
-					console.log(attrVal, attrPrivateVal, val);
 
 					option = constructor.option(name, val, disabled, selected);
 					if (noGroup) {

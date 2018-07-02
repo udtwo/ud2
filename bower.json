@@ -1,14 +1,14 @@
 {
 	"name": "ud2",
 	"description": "ud2 library",
-	"version": "1.0.8",
-	"authors": [ "Peak", "Toad" ],
+	"version": "1.0.9",
+	"authors": [ "Peak" ],
 	"private": false,
 	"keywords": [ "js", "css", "ud2" ],
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "http://udtwo.com/"
+		"url": "http://ud2.udtwo.com/"
 	},
 	"dependencies": {
 		"jquery": "3.3.1"

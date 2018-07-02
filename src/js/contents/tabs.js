@@ -652,9 +652,11 @@ ud2.libExtend(function (inn, ud2) {
 						page.openState(0);
 						if (index > 0) {
 							pageOpenNow = pageCollection[index - 1].openState(1);
+							controlCallbacks.change.call(control.public, pageCollection[index - 1]);
 						}
 						else if (pageCollection.length > 1) {
 							pageOpenNow = pageCollection[1].openState(1);
+							controlCallbacks.change.call(control.public, pageCollection[1]);
 						}
 					}
 					pageCollection.splice(index, 1);

@@ -25,7 +25,7 @@ module.exports = function (grunt) {
 					preserveComments: false,
 					// 头注释
 					banner: '/*! <%= pkg.name %> - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com)\n */\n'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */ '
 				},
 				files: {
 					'dist/js/ud2.js': [
@@ -58,7 +58,7 @@ module.exports = function (grunt) {
 					compress: true,
 					// 头注释
 					banner: '/*! <%= pkg.name %>.css - v<%= pkg.version %>'
-						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com)\n */\n'
+						+ '\n * (c) <%= grunt.template.today("yyyy") %> Peak(peak@udtwo.com) */ '
 				},
 				files: {
 					'dist/css/ud2.css': [

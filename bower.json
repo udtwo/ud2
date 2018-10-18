@@ -1,7 +1,7 @@
 {
 	"name": "ud2",
 	"description": "ud2 library",
-	"version": "1.0.9",
+	"version": "1.0.10",
 	"authors": [ "Peak" ],
 	"private": false,
 	"keywords": [ "js", "css", "ud2" ],

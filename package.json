@@ -8,7 +8,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "http://ud2.udtwo.com/"
+		"url": "http://github.com/udtwo/ud2"
 	},
 	"devDependencies": {
 		"grunt": "1.0.1",

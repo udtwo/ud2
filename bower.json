@@ -6,6 +6,7 @@
 	"private": false,
 	"keywords": [ "js", "css", "ud2" ],
 	"license": "MIT",
+	"homepage": "https://ud2.udtwo.com/",
 	"repository": {
 		"type": "git",
 		"url": "http://github.com/udtwo/ud2"

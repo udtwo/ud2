@@ -278,7 +278,7 @@
 	.keyframesItem('', '', '') {}
 	.vendor-keyframes(@prefix: '', @prehack: @bracketClose) {
 		@beginString: ~'@{prehack}@@{prefix}keyframes @{name}{@{point1}';
-		@{beginString} { .keyframesItem(@name, @point1, e(@prefix)); }
+		@{beginString} { .keyframesItem(@name, @point1, ~'@{prefix}'); }
 		
 		.keyframes-point(@name, @point2, @prefix);
 		.keyframes-point(@name, @point3, @prefix);
@@ -298,9 +298,9 @@
 	}
 
 	.keyframes-point(@name, @point, @prefix) when not (@point = '') {
-		@pointSelector: ~'@{point}'; // cleaning selector from possible quotes
+		@pointSelector: ~'@{point}';
 		@{pointSelector} {
-			.keyframesItem(@name, @point, e(@prefix)); // applying styles provided
+			.keyframesItem(@name, @point, ~'@{prefix}');
 		}
 	}
 

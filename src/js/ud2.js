@@ -314,6 +314,8 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			arr[22] = 'focusout';
 			// 点击边缘或其他元素获取焦点时，关闭控件的事件名称组合
 			arr[23] = [arr[0], arr[4], arr[8], arr[21]].join(' ');
+			// 鼠标移出操作区域或在操作区域内/外释放的相关事件名称组合
+			arr[24] = [arr[10], arr[13]].join(' ');
 			return arr;
 		}()),
 		// 键盘编码
@@ -2137,6 +2139,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 		// 内部方法
 		win: function () { return $win; },
 		body: function () { return $body; },
+		dom: function () { return $dom; },
 		argsToArray: argsToArray,
 		attrValue: getAttrValue,
 		boolCheck: boolCheck,

@@ -9,13 +9,16 @@
 // - (?) hasHorizontal[bool]: 是否开启横滚动条
 // - (?) hasVertical[bool]: 是否开启竖滚动条
 // - (?) barSize[number]: 滚动条尺寸
+// - (?) barSizeOn[number]: 滚动态鼠标滑入时尺寸
 // - (?) barMinLength[number]: 滚动条最小长度
 // - (?) barOffset[number]: 滚动条偏移量
 // - (?) barColor[rgb, rgba]: 滚动条颜色
 // - (?) barColorOn[rgb, rgba]: 滚动条当鼠标滑入时的颜色
+// - (?) barColorDown[rgb, rgba]: 滚动条当鼠标按下时的颜色
 // - (?) barBorderRadiusState[bool]: 滚动条是否为圆角
 // - (?) mouseWheelLength[number]: 滚轮滚动长度
 // - (?) isTouchMode[bool]: 是否开启触摸来控制滚动区域
+// - (?) isMouseNoTouchMode[bool]: 是否开启鼠标操作时关闭TouchMode功能
 // - (?) isMouseWheelMode[bool]: 是否开启滚轮来控制滚动区域
 // - (?) isScrollMode: 是否开启通过滚动条来控制滚动区域
 // - (?) isSlowMovning: 是否缓动
@@ -28,11 +31,13 @@ ud2.libExtend(function (inn, ud2) {
 		// #region 私有字段
 
 		var // 滚动对象
-			scrollObj = {}, cls = inn.prefix + 'scroll', cn = inn.className(cls),
+			scrollObj = {},
+			cls = inn.prefix + 'scroll',
+			cn = inn.className(cls),
 			// 滚动选项
-			recountByResize, barState, barSize, barMinLength, barOffset, barColor, barColorOn,
-			barBorderRadiusState, hasHorizontal, hasVertical, isMouseWheelMode, isTouchMode,
-			isScrollMode, mouseWheelLength, isSlowMovning,
+			recountByResize, barState, barSize, barSizeOn, barMinLength, barOffset, barColor, barColorOn, barColorDown,
+			barBorderRadiusState, hasHorizontal, hasVertical, isMouseWheelMode, isTouchMode, isMouseNoTouchMode,
+			isScrollMode, mouseWheelLength, isSlowMovning, bounce = false,
 			// 默认项
 			options = inn.options({
 				// 设置浏览器尺寸发生改变时是否重新计算滚动区域
@@ -47,20 +52,27 @@ ud2.libExtend(function (inn, ud2) {
 				hasVertical: true,
 				// 滚动条尺寸
 				barSize: 6,
+				// 滚动条鼠标滑入时尺寸
+				barSizeOn: 8,
 				// 滚动条最小长度
 				barMinLength: 30,
 				// 滚动条偏移量
 				barOffset: 1,
 				// 滚动条颜色
-				barColor: 'rgba(0,0,0,.4)',
+				barColor: 'rgba(0,0,0,.3)',
 				// 滚动条当鼠标滑入时的颜色
-				barColorOn: 'rgba(0,0,0,.6)',
+				barColorOn: 'rgba(0,0,0,.45)',
+				// 滚动条当鼠标按下时的颜色
+				barColorDown: 'rgba(0,0,0,.6)',
 				// 滚动条是否为圆角
 				barBorderRadiusState: true,
 				// 滚轮滚动长度
 				mouseWheelLength: 'normal',
 				// 是否开启触摸来控制滚动区域
 				isTouchMode: true,
+				// 是否开启自动判断鼠标操作时关闭TouchMode功能
+				// 用于鼠标操作滚动容器时，无法进行内容容器滚动，这样可以让鼠标操作内容容器内部元素
+				isMouseNoTouchMode: false,
 				// 是否开启滚轮来控制滚动区域
 				isMouseWheelMode: true,
 				// 是否开启通过滚动条来控制滚动区域
@@ -71,15 +83,18 @@ ud2.libExtend(function (inn, ud2) {
 				recountByResize = options.recountByResize;
 				barState = options.barState;
 				barSize = options.barSize;
+				barSizeOn = options.barSizeOn;
 				barMinLength = options.barMinLength;
 				barOffset = options.barOffset;
 				barColor = options.barColor;
 				barColorOn = options.barColorOn;
+				barColorDown = options.barColorDown;
 				barBorderRadiusState = options.barBorderRadiusState;
 				hasHorizontal = options.hasHorizontal;
 				hasVertical = options.hasVertical;
 				isMouseWheelMode = options.isMouseWheelMode;
 				isTouchMode = options.isTouchMode;
+				isMouseNoTouchMode = options.isMouseNoTouchMode;
 				isScrollMode = options.isScrollMode;
 				mouseWheelLength = options.mouseWheelLength;
 				isSlowMovning = options.isSlowMovning;
@@ -114,11 +129,13 @@ ud2.libExtend(function (inn, ud2) {
 				moved: false,
 				// 触点开始移动记录点
 				startMove: {
-					x: 0, y: 0
+					x: 0,
+					y: 0
 				},
 				// 触点上次的移动距离
 				lastMove: {
-					x: 0, y: 0
+					x: 0,
+					y: 0
 				}
 			},
 			// 是否正在滚动
@@ -149,7 +166,8 @@ ud2.libExtend(function (inn, ud2) {
 				sw: 0,
 				// 盒子当前移动的距离
 				now: {
-					x: 0, y: 0
+					x: 0,
+					y: 0
 				},
 				// 当前是否处于触点移动中
 				isMoved: false
@@ -204,7 +222,7 @@ ud2.libExtend(function (inn, ud2) {
 				size;
 
 			// 如果开启竖滚动条
-			if (options.hasVertical) {
+			if (hasVertical) {
 				// 获取外层对象高度
 				wrapperHeight = $wrapper.height();
 				scrollHeight = $scroll.height();
@@ -216,14 +234,14 @@ ud2.libExtend(function (inn, ud2) {
 				if (scrollData.now.y < -scrollData.sh) scrollData.now.y = -scrollData.sh;
 
 				// 最大滚动高度
-				maxScrollBarHeight = scrollData.ih - 2 * options.barOffset;
+				maxScrollBarHeight = scrollData.ih - 2 * barOffset;
 
 				// 计算滚动条高度
 				if (scrollHeight !== 0) {
 					size = scrollData.sh / (scrollData.ih * 5);
 					size = 1 - (size > 1 ? 1 : size);
 					barHeight = maxScrollBarHeight * size;
-					barHeight = barHeight < options.barMinLength ? options.barMinLength : barHeight;
+					barHeight = barHeight < barMinLength ? barMinLength : barHeight;
 					barHeight = barHeight > maxScrollBarHeight ? maxScrollBarHeight : barHeight;
 
 					barData.h = barHeight;
@@ -234,7 +252,7 @@ ud2.libExtend(function (inn, ud2) {
 				}
 			}
 			// 如果开启横滚动条
-			if (options.hasHorizontal) {
+			if (hasHorizontal) {
 				// 获取外层对象宽度
 				wrapperWidth = $wrapper.width();
 				scrollWidth = $scroll.width();
@@ -246,14 +264,14 @@ ud2.libExtend(function (inn, ud2) {
 				if (scrollData.now.x < -scrollData.sw) scrollData.now.x = -scrollData.sw;
 
 				// 最大滚动宽度
-				maxScrollBarWidth = scrollData.iw - 2 * options.barOffset;
+				maxScrollBarWidth = scrollData.iw - 2 * barOffset;
 
 				// 计算滚动条宽度
 				if (scrollWidth !== 0) {
 					size = scrollData.sw / (scrollData.iw * 5);
 					size = 1 - (size > 1 ? 1 : size);
 					barWidth = maxScrollBarWidth * size;
-					barWidth = barWidth < options.barMinLength ? options.barMinLength : barWidth;
+					barWidth = barWidth < barMinLength ? barMinLength : barWidth;
 					barWidth = barWidth > maxScrollBarWidth ? maxScrollBarWidth : barWidth;
 
 					barData.w = barWidth;
@@ -274,7 +292,8 @@ ud2.libExtend(function (inn, ud2) {
 			x = Math.round(+(matrix[12] || matrix[4]));
 			y = Math.round(+(matrix[13] || matrix[5]));
 			return {
-				x: x, y: y
+				x: x,
+				y: y
 			};
 		}
 		// 设置当前滚动状态
@@ -311,7 +330,7 @@ ud2.libExtend(function (inn, ud2) {
 		}
 		// 开启滚动条
 		function barOpen() {
-			if (options.barState === 0) {
+			if (barState === 0) {
 				if (barData.timer) window.clearTimeout(barData.timer);
 				$barHorizontal.stop().fadeIn(200);
 				$barVertical.stop().fadeIn(200);
@@ -319,7 +338,7 @@ ud2.libExtend(function (inn, ud2) {
 		}
 		// 关闭滚动条
 		function barClose() {
-			if (options.barState === 0) {
+			if (barState === 0) {
 				if (!mouseInBox && !mouseInScroll && !isScrolling) {
 					if (barData.timer) window.clearTimeout(barData.timer);
 					barData.timer = window.setTimeout(function () {
@@ -385,10 +404,11 @@ ud2.libExtend(function (inn, ud2) {
 			translateTimingFunction(e);
 			translateTime(time);
 			$wrapper.css('transform', 'translate(' + x + 'px, ' + y + 'px)' + (ud2.support.perspective ? ' translateZ(0)' : ''));
-			if (options.hasVertical) $barVertical.css('transform', 'translate(0, ' + getBarPositionByScrollPosition(-y, 1) + 'px)' + (ud2.support.perspective ? ' translateZ(0)' : ''));
-			if (options.hasHorizontal) $barHorizontal.css('transform', 'translate(' + getBarPositionByScrollPosition(-x, 0) + 'px, 0)' + (ud2.support.perspective ? ' translateZ(0)' : ''));
+			if (hasVertical) $barVertical.css('transform', 'translate(0, ' + getBarPositionByScrollPosition(-y, 1) + 'px)' + (ud2.support.perspective ? ' translateZ(0)' : ''));
+			if (hasHorizontal) $barHorizontal.css('transform', 'translate(' + getBarPositionByScrollPosition(-x, 0) + 'px, 0)' + (ud2.support.perspective ? ' translateZ(0)' : ''));
 			scrollData.now = {
-				x: x, y: y
+				x: x,
+				y: y
 			};
 
 			len = followers.length;
@@ -431,7 +451,8 @@ ud2.libExtend(function (inn, ud2) {
 		}
 		// 更新跟随控件位置
 		function followerPosition() {
-			if (followers.length > 0) for (var i in followers) followers[i].recountPosition();
+			if (followers.length > 0)
+				for (var i in followers) followers[i].recountPosition();
 		}
 
 		// #endregion
@@ -473,8 +494,7 @@ ud2.libExtend(function (inn, ud2) {
 			if (state !== void 0) {
 				isOplock = !!state;
 				return scrollObj;
-			}
-			else {
+			} else {
 				return isOplock;
 			}
 		}
@@ -506,8 +526,8 @@ ud2.libExtend(function (inn, ud2) {
 		// #region 事件处理对象和相关方法
 
 		// 触点按下时触发的事件
-		function pointerDown() {
-			if (isOplock) return;
+		function pointerDown(e) {
+			if (isMouseNoTouchMode && e.type === inn.an.event[8] || isOplock) return;
 			followerPosition();
 			getScrollData();
 			barOpen();
@@ -518,47 +538,53 @@ ud2.libExtend(function (inn, ud2) {
 			mainPointer.moved = false;
 			mainPointer.start = ud2.time();
 			mainPointer.startMove = {
-				x: scrollData.now.x, y: scrollData.now.y
+				x: scrollData.now.x,
+				y: scrollData.now.y
 			};
 			mainPointer.lastMove = {
-				x: 0, y: 0
+				x: 0,
+				y: 0
 			};
 		}
 		// 触点移动时触发的事件
 		// move[moveObject]: 移动数据对象
-		function pointerMove(move) {
-			if (isOplock) return;
+		function pointerMove(move, e) {
+			if (isMouseNoTouchMode && e.type === inn.an.event[9] || isOplock) return;
 
 			var // 本次触点移动的时间标记
 				timeStamp = ud2.time(),
 				// 从触点按下到当前函数触发时的移动长度
-				x = move.x, y = move.y,
+				x = move.x,
+				y = move.y,
 				// 从触点按下到当前函数触发时的绝对长度
-				absX = Math.abs(x), absY = Math.abs(y),
+				absX = Math.abs(x),
+				absY = Math.abs(y),
 				// 移动增量
 				deltaX = x - mainPointer.lastMove.x,
 				deltaY = y - mainPointer.lastMove.y,
 				// 移动长度
-				newX = 0, newY = 0;
+				newX = 0,
+				newY = 0;
 
 			// 设置当前滚动状态为滚动中
 			barOpen();
 			// 记录最后 move 方法移动的坐标点
 			mainPointer.lastMove = {
-				x: x, y: y
+				x: x,
+				y: y
 			};
 
 			// 设置移动启动长度
-			if (timeStamp - mainPointer.end > 300
-				&& absX < touchStartMinLength
-				&& absY < touchStartMinLength) return;
+			if (timeStamp - mainPointer.end > 300 &&
+				absX < touchStartMinLength &&
+				absY < touchStartMinLength) return;
 
 			// 标记启动
 			if (!mainPointer.moved) mainPointer.moved = true;
 
 			// 计算移动距离
-			if (options.hasVertical) newY = deltaY + scrollData.now.y;
-			if (options.hasHorizontal) newX = deltaX + scrollData.now.x;
+			if (hasVertical) newY = deltaY + scrollData.now.y;
+			if (hasHorizontal) newX = deltaX + scrollData.now.x;
 			if (deltaX !== 0 || deltaY !== 0) translateMove(newX, newY);
 
 			// 重置启动点
@@ -569,15 +595,20 @@ ud2.libExtend(function (inn, ud2) {
 			}
 		}
 		// 触点抬起时触发的事件
-		function pointerUp() {
-			if (isOplock) return;
+		function pointerUp(e) {
+			if (isMouseNoTouchMode && e.type === inn.an.event[10] ||
+				isMouseNoTouchMode && e.type === inn.an.event[13] ||
+				isOplock) return;
 
 			var // 当前坐标
-				x = scrollData.now.x, y = scrollData.now.y,
+				x = scrollData.now.x,
+				y = scrollData.now.y,
 				// 移动长度
-				newX = x, newY = y,
+				newX = x,
+				newY = y,
 				// 动量
-				momentumX = null, momentumY = null,
+				momentumX = null,
+				momentumY = null,
 				// 时长
 				duration = ud2.time() - mainPointer.start,
 				// 运动时间
@@ -592,20 +623,21 @@ ud2.libExtend(function (inn, ud2) {
 			barClose();
 
 			// 如果未移动直接跳出
-			if (!mainPointer.moved || !options.isSlowMovning) return;
+			if (!mainPointer.moved || !isSlowMovning) return;
 
 			// 当延迟小于300ms则进行延迟滚动特效
 			if (duration < 300) {
-				var timeX = 0, timeY = 0;
-				if (options.hasVertical) {
+				var timeX = 0,
+					timeY = 0;
+				if (hasVertical) {
 					momentumY = momentum(y, mainPointer.startMove.y, duration, scrollData.sh,
-					options.bounce ? scrollData.h : 0);
+						bounce ? scrollData.h : 0);
 					newY = momentumY.destination;
 					timeY = momentumY.duration;
 				}
-				if (options.hasHorizontal) {
+				if (hasHorizontal) {
 					momentumX = momentum(x, mainPointer.startMove.x, duration, scrollData.sw,
-					options.bounce ? scrollData.w : 0);
+						bounce ? scrollData.w : 0);
 					newX = momentumX.destination;
 					timeX = momentumX.duration;
 				}
@@ -649,24 +681,22 @@ ud2.libExtend(function (inn, ud2) {
 			mouseInScroll = true;
 			barOpen();
 			followerPosition();
-			$(this).css('background', options.barColorOn);
 		}
 		// 滚动条被释放时触发的事件
 		function scrollUp() {
 			mouseInScroll = false;
 			barClose();
-			$(this).css('background', options.barColor);
 		}
 		// 滚动条被按下并拖拽时触发的事件
 		// move[number]: 滚动条滚动方向及长度
 		// direction[bool]: 滚动方向
 		function scrollMove(move, direction) {
-			var x = direction
-						? scrollData.now.x
-						: getScrollPositionByBarPosition(-(move.x - this.move), 0) + scrollData.now.x,
-				y = direction
-						? getScrollPositionByBarPosition(-(move.y - this.move), 1) + scrollData.now.y
-						: scrollData.now.y;
+			var x = direction ?
+				scrollData.now.x :
+				getScrollPositionByBarPosition(-(move.x - this.move), 0) + scrollData.now.x,
+				y = direction ?
+				getScrollPositionByBarPosition(-(move.y - this.move), 1) + scrollData.now.y :
+				scrollData.now.y;
 
 			if (direction) {
 				this.move = move.y;
@@ -676,13 +706,52 @@ ud2.libExtend(function (inn, ud2) {
 
 			translateMove(x, y);
 		}
+
+		// 鼠标操作滚动条事件绑定
+		// 用于检测鼠标当前对滚动条进行的具体操作，从而产生不同滚动条的视觉效果
+		function bindScrollMouseEvent($me) {
+			var // 鼠标按下标识   鼠标移入标识
+				isDown = false,
+				isEnter = false,
+				// 判断滚动条是水平或垂直滚动条
+				isWH = $me === $barHorizontal ? 'height' : 'width';
+
+			function leave(e) {
+				e.stopPropagation();
+
+				isDown = false;
+				if (!isEnter) {
+					$me.css('background', barColor).css(isWH, barSize);
+					if (barBorderRadiusState) $me.css('border-radius', barSize / 2);
+				} else $me.css('background', barColorOn);
+				inn.dom().off(inn.an.event[24], leave);
+			}
+
+			$me.on(inn.an.event[12], function () {
+				isEnter = true;
+				$me.css('background', barColorOn).css(isWH, barSizeOn);
+				if (barBorderRadiusState) $me.css('border-radius', barSizeOn / 2);
+			}).on(inn.an.event[13], function () {
+				isEnter = false;
+				if (!isDown) {
+					$me.css('background', barColor).css(isWH, barSize);
+					if (barBorderRadiusState) $me.css('border-radius', barSize / 2);
+				}
+			}).on(inn.an.event[8], function () {
+				isDown = true;
+				$me.css('background', barColorDown);
+				inn.dom().on(inn.an.event[24], leave);
+			});
+
+		}
 		// 事件绑定
 		function bindEvent() {
+
 			// 绑定屏幕尺寸变化的事件
-			if (options.recountByResize) ud2.callbacks.pageResize.add(recountPosition);
+			if (recountByResize) ud2.callbacks.pageResize.add(recountPosition);
 
 			// 鼠标在滑入滑出滚动区域时滚动条的显示处理
-			if (options.barState === 0) {
+			if (barState === 0) {
 				$scroll.on(inn.an.event[12], function () {
 					getScrollData();
 					mouseInBox = true;
@@ -692,7 +761,7 @@ ud2.libExtend(function (inn, ud2) {
 					barClose();
 				});
 			}
-			if (options.barState === 1) {
+			if (barState === 1) {
 				$scroll.on(inn.an.event[12], function () {
 					getScrollData();
 					mouseInBox = true;
@@ -703,23 +772,36 @@ ud2.libExtend(function (inn, ud2) {
 			}
 
 			// 绑定事件
-			if (options.isTouchMode) {
-				ud2.event($scroll, { stopPropagation: true })
+			if (isTouchMode) {
+				ud2.event($scroll, {
+						stopPropagation: true
+					})
 					.setDown(pointerDown)
 					.setUp(pointerUp)
 					.setPan(pointerMove);
 			}
-			if (options.isMouseWheelMode) {
+			if (isMouseWheelMode) {
 				ud2.eventMouseWheel($scroll).setScroll(mouseWheel);
 			}
-			if (options.isScrollMode) {
+			if (isScrollMode) {
+				bindScrollMouseEvent($barVertical);
+				bindScrollMouseEvent($barHorizontal);
+
 				// 通过滚动条滑动来控制当前容器的移动距离
-				ud2.event($barVertical, { stopPropagation: true })
-					.setPan(function (move) { scrollMove.call(this, move, 1); })
+				ud2.event($barVertical, {
+						stopPropagation: true
+					})
+					.setPan(function (move) {
+						scrollMove.call(this, move, 1);
+					})
 					.setDown(scrollDown)
 					.setUp(scrollUp);
-				ud2.event($barHorizontal, { stopPropagation: true })
-					.setPan(function (move) { scrollMove.call(this, move, 0); })
+				ud2.event($barHorizontal, {
+						stopPropagation: true
+					})
+					.setPan(function (move) {
+						scrollMove.call(this, move, 0);
+					})
 					.setDown(scrollDown)
 					.setUp(scrollUp);
 			}
@@ -755,10 +837,10 @@ ud2.libExtend(function (inn, ud2) {
 			// (!HACK) 此处当$wrapper.css('padding')获取值的时候，EDGE浏览器获取的值为空
 			// 进而分别试用top/bottom/left/right来获取padding值
 			$wrapper.css('padding',
-				$scroll.css('padding-top')
-				+ ' ' + $scroll.css('padding-right')
-				+ ' ' + $scroll.css('padding-bottom')
-				+ ' ' + $scroll.css('padding-left'));
+				$scroll.css('padding-top') +
+				' ' + $scroll.css('padding-right') +
+				' ' + $scroll.css('padding-bottom') +
+				' ' + $scroll.css('padding-left'));
 
 			// 对$scroll添加.ud2-scroll类(滚动条基础样式)
 			$scroll.addClass(cls);
@@ -766,14 +848,30 @@ ud2.libExtend(function (inn, ud2) {
 			// 添加滚动条并设置尺寸
 			if (hasVertical) {
 				$scroll.prepend($barVertical);
-				$wrapper.css({ 'height': 'auto', 'min-height': '100%' });
+				$wrapper.css({
+					'height': 'auto',
+					'min-height': '100%'
+				});
 			}
 			if (hasHorizontal) {
 				$scroll.prepend($barHorizontal);
-				$wrapper.css({ 'width': 'auto', 'min-width': '100%' });
+				$wrapper.css({
+					'width': 'auto',
+					'min-width': '100%'
+				});
 			}
-			$barVertical.css({ 'top': barOffset, 'right': barOffset, 'width': barSize, 'background': barColor });
-			$barHorizontal.css({ 'left': barOffset, 'bottom': barOffset, 'height': barSize, 'background': barColor });
+			$barVertical.css({
+				'top': barOffset,
+				'right': barOffset,
+				'width': barSize,
+				'background': barColor
+			});
+			$barHorizontal.css({
+				'left': barOffset,
+				'bottom': barOffset,
+				'height': barSize,
+				'background': barColor
+			});
 			if (barBorderRadiusState) {
 				$barVertical.css('border-radius', barSize / 2);
 				$barHorizontal.css('border-radius', barSize / 2);

@@ -220,20 +220,6 @@ ud2.libExtend(function (inn, ud2) {
 					case 1: {
 						$iframe = $('<iframe id="' + name + '" name="' + name + '" src="' + details + '" />');
 						$content.append($iframe).addClass('iframe');
-						// 通过此项设置让apple中的iframe正常滚动
-						if (ud2.support.apple) {
-							$content.css({ '-webkit-overflow-scrolling': 'touch', 'overflow-y': 'scroll' });
-							
-							$iframe.on('load', function () {
-								$iframe.h = null;
-								$iframe.css('height', '');
-								window.clearInterval($iframe.timer);
-								$iframe.timer = window.setInterval(function () {
-									var h = $iframe.contents().find('body').outerHeight();
-									if (!$iframe.h || h !== $iframe.h) { $iframe.h = h; $iframe.height(h); }
-								}, 500);
-							});
-						}
 						break;
 					}
 				}
@@ -497,7 +483,7 @@ ud2.libExtend(function (inn, ud2) {
 					type = inn.attrValue(p, 'page-type', cls);
 					name = inn.attrValue(p, 'page-name', cls);
 					title = inn.attrValue(p, 'page-title', cls);
-					content = p.html();
+					content = p;
 					btnClose = inn.attrValue(p, 'page-btn-close', cls, 1);
 					openState = inn.boolCheck(inn.attrValue(p, 'page-open', cls, 0), 0);
 					pageAdd(constructor.page({ type: type, title: title, name: name, details: content, btnClose: btnClose }), openState);

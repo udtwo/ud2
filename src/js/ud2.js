@@ -1,6 +1,4 @@
-﻿/// <reference path="../../vendor/js/jquery.js" />
-
-if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
+﻿if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 (function (window, $) {
 	'use strict';
 
@@ -294,19 +292,19 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			// 文档发生按键抬起时的回调对象
 			keyUp: $.Callbacks()
 		},
-		
+
 		// 位置名称组合
 		anPos = ['center', 'full-screen', 'top-left', 'top-right', 'top-center', 'bottom-left', 'bottom-right', 'bottom-center'],
 		// 事件名称组合
-		anEvent = (function(){
+		anEvent = (function () {
 			var arr = [support.pointer ? 'pointerdown' : 'MSPointerDown',
-					support.pointer ? 'pointermove' : 'MSPointerMove',
-					support.pointer ? 'pointerup' : 'MSPointerUp',
-					support.pointer ? 'pointercancel' : 'MSPointerCancel',
-					'touchstart', 'touchmove', 'touchend', 'touchcancel',
-					'mousedown', 'mousemove', 'mouseup', 'mouseout',
-					'mouseenter', 'mouseleave', 'keydown', 'keypress', 'keyup',
-					'focus', 'blur', 'click'];
+			support.pointer ? 'pointermove' : 'MSPointerMove',
+			support.pointer ? 'pointerup' : 'MSPointerUp',
+			support.pointer ? 'pointercancel' : 'MSPointerCancel',
+				'touchstart', 'touchmove', 'touchend', 'touchcancel',
+				'mousedown', 'mousemove', 'mouseup', 'mouseout',
+				'mouseenter', 'mouseleave', 'keydown', 'keypress', 'keyup',
+				'focus', 'blur', 'click'];
 
 			arr[20] = [arr[0], arr[4], arr[8]].join(' ');
 			// JQuery替代focus的事件，支持冒泡
@@ -589,7 +587,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 	// #endregion
 
 	// #region 公共方法
-	
+
 	// 对象扩展
 	// 将扩展对象属性添加到原对象中
 	// origin[object]: 原对象
@@ -2069,7 +2067,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 	// 初始化
 	(function init() {
 		// 当文档加载完成时的回调方法
-		$dom.ready(function () {
+		$(function () {
 			// 获取 body 对象
 			$body = $('body');
 			// 如果是 Safari 浏览器则为 body 添加 touchstart 事件监听
@@ -2095,7 +2093,7 @@ if (typeof jQuery === 'undefined') throw new Error('ud2库需要JQuery支持');
 			// 消息关闭事件处理
 			$dom.on(anEvent[20], '.message:not([ud2]) .message-close', function () {
 				$(this).parent().remove();
-			});		
+			});
 		});
 
 		// 窗口尺寸改变事件

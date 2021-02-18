@@ -691,12 +691,8 @@ ud2.libExtend(function (inn, ud2) {
 		// move[number]: 滚动条滚动方向及长度
 		// direction[bool]: 滚动方向
 		function scrollMove(move, direction) {
-			var x = direction ?
-				scrollData.now.x :
-				getScrollPositionByBarPosition(-(move.x - this.move), 0) + scrollData.now.x,
-				y = direction ?
-				getScrollPositionByBarPosition(-(move.y - this.move), 1) + scrollData.now.y :
-				scrollData.now.y;
+			var x = direction ? scrollData.now.x : getScrollPositionByBarPosition(-(move.x - this.move), 0) + scrollData.now.x,
+				y = direction ? getScrollPositionByBarPosition(-(move.y - this.move), 1) + scrollData.now.y : scrollData.now.y;
 
 			if (direction) {
 				this.move = move.y;
@@ -773,9 +769,7 @@ ud2.libExtend(function (inn, ud2) {
 
 			// 绑定事件
 			if (isTouchMode) {
-				ud2.event($scroll, {
-						stopPropagation: true
-					})
+				ud2.event($scroll, { stopPropagation: true })
 					.setDown(pointerDown)
 					.setUp(pointerUp)
 					.setPan(pointerMove);
@@ -788,20 +782,12 @@ ud2.libExtend(function (inn, ud2) {
 				bindScrollMouseEvent($barHorizontal);
 
 				// 通过滚动条滑动来控制当前容器的移动距离
-				ud2.event($barVertical, {
-						stopPropagation: true
-					})
-					.setPan(function (move) {
-						scrollMove.call(this, move, 1);
-					})
+				ud2.event($barVertical, { stopPropagation: true })
+					.setPan(function (move) { scrollMove.call(this, move, 1); })
 					.setDown(scrollDown)
 					.setUp(scrollUp);
-				ud2.event($barHorizontal, {
-						stopPropagation: true
-					})
-					.setPan(function (move) {
-						scrollMove.call(this, move, 0);
-					})
+				ud2.event($barHorizontal, { stopPropagation: true })
+					.setPan(function (move) { scrollMove.call(this, move, 0); })
 					.setDown(scrollDown)
 					.setUp(scrollUp);
 			}

@@ -561,8 +561,7 @@ ud2.libExtend(function (inn, ud2) {
 						$check = $emptyCell.clone().addClass('checkbox').css({ textAlign: 'center', width: 38 });
 						$check.html('<input type="checkbox" class="check" />').appendTo($rl);
 						if (mode) {
-							realHeight
-								= mode === 1
+							realHeight = mode === 1
 								? datasHeader.rows.length * cellHeight
 								: datasFooter.rows.length * cellHeight;
 							$check.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });

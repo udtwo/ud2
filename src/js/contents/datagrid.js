@@ -51,7 +51,7 @@ ud2.libExtend(function (inn, ud2) {
 			},
 			// 数据行初始化默认参数
 			rowDefaultOptions = {
-
+				height: 34
 			};
 
 		// 重写集合初始化方法
@@ -66,15 +66,17 @@ ud2.libExtend(function (inn, ud2) {
 				columnsInfo, rowsInfo, columnDefault, rowDefault, cellHeight, height, isHover, hoverColor,
 				// 是否开启选中行 是否支持行多选    空容器占位文本 当前已选择的行序号集合
 				isSelected, isSelectedMultiple, emptyText, selectedRows = [],
+				// 开启横滚动条  开启纵向滚动条
+				hasHorizontal, hasVertical,
 				// 获取用户自定义项
 				options = control.getOptions([
-					'datas', 'datasHeader', 'datasFooter', 'columns', 'columnDefault',
+					'datas', 'datasHeader', 'datasFooter', 'columns', 'columnDefault', 'rowDefault',
 					'cellHeight', 'height', ['hover', 'isHover'], 'hoverColor',
 					['selected', 'isSelected'], ['selectedMultiple', 'isSelectedMultiple'],
-					'emptyText'
+					'emptyText', ['horizontal', 'hasHorizontal'], ['vertical', 'hasVertical']
 				], function (options) {
 					// 初始化单元格高度
-					cellHeight = parseInt(options.cellHeight) || 34;
+					cellHeight = parseInt(options.cellHeight) || rowDefaultOptions.height;
 					// 初始化控件高度
 					// 值为null，则取css高度
 					height = options.height || null;
@@ -89,10 +91,17 @@ ud2.libExtend(function (inn, ud2) {
 					// 初始化替换文本
 					emptyText = options.emptyText || '此处没有任何数据';
 
+					// 初始化是否开启横向滚动条
+					hasHorizontal = inn.boolCheck(options.horizontal, true);
+					// 初始化是否开启纵向滚动条
+					hasVertical = inn.boolCheck(options.vertical, true);
+
 					// 初始化传入数据
 					initDatas(options.datas, options.datasHeader, options.datasFooter);
 					// 初始化列默认对象
 					initColumnDefault(options.columnDefault);
+					// 初始化行默认对象
+					initRowDefault(options.rowDefault);
 					// 初始化列对象
 					initColumns(options.columns);
 					// 初始化行对象
@@ -236,10 +245,16 @@ ud2.libExtend(function (inn, ud2) {
 				}
 			}
 			// 初始化列默认参数对象
-			// optionColumnDefault[object]: options.columnDefault 传入列初始化默认参数
+			// optionsColumnDefault[object]: options.columnDefault 传入列初始化默认参数
 			function initColumnDefault(optionsColumnDefault) {
 				columnDefault = columnDefaultOptions;
 				if (ud2.type.isObject(optionsColumnDefault)) columnDefault = ud2.merge(columnDefault, optionsColumnDefault);
+			}
+			// 初始化行默认参数对象
+			// optionsRowDefault[object]: options.rowDefault 传入列初始化默认参数
+			function initRowDefault(optionsRowDefault) {
+				rowDefault = rowDefaultOptions;
+				if (ud2.type.isObject(optionsRowDefault)) rowDefault = ud2.merge(rowDefault, optionsRowDefault);
 			}
 			// 初始化列
 			// optionsColumns[array]: options.columns 传入列参数
@@ -379,6 +394,7 @@ ud2.libExtend(function (inn, ud2) {
 				// 设置高度
 				heightOperate(height);
 
+				// 设置容器高度
 				$leftHeader.css(h);
 				$leftContent.css(t);
 				$centerHeader.css(h);
@@ -386,15 +402,15 @@ ud2.libExtend(function (inn, ud2) {
 				$rightHeader.css(h);
 				$rightContent.css(t);
 
+				// 设置容器单元格高度
 				$leftHeaderGrid.css({ height: hl });
 				$leftContentGrid.css({ height: cellHeight * rowsInfo.content.length });
-
 				$centerHeaderGrid.css({ height: hl });
 				$centerContentGrid.css({ height: cellHeight * rowsInfo.content.length - 1 });
-
 				$rightHeaderGrid.css({ height: hl });
 				$rightContentGrid.css({ height: cellHeight * rowsInfo.content.length });
 
+				// 设置空行容器高度
 				$noRow.css({ top: hl });
 
 				if (fl) {
@@ -554,16 +570,17 @@ ud2.libExtend(function (inn, ud2) {
 					$rc = $emptyRow.clone().appendTo(centerGrid[mode]);
 					$rr = $emptyRow.clone().appendTo(rightGrid[mode]);
 					// 创建行参数对象
-					row = { $: { left: $rl, center: $rc, right: $rr }, public: { cells: [] } };
+					row = { $: { left: $rl, center: $rc, right: $rr }, public: { cells: [] }, options: rowDefault };
 					arr.push(row);
 					// 判断是否开启选中行，如果开启选中行，则在行中添加一个checkbox来控制行的选中状态
 					if (isSelected && (mode && i === 0 || !mode)) {
 						$check = $emptyCell.clone().addClass('checkbox').css({ textAlign: 'center', width: 38 });
 						$check.html('<input type="checkbox" class="check" />').appendTo($rl);
 						if (mode) {
-							realHeight = mode === 1
-								? datasHeader.rows.length * cellHeight
-								: datasFooter.rows.length * cellHeight;
+							realHeight
+								= mode === 1
+									? datasHeader.rows.length * cellHeight
+									: datasFooter.rows.length * cellHeight;
 							$check.css({ 'height': realHeight, 'line-height': realHeight - 2 + 'px' });
 						}
 						else {
@@ -878,12 +895,13 @@ ud2.libExtend(function (inn, ud2) {
 			function bindEvent() {
 				var // 内容滚动条参数
 					contentScrollOption = {
-						barState: 0,
 						barColor: 'rgba(60, 60, 60, .3)',
-						barColorOn: 'rgba(60, 60, 60, .6)',
+						barColorOn: 'rgba(60, 60, 60, .45)',
+						barColorDown: 'rgba(60, 60, 60, .6)',
 						barSize: 5,
-						hasVertical: true,
-						hasHorizontal: true,
+						barState: 0,
+						hasVertical: hasVertical,
+						hasHorizontal: hasHorizontal,
 						isScrollMode: true,
 						recountByResize: true
 					},

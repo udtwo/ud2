@@ -1,6 +1,6 @@
 ﻿/// <reference path="../ud2.js" />
 
-// 开关控件
+// 内存数据表格控件
 ud2.libExtend(function (inn, ud2) {
 	'use strict';
 	

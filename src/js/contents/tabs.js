@@ -66,8 +66,9 @@ ud2.libExtend(function (inn, ud2) {
 			function titleOperate(text) {
 				if (text !== void 0) {
 					title = String(text);
-					$tab.attr('title', title).children('span').html(title);
-					$tabLink.attr('title', title).children('span').html(title);
+					t = title.replace(/<[^>]*>/g, '');
+					$tab.attr('title', t).children('span').html(title);
+					$tabLink.attr('title', t).children('span').html(title);
 					return pageObj;
 				}
 				else {
@@ -172,6 +173,8 @@ ud2.libExtend(function (inn, ud2) {
 
 			// 初始化
 			(function init() {
+				var t;
+
 				if (len === 1 && ud2.type.isObject(argObj = args[0])) {
 					pageType = argObj.type;
 					name = argObj.name;
@@ -201,12 +204,13 @@ ud2.libExtend(function (inn, ud2) {
 				setPageType(pageType);
 				name = name || inn.createControlID(TYPE_PAGE_NAME);
 				title = title || '未命名选项卡';
+				t = title.replace(/<[^>]*>/g, '');
 				details = details || (pageType === 1 ? 'about:blank' : '');
 				btnClose = inn.boolCheck(btnClose, true);
 
 				// 生成选项和描述内容对象
-				$tab = inn.jqe[0].clone().addClass(cn('tab')).attr('title', title).append(inn.jqe[1].clone().html(title));
-				$tabLink = inn.jqe[0].clone().addClass(cn('menu-item')).attr('title', title).append(inn.jqe[1].clone().html(title));
+				$tab = inn.jqe[0].clone().addClass(cn('tab')).attr('title', t).append(inn.jqe[1].clone().html(title));
+				$tabLink = inn.jqe[0].clone().addClass(cn('menu-item')).attr('title', t).append(inn.jqe[1].clone().html(title));
 				$content = $contentTemplate.clone();
 				if (btnClose) {
 					$tab.append('<i class="ico ico-solid-cancel" />');
@@ -309,7 +313,9 @@ ud2.libExtend(function (inn, ud2) {
 				// 控件回调
 				controlCallbacks = {
 					// 选项页改变时的回调
-					change: inn.noop
+					change: inn.noop,
+					// 选项页关闭时的回调
+					close: inn.noop
 				};
 
 			// #endregion
@@ -660,6 +666,8 @@ ud2.libExtend(function (inn, ud2) {
 					else {
 						moveScroll(pageOpenNow);
 					}
+
+					controlCallbacks.close.call(control.public, page);
 				}
 				else if (page) {
 					return pageRemove(pageFind(page));
@@ -709,6 +717,13 @@ ud2.libExtend(function (inn, ud2) {
 			function setChange(fn) {
 				controlCallbacks.change = fn;
 				return control.public;
+			}
+			// 设置选项页关闭时的回调函数
+			// 所回调的函数this指向事件触发的控件对象
+			// fn[function]: 回调函数
+			// return[ud2.page]: 返回该控件对象
+			function setClose(fn) {
+				controlCallbacks.close = fn;
 			}
 
 			// #endregion
@@ -809,7 +824,8 @@ ud2.libExtend(function (inn, ud2) {
 				pageOpen: pageOpen,
 				pageFind: pageFind,
 				hasName: hasName,
-				setChange: setChange
+				setChange: setChange,
+				setClose: setClose
 			});
 
 			// #endregion

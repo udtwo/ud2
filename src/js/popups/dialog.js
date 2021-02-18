@@ -338,7 +338,8 @@ ud2.libExtend(function (inn, ud2) {
 			}
 
 			// 设置尺寸
-			function size(resize) {
+			// resize[object]: 尺寸向量
+			function setSize(resize) {
 				var dialogCSS = {};
 
 				resize = getCoordinate(resize, 400, 300);
@@ -391,7 +392,7 @@ ud2.libExtend(function (inn, ud2) {
 			function rewriteCSS() {
 				var ch;
 
-				sizeHandler(size);
+				setSize(size);
 
 				// 关闭按钮
 				if (!btnClose) {
@@ -460,7 +461,7 @@ ud2.libExtend(function (inn, ud2) {
 				remove: remove,
 				setOpen: setOpen,
 				setClose: setClose,
-				size: size
+				size: setSize
 			});
 
 			// #endregion

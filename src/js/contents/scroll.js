@@ -596,9 +596,9 @@ ud2.libExtend(function (inn, ud2) {
 		}
 		// 触点抬起时触发的事件
 		function pointerUp(e) {
-			if (isMouseNoTouchMode && e.type === inn.an.event[10] ||
-				isMouseNoTouchMode && e.type === inn.an.event[13] ||
-				isOplock) return;
+			if (isMouseNoTouchMode && e.type === inn.an.event[10]
+				|| isMouseNoTouchMode && e.type === inn.an.event[13]
+				|| isOplock) return;
 
 			var // 当前坐标
 				x = scrollData.now.x,

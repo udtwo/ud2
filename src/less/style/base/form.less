@@ -4,7 +4,8 @@
  */
 
 // 导入必要的文件
-@import "../../common/import.less";
+@import "../../common/config.less";
+@import "../../common/function.less";
 
 /**
  * 公用样式
@@ -22,11 +23,13 @@
 	// 当按钮存在禁用、只读属性时显示无法交互样式
 	&[disabled], &[readonly], &.disabled {
 		cursor: default;
-		opacity: @OpacityNoImport;
-		
+
 		&:hover, &:focus {
 			border-color: @ColorWhiteBorder;
 		}
+	}
+	&[disabled], &.disabled {
+		opacity: @OpacityNoImport;
 	}
 }
 // 方形样式(强制)

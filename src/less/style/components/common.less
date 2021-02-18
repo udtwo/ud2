@@ -4,7 +4,8 @@
  */
 
 // 导入必要的文件
-@import "../../common/import.less";
+@import "../../common/config.less";
+@import "../../common/function.less";
 
 [ud2='tabs']:not([ud2-tabs-ready]),
 [ud2='page']:not([ud2-page-ready]),
@@ -96,15 +97,16 @@
 // JS控件状态样式
 .ud2-ctrl-color(@Color, @Background, @Dark) {
 	& {
-		border-color: @Color;
+		border-color: @Dark;
 	}
 
 	&:hover, &.on {
 		border-color: @Dark;
+		background: @Background;
 	}
 
 	&.on {
-		background: @Background;
+		box-shadow: inset 0 0 3px @Dark;
 	}
 
 	.ud2-ctrl-arrow {
@@ -129,7 +131,8 @@
 .ud2-address.info, .group.info > .ud2-address,
 .ud2-range.info, .group.info > .ud2-range,
 .ud2-number.info, .group.info > .ud2-number,
-.ud2-date.info, .group.info > .ud2-date {
+.ud2-date.info, .group.info > .ud2-date,
+{
 	.ud2-ctrl-color(@ColorBlueBorder, @ColorBlueBackLight, @ColorBlueBackDark);
 }
 // 成功状态样式
@@ -153,6 +156,8 @@
 .ud2-address.danger, .group.danger > .ud2-address,
 .ud2-range.danger, .group.danger > .ud2-range,
 .ud2-number.danger, .group.danger > .ud2-number,
-.ud2-date.danger, .group.danger > .ud2-date {
+.ud2-date.danger, .group.danger > .ud2-date,
+.selectized.danger + .selectize-control > .selectize-input
+{
 	.ud2-ctrl-color(@ColorRedBorder, @ColorRedBackLight, @ColorRedBackDark);
 }

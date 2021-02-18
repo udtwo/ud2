@@ -24,16 +24,18 @@ ud2.libExtend(function (inn, ud2) {
 
 			// #region 私有字段
 
-			var // 初始化默认文本  预格式化公式  日期值
-				placeholder, format, dateValue,
+			var // 初始化默认文本  预格式化公式  日期值  快捷键
+				placeholder, format, dateValue, shortkey,
 				// 获取用户自定义项
-				options = control.getOptions(['placeholder', 'format', 'value'], function (options) {
+				options = control.getOptions(['placeholder', 'format', 'value', 'shortkey'], function (options) {
 					// 初始化默认文本
 					placeholder = options.placeholder || '请选择日期';
 					// 初始化格式化选项
 					format = options.format || 'yyyy/MM/dd';
 					// 初始化日期值
 					dateValue = options.value || null;
+					// 初始化快捷键
+					shortkey = shortkey === false ? false : true;
 				}),
 				// 日期数据对象
 				dataDate = {
@@ -126,7 +128,7 @@ ud2.libExtend(function (inn, ud2) {
 				// 年份月份容器
 				$listYM = $date.find(cn('ymlist', 1)),
 				// 日期文本容器 
-				$textDate = $date.find(cn('tools-text', 1)),
+				$textDate = $listDate.find(cn('tools-text', 1)),
 				// 年月文本容器
 				$textYM = $listYM.find(cn('tools-text', 1)),
 				// 今日按钮
@@ -185,6 +187,11 @@ ud2.libExtend(function (inn, ud2) {
 					y, m, d;
 
 				if (text) {
+
+					if (text.length === 8) {
+						text = text.substring(0, 4) + '/' + text.substring(4, 6) + '/' + text.substring(6, 8);
+					}
+
 					if (formatRegCreate().test(text)) {
 						y = getYTDValue(0) || dataDate.now.getFullYear();
 						m = getYTDValue(1) || 1;
@@ -325,7 +332,7 @@ ud2.libExtend(function (inn, ud2) {
 					dataDate.setDateValue(dataDate.select.getFullYear(),
 						dataDate.select.getMonth(), this.attr(cn('date')));
 					$value.blur();
-					close(1);
+					close(true);
 				});
 			}
 			// 年份月份初始化
@@ -476,6 +483,7 @@ ud2.libExtend(function (inn, ud2) {
 
 					if (!noUpdate) {
 						val = $value.val();
+
 						if (val === '') convertDate();
 						else convertDate(val);
 					}
@@ -556,12 +564,14 @@ ud2.libExtend(function (inn, ud2) {
 			// 事件绑定
 			function bindEvent() {
 				ud2.event($power).setTap(toggle);
-				eventKeyObj = ud2.eventKeyShortcut({ autoOn: false })
-					.add(ud2.key.ENTER, function () { $value.blur(); close(); })
-					.add(ud2.key.LEFT, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 1)); })
-					.add(ud2.key.RIGHT, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 1)); })
-					.add(ud2.key.UP, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 7)); })
-					.add(ud2.key.DOWN, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7)); });
+				if (shortkey) {
+					eventKeyObj = ud2.eventKeyShortcut({ autoOn: false })
+						.add(ud2.key.ENTER, function () { $value.blur(); close(); })
+						.add(ud2.key.LEFT, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 1)); })
+						.add(ud2.key.RIGHT, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 1)); })
+						.add(ud2.key.UP, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() - 7)); })
+						.add(ud2.key.DOWN, function () { if (dataDate.value !== null) convertDate(dataDate.value.setDate(dataDate.value.getDate() + 7)); });
+				}
 
 				$value.on('focus', open);
 				ud2.callbacks.pageResize.add(resize);

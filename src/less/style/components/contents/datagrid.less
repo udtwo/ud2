@@ -4,7 +4,8 @@
  */
 
 // 导入必要的文件
-@import "../../../common/import.less";
+@import "../../../common/config.less";
+@import "../../../common/function.less";
 
 // 数据网格边框颜色
 @DatagridBorderColor: @ColorWhiteBorder;
@@ -38,6 +39,9 @@
 	&.ud2-datagrid-full {
 		height: 100%;
 	}
+
+	// ^ 项目自用
+	.size();
 }
 
 .ud2-datagrid-row {

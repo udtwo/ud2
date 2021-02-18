@@ -9,7 +9,7 @@ ud2.libExtend(function (inn, ud2) {
 		var // className存于变量
 			cls = collection.className, cn = inn.className(cls),
 			// 按钮常量
-			FOOTER_SEND = '<a class="btn">确 定</a>', FOOTER_CANCEL = '<a class="btn">取 消</a>';
+			FOOTER_SEND = '<button class="btn">确 定</button>', FOOTER_CANCEL = '<button class="btn">取 消</button>';
 
 		// 通过参数获取坐标值
 		// val[array, object, string, number]: 待转换的值
@@ -337,6 +337,31 @@ ud2.libExtend(function (inn, ud2) {
 				return null;
 			}
 
+			// 设置尺寸
+			function size(resize) {
+				var dialogCSS = {};
+
+				resize = getCoordinate(resize, 400, 300);
+
+				// 修改样式
+				if (position !== inn.an.pos[1]) {
+					dialogCSS.width = resize.x;
+					dialogCSS.height = resize.y;
+				}
+
+				if (position === inn.an.pos[2]) $dialog.addClass(cn(inn.an.pos[2]));
+				else if (position === inn.an.pos[3]) $dialog.addClass(cn(inn.an.pos[3]));
+				else if (position === inn.an.pos[5]) $dialog.addClass(cn(inn.an.pos[5]));
+				else if (position === inn.an.pos[6]) $dialog.addClass(cn(inn.an.pos[6]));
+				else if (position === inn.an.pos[1]) $dialog.addClass(cn(inn.an.pos[1]));
+				else if (position === inn.an.pos[0]) $dialog.addClass(cn(inn.an.pos[0]));
+				else {
+					dialogCSS.top = position.y;
+					dialogCSS.left = position.x;
+				}
+				$dialog.css(dialogCSS);
+			}
+
 			// #endregion
 
 			// #region 回调方法
@@ -364,25 +389,9 @@ ud2.libExtend(function (inn, ud2) {
 
 			// 样式重写
 			function rewriteCSS() {
-				var dialogCSS = {}, ch;
+				var ch;
 
-				// 修改样式
-				if (position !== inn.an.pos[1]) {
-					dialogCSS.width = size.x;
-					dialogCSS.height = size.y;
-				}
-
-				if (position === inn.an.pos[2]) $dialog.addClass(cn(inn.an.pos[2]));
-				else if (position === inn.an.pos[3]) $dialog.addClass(cn(inn.an.pos[3]));
-				else if (position === inn.an.pos[5]) $dialog.addClass(cn(inn.an.pos[5]));
-				else if (position === inn.an.pos[6]) $dialog.addClass(cn(inn.an.pos[6]));
-				else if (position === inn.an.pos[1]) $dialog.addClass(cn(inn.an.pos[1]));
-				else if (position === inn.an.pos[0]) $dialog.addClass(cn(inn.an.pos[0]));
-				else {
-					dialogCSS.top = position.y;
-					dialogCSS.left = position.x;
-				}
-				$dialog.css(dialogCSS);
+				sizeHandler(size);
 
 				// 关闭按钮
 				if (!btnClose) {
@@ -400,13 +409,7 @@ ud2.libExtend(function (inn, ud2) {
 						if (control.origin.length) ch = control.origin.html();
 						else ch = content;
 						$content.append('<iframe src="' + ch + '" />');
-						// 通过此项设置让apple中的iframe正常滚动
-						if (ud2.support.apple) {
-							$content.css({
-								'-webkit-overflow-scrolling': 'touch',
-								'overflow-y': 'scroll'
-							});
-						}
+						$content.css('overflow-y', 'hidden');
 						break;
 					}
 				}
@@ -456,7 +459,8 @@ ud2.libExtend(function (inn, ud2) {
 				close: close,
 				remove: remove,
 				setOpen: setOpen,
-				setClose: setClose
+				setClose: setClose,
+				size: size
 			});
 
 			// #endregion
@@ -489,6 +493,8 @@ ud2.libExtend(function (inn, ud2) {
 					$content = dialog.getContent(),
 					// 对话框底部对象
 					$footer = dialog.getFooterContent(),
+					// 确定按钮
+					$send = $footer.children('.btn:eq(0)'),
 					// 事件对象
 					eventObj = { send: 1 };
 
@@ -496,9 +502,21 @@ ud2.libExtend(function (inn, ud2) {
 				(function init() {
 					dialogRewriteCSS($content, ico, icoStyle, content);
 					dialog.setOpen(function () {
-						dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn);
+						$send.on('keydown', function (e) {
+							var k = e.keyCode;
+							if (k === 32 || k === 13) {
+								$(this).blur();
+								sendFn();
+								dialog.close();
+							}
+						}).focus();
+						dialogBindEvent(dialog, $footer.children('button'), eventObj, sendFn);
+					}).setClose(function () {
+						$send.off('keydown');
 					}).open();
 				}());
+
+				return dialog;
 
 			});
 
@@ -514,6 +532,10 @@ ud2.libExtend(function (inn, ud2) {
 					$content = dialog.getContent(),
 					// 对话框页脚内容
 					$footer = dialog.getFooterContent(),
+					// 确定按钮
+					$send = $footer.children('.btn:eq(0)'),
+					// 取消按钮
+					$cancel = $footer.children('.btn:eq(1)'),
 					// 事件对象
 					eventObj = { send: 1, cancel: 1 };
 
@@ -521,10 +543,32 @@ ud2.libExtend(function (inn, ud2) {
 				(function init() {
 					dialogRewriteCSS($content, ico, icoStyle, content);
 					dialog.setOpen(function () {
-						dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn, cancelFn);
+						$send.on('keydown', function (e) {
+							var k = e.keyCode;
+							if (k === 32 || k === 13) {
+								$(this).blur();
+								sendFn();
+								dialog.close();
+							}
+						}).focus();
+
+						$cancel.on('keydown', function (e) {
+							var k = e.keyCode;
+							if (k === 32 || k === 13) {
+								$(this).blur();
+								cancelFn();
+								dialog.close();
+							}
+						});
+
+						dialogBindEvent(dialog, $footer.children('button'), eventObj, sendFn, cancelFn);
+					}).setClose(function () {
+						$send.off('keydown');
+						$cancel.off('keydown');
 					}).open();
 				}());
 
+				return dialog;
 			});
 
 		};
@@ -549,10 +593,11 @@ ud2.libExtend(function (inn, ud2) {
 					dialogRewriteCSS($content, ico, icoStyle, content);
 					$content.find('td:last').append($input);
 					dialog.setOpen(function () {
-						dialogBindEvent(dialog, $footer.children('a'), eventObj, sendFn, cancelFn, $input);
+						dialogBindEvent(dialog, $footer.children('button'), eventObj, sendFn, cancelFn, $input);
 					}).open();
 				}());
 
+				return dialog;
 			});
 
 		};

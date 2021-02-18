@@ -1,5 +1,6 @@
 ﻿// 导入必要的文件
-@import "../../common/import.less";
+@import "../../common/config.less";
+@import "../../common/function.less";
 
 // 顺时针旋转动画
 .keyframesItem(fx-rotate, 0%, @prefix) { @{prefix}transform: rotate(0); }
@@ -18,6 +19,11 @@
 .keyframesItem(fx-hide, 100%, @prefix) { opacity: 0; }
 .keyframes(fx-hide);
 
+// 宽度加载动画
+.keyframesItem(fx-width-loading, 0%, @prefix) { width: 0; }
+.keyframesItem(fx-width-loading, 10%, @prefix) { width: 90%; }
+.keyframesItem(fx-width-loading, 100%, @prefix) { width: 100%; }
+.keyframes(fx-width-loading, 0%, 10%, 100%);
 // 背景滚动动画
 .keyframesItem(fx-background-striped, 0%, @prefix) { background-position: 600px 0; }
 .keyframesItem(fx-background-striped, 100%, @prefix) { background-position: 0 0; }
